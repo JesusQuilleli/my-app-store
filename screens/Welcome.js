@@ -15,7 +15,7 @@ const Welcome = ({navigation}) => {
       <Pressable
       onPressIn={() => setIsPressed(true)}
       onPressOut={() => setIsPressed(false)}
-      onPress={() => navigation.navigate('Login')}
+      onPress={() => navigation.navigate('RegistroUnico')}
       style={isPressed ? styles.btnPressed : styles.btnStarted}
       >
          <Text style={isPressed ? styles.btnPressedText : styles.btnStartedText}>
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
       backgroundColor: '#fee03e',
       padding: 15,
       borderRadius: 20,
-      borderColor: '#000',
+      borderColor: '#fff',
       borderWidth: 2,
     },
    btnStartedText:{
