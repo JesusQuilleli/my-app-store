@@ -16,3 +16,14 @@
    }
  };
 
+ //VALIDAR CAMPO DECIMAL
+
+ export const validateEntero = inputEntero => {
+  const integerRegex = /^\d+$/;
+  if (integerRegex.test(inputEntero) || inputEntero === "") {
+    return inputEntero
+  } else {
+    return false
+  }
+ }
+

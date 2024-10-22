@@ -100,7 +100,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderBottomColor: "#000",
     borderBottomWidth: 0.2,
-
   },
   title: {
     fontSize: 18,

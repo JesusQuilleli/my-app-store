@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import {
   Text,
   StyleSheet,
@@ -12,7 +12,9 @@ import { Ionicons } from "@expo/vector-icons";
 
 //IMPORT AXIOS PARA HACER PETICIONES A LA BASE DE DATOS
 import axios from "axios";
-import { AdminContext } from "../src/helpers/adminContext";
+
+//IMPORT URL
+import { url } from "../src/helpers/url";
 
 //IMPORTS VALIDACIONES Y ALERTAS
 import { validateEmail, validatePassword } from "../src/helpers/validaciones";
@@ -24,7 +26,6 @@ const RegistroUnico = ({ navigation }) => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [rolId, setRolId] = useState(1);
 
-  const { setAdminExist } = useContext(AdminContext);
 
   //MOSTRAR CONTRASEÑA
   const viewPassword = () => {
@@ -85,7 +86,7 @@ const RegistroUnico = ({ navigation }) => {
       }
 
       const response = await axios.post(
-        "http://192.168.3.61:8800/registerAdmin",
+        `${url}/registerAdmin`,
         {
           name,
           email,
@@ -94,7 +95,6 @@ const RegistroUnico = ({ navigation }) => {
         }
       );
       if (response) {
-        setAdminExist(true);
         nextAlert();
       } else {
         console.error("Error al Registrar Datos");

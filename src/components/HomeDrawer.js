@@ -8,6 +8,8 @@ import Administradores from "./sub-components/Administradores";
 
 const Drawer = createDrawerNavigator();
 
+//const adminNombre = await AsyncStorage.getItem('adminNombre'); -> PARA CONOCER QUE USUARIO ESTA EN LINEA
+
 function CustomHeader() {
   return (
     <View

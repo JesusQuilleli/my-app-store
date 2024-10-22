@@ -8,14 +8,19 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
 
+//URL
+import { url } from "../src/helpers/url";
+
 //IMPORTS VALIDACIONES Y ALERTAS
 import { validateEmail } from "../src/helpers/validaciones";
 
-//COMPONENTE DE INICIO DE SESION (AUTENTICACION)
+//GUARDAR EL ID DE MANERA LOCAL PARA USARLO DESPUES
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Login = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -44,39 +49,38 @@ const Login = ({ navigation }) => {
   //FUNCION PARA VALIDAR SESION
   const handleIniciarSesion = async () => {
     try {
+      // Validaciones de campos obligatorios
       if (!email || !password) {
         Alert.alert("Error", "Todos los campos son obligatorios", [
-          {
-            text: "OK",
-          },
+          { text: "OK" },
         ]);
         return;
       }
-
+      // Validación del formato del correo electrónico
       if (!validateEmail(email)) {
-        Alert.alert("Error", "El correo no es válido Formato Incorrecto.");
+        Alert.alert("Error", "El correo no tiene un formato válido.");
         return;
       }
-
+      // Indicador de carga
       setIsLoading(true);
-
-      const respuesta = await axios.post(
-        "http://192.168.3.61:8800/autenticacionInicio",
-        {
-          email,
-          password,
-        }
-      );
-
+      // Realizar la petición POST al backend
+      const respuesta = await axios.post(`${url}/autenticacionInicio`, {
+        email,
+        password,
+      });
       const { resultado } = respuesta.data;
-
       if (resultado) {
+        // Guardar el ID del administrador en AsyncStorage
+        await AsyncStorage.setItem("adminId", resultado.idAdmin.toString()); // Convertir a string
+
+        await AsyncStorage.setItem("adminNombre", resultado.nombre);
+
         navigation.navigate("HomeDrawer");
       } else {
         authIncorrect();
       }
-    } catch {
-      console.log("Error en la autenticacion (EN EL SERVIDOR)");
+    } catch (error) {
+      console.log("Error en la autenticación (EN EL SERVIDOR)", error);
     } finally {
       setIsLoading(false);
     }
@@ -84,12 +88,19 @@ const Login = ({ navigation }) => {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor:'#f2f3f4' }}>
-          <ActivityIndicator
-            size="large"
-            color="#fee03e"
-            style={{ transform: [{ scale: 2 }] }}
-          />
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#f2f3f4",
+        }}
+      >
+        <ActivityIndicator
+          size="large"
+          color="#fee03e"
+          style={{ transform: [{ scale: 2 }] }}
+        />
       </View>
     );
   }
@@ -135,6 +146,12 @@ const Login = ({ navigation }) => {
             onPress={handleIniciarSesion}
           >
             <Text style={styles.textButton}>Acceder</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.linkRegistro}
+            onPress={() => navigation.navigate("RegistroUnico")}
+          >
+            <Text style={styles.linkRegistroText}>Registrarse</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -217,6 +234,13 @@ const styles = StyleSheet.create({
     left: 0,
     bottom: 0,
     right: 0,
+  },
+  linkRegistro: {
+    marginTop: 20,
+  },
+  linkRegistroText: {
+    fontSize: 14,
+    color: "#ccc",
   },
 });
 

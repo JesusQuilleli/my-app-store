@@ -15,7 +15,7 @@ const Welcome = ({navigation}) => {
       <Pressable
       onPressIn={() => setIsPressed(true)}
       onPressOut={() => setIsPressed(false)}
-      onPress={() => navigation.navigate('RegistroUnico')}
+      onPress={() => navigation.navigate('Login')}
       style={isPressed ? styles.btnPressed : styles.btnStarted}
       >
          <Text style={isPressed ? styles.btnPressedText : styles.btnStartedText}>
