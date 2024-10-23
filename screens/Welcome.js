@@ -42,12 +42,15 @@ const styles = StyleSheet.create({
       marginBottom: 60
    },
    titulo:{
-      fontSize: 28,
-      fontWeight:'400'
+      fontSize: 40,
+      fontWeight:'400',
+      letterSpacing:4,
+      textAlign:'center'
    },
    tituloBold:{
       fontWeight:'700',
-      color:'#fee03e'
+      color:'#fee03e',
+      textAlign:'center'
    },
    btnStarted: {
       padding: 15,

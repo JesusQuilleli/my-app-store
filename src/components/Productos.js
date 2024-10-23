@@ -8,13 +8,15 @@ import {
   Modal,
   TextInput,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 
 //STYLES
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 //PETICIONES AL SERVIDOR
 import axios from "axios";
@@ -42,31 +44,28 @@ const Productos = () => {
   //FORMULARIO PARA AGREGAR PRODUCTOS
   const [formProducto, setFormProducto] = useState(false);
 
-  //USE CARGAR CATEGORIAS
-  useEffect(() => {
-    const cargarCategorias = async () => {
-      try {
-        const adminIdString = await AsyncStorage.getItem("adminId");
-        if (adminIdString === null) {
-          console.log("ID de administrador no encontrado.");
-          return;
-        }
-        const adminId = parseInt(adminIdString, 10);
-        if (isNaN(adminId)) {
-          console.log("ID de administrador no es un número válido.");
-          return;
-        }
-        const respuesta = await axios.get(`${url}/cargarCategorias/${adminId}`);
-        const categoriasPlanas = respuesta.data.resultado
-          ? respuesta.data.resultado[0]
-          : [];
-        setCategorias(categoriasPlanas);
-      } catch (error) {
-        console.log("Error al cargar categorías", error);
+  //FUNCION CARGAR CATEGORIAS
+  const cargarCategorias = async () => {
+    try {
+      const adminIdString = await AsyncStorage.getItem("adminId");
+      if (adminIdString === null) {
+        console.log("ID de administrador no encontrado.");
+        return;
       }
-    };
-    cargarCategorias();
-  }, []);
+      const adminId = parseInt(adminIdString, 10);
+      if (isNaN(adminId)) {
+        console.log("ID de administrador no es un número válido.");
+        return;
+      }
+      const respuesta = await axios.get(`${url}/cargarCategorias/${adminId}`);
+      const categoriasPlanas = respuesta.data.resultado
+        ? respuesta.data.resultado[0]
+        : [];
+      setCategorias(categoriasPlanas);
+    } catch (error) {
+      console.log("Error al cargar categorías", error);
+    }
+  };
 
   //FUNCION CARGAR PRODUCTOS
   const cargarProductos = async () => {
@@ -89,10 +88,66 @@ const Productos = () => {
     }
   };
 
+  //FUNCION PARA FILTRAR CATEGORIAS
+  const categoryFilter = async (categoria_id) => {
+    try {
+      const adminIdString = await AsyncStorage.getItem("adminId");
+      if (adminIdString === null) {
+        console.log("ID de administrador no encontrado.");
+        return;
+      }
+      const adminId = parseInt(adminIdString, 10);
+      if (isNaN(adminId)) {
+        console.log("ID de administrador no es un número válido.");
+        return;
+      }
+      const response = await axios.get(`${url}/filtrarCategorias/${adminId}`, {
+        params: { categoria_id: categoria_id },
+      });
+      if (response) {
+        setProductos(response.data.response);
+      } else {
+        console.error("Error al Filtrar Correctamente");
+      }
+    } catch (error) {
+      console.error("Error al Filtrar Correctamente", error);
+    }
+  };
+
+  //FUNCION BUSCAR PRODUCTOS
+  const searchProducto = async (nombre) => {
+    try {
+      const response = await axios.get(`${url}/buscarProductos`, {
+        params: { nombre: nombre },
+      });
+
+      if (response.data && response.data.response.length > 0) {
+        setProductos(response.data.response);
+      } else {
+        console.log("No se encontraron productos.");
+        setProductos([]);
+      }
+    } catch (error) {
+      console.log("Error en la busqueda Front-End", error);
+    }
+  };
+
+  //VER TODOS LOS PRODUCTOS
+  async function verProductos() {
+    setProductos([]);
+    await cargarProductos();
+  }
+
   //USE CARGAR PRODUCTOS
   useEffect(() => {
     cargarProductos();
+    cargarCategorias();
   }, []);
+
+  //CALLBACK DE CERRAR EL MODAL DE INFORMACION AL ELIMINAR EL PRODUCTO
+  const closeInformacion = () => {
+    setModalProducto(false);
+  };
 
   //FUNCION PARA SELECCIONAR PRODUCTO
   const productIndex = (id) => {
@@ -102,7 +157,7 @@ const Productos = () => {
     if (productoSeleccionado) {
       setProducto({
         ...productoSeleccionado,
-        IMAGEN: `${urlBase}${productoSeleccionado.IMAGEN}`
+        IMAGEN: `${urlBase}${productoSeleccionado.IMAGEN}`,
       });
       setModalProducto(true);
     } else {
@@ -122,114 +177,171 @@ const Productos = () => {
         <Text style={styles.defecto}>Cantidad: {cantidad} Unidades</Text>
       </View>
       <View style={styles.boxImagen}>
-      <Text></Text>
-      {!imagen.includes('null') ? (
-        <Image source={{ uri: imagen }} style={styles.image} />
-      ) : (
-        <View><MaterialCommunityIcons name="image-remove" size={80} color="#fcd53f" /></View>
-      )}
-    </View>
+        <Text></Text>
+        {!imagen.includes("null") ? (
+          <Image source={{ uri: imagen }} style={styles.image} />
+        ) : (
+          <View>
+            <MaterialCommunityIcons
+              name="image-remove"
+              size={80}
+              color="#fcd53f"
+            />
+          </View>
+        )}
+      </View>
     </View>
   );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.titulo}>
-        Inventario <Text style={styles.tituloBold}>Productos</Text>
-      </Text>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+      keyboardVerticalOffset={80}
+    >
+      <View style={styles.container}>
+        <Text style={styles.titulo}>
+          Inventario <Text style={styles.tituloBold}>Productos</Text>
+        </Text>
 
-      <View style={styles.boxCategoria}>
-        <Text style={styles.categoriasText}>Categorias</Text>
-        <Picker
-          style={styles.picker}
-          selectedValue={categoriaSeleccionada}
-          onValueChange={(itemValue) => setCategoriaSeleccionada(itemValue)}
-        >
-          {categorias && categorias.length > 0 ? (
-            categorias.map((categoria) => (
+        <View style={styles.boxCategoria}>
+          <Text style={styles.categoriasText}>
+            <Text style={{ color: "#000" }}>Filtrar por {"\n"}</Text>Categorias
+          </Text>
+          <Picker
+            style={styles.picker}
+            selectedValue={categoriaSeleccionada}
+            onValueChange={(itemValue) => {
+              if (itemValue === "all") {
+                verProductos();
+                setCategoriaSeleccionada(itemValue);
+              } else {
+                setCategoriaSeleccionada(itemValue);
+                categoryFilter(itemValue);
+              }
+            }}
+          >
+            {categorias.length > 0 && (
+              <Picker.Item label="Ver Todas" value="all" />
+            )}
+
+            {categorias && categorias.length > 0 ? (
+              categorias.map((categoria) => (
+                <Picker.Item
+                  key={categoria.ID_CATEGORIA}
+                  label={categoria.NOMBRE}
+                  value={categoria.ID_CATEGORIA}
+                />
+              ))
+            ) : (
               <Picker.Item
-                key={categoria.ID_CATEGORIA}
-                label={categoria.NOMBRE}
-                value={categoria.ID_CATEGORIA}
+                label="Cargando o Sin Categorias Registradas"
+                value=""
               />
-            ))
-          ) : (
-            <Picker.Item label="No hay Categorias Registradas" value="" />
+            )}
+          </Picker>
+
+          {productos.length > 0 && (
+            <TouchableOpacity
+              style={styles.btnBusqueda}
+              onPress={() => {
+                setRenderBusqueda(!renderBusqueda);
+              }}
+            >
+              <Text>
+                <FontAwesome name="search" size={24} color="black" />
+              </Text>
+            </TouchableOpacity>
           )}
-        </Picker>
+        </View>
+
+        {productos && renderBusqueda && (
+          <View style={styles.boxInput}>
+            <TextInput
+              placeholder="Buscar Productos"
+              style={styles.textInput}
+              onChangeText={(value) => {
+                if (value.length > 0) {
+                  searchProducto(value);
+                } else {
+                  verProductos();
+                }
+              }}
+            />
+          </View>
+        )}
+
+        <View style={styles.tableProductos}>
+          {productos && productos.length > 0 ? (
+            <FlatList
+              data={productos}
+              keyExtractor={(item) => item.ID_PRODUCTO}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onLongPress={() => productIndex(item.ID_PRODUCTO)}
+                >
+                  <Item
+                    categoria={item.CATEGORIA}
+                    nombre={item.PRODUCTO}
+                    precio={item.PRECIO}
+                    cantidad={item.CANTIDAD}
+                    imagen={`${urlBase}${item.IMAGEN}`}
+                  />
+                </TouchableOpacity>
+              )}
+            />
+          ) : (
+            <View style={styles.cNoProductos}>
+              <Text style={styles.tNoProductos}>
+                ...{" "}
+                <Text style={{ fontSize: 10 }}>
+                  Cargando
+                </Text>
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/*MODAL PARA GUARDAR UN PRODUCTO */}
+
+        <Modal visible={formProducto} animationType="slide">
+          <FormularioProductos
+            setFormProducto={setFormProducto}
+            categorias={categorias}
+            setCategoriaSeleccionada={setCategoriaSeleccionada}
+            categoriaSeleccionada={categoriaSeleccionada}
+            cargarProductos={cargarProductos}
+            cargarCategorias={cargarCategorias}
+            productos={productos}
+          />
+        </Modal>
+
+        {/*MODAL PARA MODIFICAR PRODUCTO Y DAR INFORMACION */}
+
+        <Modal visible={modalproducto} animationType="slide">
+          <InformacionProductos
+            producto={producto}
+            setProducto={setProducto}
+            setModalProducto={setModalProducto}
+            cargarProductos={cargarProductos}
+            cargarCategorias={cargarCategorias}
+            categorias={categorias}
+            categoriaSeleccionada={categoriaSeleccionada}
+            setCategoriaSeleccionada={setCategoriaSeleccionada}
+            closeInformacion={closeInformacion}
+          />
+        </Modal>
+
         <TouchableOpacity
-          style={styles.btnBusqueda}
-          onPress={() => {
-            setRenderBusqueda(!renderBusqueda);
-          }}
+          style={styles.btnAgregar}
+          onPress={() => setFormProducto(true)}
         >
           <Text>
-            <FontAwesome name="search" size={24} color="black" />
+            <FontAwesome6 name="add" size={30} color="#fff" />
           </Text>
         </TouchableOpacity>
       </View>
-
-      {renderBusqueda && (
-        <View style={styles.boxInput}>
-          <TextInput placeholder="Buscar Productos" style={styles.textInput} />
-        </View>
-      )}
-
-      <View style={styles.tableProductos}>
-        {productos && productos.length > 0 ? (
-          <FlatList
-            data={productos}
-            keyExtractor={(item) => item.ID_PRODUCTO}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                onLongPress={() => productIndex(item.ID_PRODUCTO)}
-              >
-                <Item
-                  categoria={item.CATEGORIA}
-                  nombre={item.PRODUCTO}
-                  precio={item.PRECIO}
-                  cantidad={item.CANTIDAD}
-                  imagen={`${urlBase}${item.IMAGEN}`}
-                />
-              </TouchableOpacity>
-            )}
-          />
-        ) : (
-          <View style={styles.cNoProductos}>
-            <Text style={styles.tNoProductos}>
-              No hay productos registrados.
-            </Text>
-          </View>
-        )}
-      </View>
-
-      <Modal visible={formProducto} animationType="slide">
-        <FormularioProductos
-          setFormProducto={setFormProducto}
-          categorias={categorias}
-          setCategoriaSeleccionada={setCategoriaSeleccionada}
-          categoriaSeleccionada={categoriaSeleccionada}
-          cargarProductos={cargarProductos}
-        />
-      </Modal>
-
-      <Modal visible={modalproducto} animationType="slide">
-        <InformacionProductos
-          producto={producto}
-          setProducto={setProducto}
-          setModalProducto={setModalProducto}
-        />
-      </Modal>
-
-      <TouchableOpacity
-        style={styles.btnAgregar}
-        onPress={() => setFormProducto(true)}
-      >
-        <Text>
-          <FontAwesome6 name="add" size={30} color="#fff" />
-        </Text>
-      </TouchableOpacity>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -269,14 +381,15 @@ const styles = StyleSheet.create({
   },
   boxInput: {
     backgroundColor: "#efefef",
-    marginBottom: 5,
+    marginBottom: 25,
     width: "90%",
-    borderColor: "#000",
-    borderWidth: 1,
-    borderRadius: 15
+    borderColor: "#fcd53f",
+    borderWidth: 0.5,
+    borderRadius: 15,
   },
   textInput: {
     padding: 8,
+    color: "#ccc",
   },
   picker: {
     width: 200,
@@ -319,8 +432,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   tNoProductos: {
-    fontSize: 22,
+    fontSize: 46,
     fontWeight: "bold",
+    color: "#000",
   },
   btnAgregar: {
     backgroundColor: "#2e252a",

@@ -1,17 +1,94 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
-import * as ImagePicker from 'expo-image-picker';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Modal,
+  Alert,
+} from "react-native";
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+//STYLES
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import Feather from "@expo/vector-icons/Feather";
+import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
-import Ionicons from '@expo/vector-icons/Ionicons';
+//IMPORTS BACKEND
+import axios from "axios";
+import { url } from "../../helpers/url";
 
-const InformacionProductos = ({setModalProducto, producto, setProducto}) => {
+//COMPONENTE FORMULARIO
+import FormularioProductos from "./FormularioProductos";
 
-   const handleClose = () => {
-      setModalProducto(false);
-      setProducto({});
-    };
+const InformacionProductos = ({
+  setModalProducto,
+  producto,
+  setProducto,
+  categorias,
+  setCategoriaSeleccionada,
+  categoriaSeleccionada,
+  cargarProductos,
+  closeInformacion,
+}) => {
+  const handleClose = () => {
+    setModalProducto(false);
+    setOptions(false);
+    setProducto({});
+  };
+
+  //FUNCIONES ELIMINAR PRODUCTOS
+  const deleteProduct = async (id_producto) => {
+    try {
+      const response = await axios.delete(
+        `${url}/deleteProduct/${id_producto}`
+      );
+      if (response) {
+        console.log("Producto Eliminado Correctamente", id_producto);
+      } else {
+        console.log("No se pudo eliminar el producto");
+      }
+    } catch (error) {
+      console.log("Error al eliminar el producto", error);
+    }
+  };
+
+  const handleEliminar = async () => {
+    const productInteger = parseInt(producto.ID_PRODUCTO);
+
+    // Mostrar alerta de confirmación
+    Alert.alert(
+      "Eliminar Producto",
+      "¿Estás seguro de que deseas eliminar este producto?",
+      [
+        {
+          text: "Cancelar", // Opción para cancelar la eliminación
+          onPress: () => console.log("Eliminación cancelada"),
+          style: "cancel",
+        },
+        {
+          text: "Eliminar", // Opción para confirmar la eliminación
+          onPress: async () => {
+            try {
+              await deleteProduct(productInteger); // Eliminar el producto
+              cargarProductos();
+              setModalProducto(false);
+            } catch (error) {
+              console.error("Error al eliminar el producto:", error);
+            }
+          },
+          style: "destructive", // Cambia el estilo para dar un aspecto más serio
+        },
+      ],
+      { cancelable: true } // Permite cancelar tocando fuera de la alerta
+    );
+  };
+
+  const [options, setOptions] = useState(false);
+
+  const [formProductoAcciones, setFormProducto] = useState(false);
 
   return (
     <View style={styles.container}>
@@ -32,7 +109,13 @@ const InformacionProductos = ({setModalProducto, producto, setProducto}) => {
 
         <View style={styles.campo}>
           <Text style={styles.label}>Descripcion</Text>
-          <Text style={styles.valor}>{producto.DESCRIPCION}</Text>
+          <Text style={styles.valor}>
+            {producto.DESCRIPCION === "" || producto.DESCRIPCION === " " ? (
+              <Text style={{color: '#f00'}}>SIN DESCRIPCION</Text>
+            ) : (
+              producto.DESCRIPCION
+            )}
+          </Text>
         </View>
 
         <View style={styles.campo}>
@@ -47,19 +130,89 @@ const InformacionProductos = ({setModalProducto, producto, setProducto}) => {
 
         <View style={styles.campo}>
           <Text style={styles.label}>Imagen</Text>
-          {(producto.IMAGEN.includes('null')) ? (
-            <View style={{margin: 'auto', }}>
-            <MaterialCommunityIcons name="image-remove" size={200} color="#fcd53f" />
+          {producto.IMAGEN.includes("null") ? (
+            <View style={{ margin: "auto" }}>
+              <MaterialCommunityIcons
+                name="image-remove"
+                size={200}
+                color="#fcd53f"
+              />
             </View>
           ) : (
             <Image source={{ uri: producto.IMAGEN }} style={styles.image} />
           )}
         </View>
+
+        <View style={styles.boxAcciones}>
+          <TouchableOpacity
+            onPress={() => {
+              setOptions(!options);
+            }}
+          >
+            <Text
+              style={[
+                styles.label,
+                {
+                  textAlign: "center",
+                  marginTop: 5,
+                  padding: 10,
+                  backgroundColor: "#2e252a",
+                  borderRadius: 25,
+                  color: "#FFF",
+                },
+              ]}
+            >
+              <SimpleLineIcons name="options" size={24} color="#FFF" />
+            </Text>
+          </TouchableOpacity>
+          {options && (
+            <View style={{ alignItems: "center" }}>
+              <TouchableOpacity
+                style={styles.btnEditar}
+                onPress={() => {
+                  setFormProducto(!formProductoAcciones);
+                }}
+              >
+                <Text style={{ textAlign: "center" }}>
+                  <Feather name="edit" size={24} color="#fff" />
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.btnEliminar}
+                onPress={handleEliminar}
+              >
+                <Text style={{ textAlign: "center" }}>
+                  <AntDesign name="delete" size={24} color="black" />
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
       </View>
+
+      {formProductoAcciones && (
+        <Modal animationType="slide">
+          <FormularioProductos
+            setFormProducto={setFormProducto}
+            formProductoAcciones={formProductoAcciones}
+            producto={producto}
+            setProducto={setProducto}
+            categorias={categorias}
+            setCategoriaSeleccionada={setCategoriaSeleccionada}
+            categoriaSeleccionada={categoriaSeleccionada}
+            setOptions={setOptions}
+            cargarProductos={cargarProductos}
+            setModalProducto={setModalProducto}
+            closeInformacion={closeInformacion}
+          />
+        </Modal>
+      )}
 
       <View>
         <TouchableOpacity style={styles.btnCerrar} onPress={handleClose}>
-          <Text style={styles.btnCerrarTexto}><Ionicons name="return-down-back" size={24} color="#FFF" /></Text>
+          <Text style={styles.btnCerrarTexto}>
+            <Ionicons name="return-down-back" size={24} color="#FFF" />
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -141,11 +294,30 @@ const styles = StyleSheet.create({
     color: "#334155",
   },
   image: {
-    width: '100%',
+    width: "100%",
     height: 200,
     borderRadius: 50,
     marginTop: 10,
-    borderColor: '#fcd53f',
-    borderWidth: 1
+    borderColor: "#fcd53f",
+    borderWidth: 1,
+  },
+  boxAcciones: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    marginRight: 15,
+    marginTop: 10,
+  },
+  btnEditar: {
+    padding: 10,
+    backgroundColor: "#80d7fb",
+    borderRadius: 50,
+    marginTop: 4,
+  },
+  btnEliminar: {
+    padding: 10,
+    backgroundColor: "#f10808",
+    borderRadius: 50,
+    marginTop: 4,
   },
 });

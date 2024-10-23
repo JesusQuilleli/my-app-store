@@ -1,5 +1,5 @@
 //IMPORTS REACT Y REACT - NATIVE
-import { View, ActivityIndicator } from "react-native";
+import { KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from "react-native";
 import React, { useContext } from "react";
 
 //IMPORTS PARA LA NAVEGACIÓN
@@ -17,48 +17,50 @@ export default function App() {
   const Stack = createStackNavigator();
 
   function MyStack() {
-    
     return (
       <Stack.Navigator initialRouteName="Welcome">
-        
-          <Stack.Screen
-            name="Login"
-            component={Login}
-            options={{
-              title: "INICIAR SESION",
-              headerTintColor: "#000",
-              headerTitleAlign: "center",
-              headerStyle: { backgroundColor: "#fee03e" },
-              headerLeft: () => null,
-            }}
-          />
-        
-          <Stack.Screen
-            name="Welcome"
-            component={Welcome}
-            options={{ headerShown: false }}
-          />
-        
+        <Stack.Screen
+          name="Login"
+          component={Login}
+          options={{
+            headerShown: false,
+          }}
+        />
 
-        <Stack.Screen name="HomeDrawer" component={HomeDrawer} options={{headerShown: false}}/>
+        <Stack.Screen
+          name="Welcome"
+          component={Welcome}
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="HomeDrawer"
+          component={HomeDrawer}
+          options={{ headerShown: false }}
+        />
 
         <Stack.Screen
           name="RegistroUnico"
           component={RegistroUnico}
           options={{
-            title: "REGISTRO ADMINISTRADOR",
-            headerTintColor: "#000",
-            headerTitleAlign: "center",
-            headerStyle: { backgroundColor: "#fee03e" },
+            headerShown: false,
           }}
         />
       </Stack.Navigator>
     );
   }
-
+// TouchableWithoutFeedback -> USAR GESTOS EN LA APLICACION
+// KeyboardAvoidingView -> RENDERIZAR MEJOR EL TECLADO
   return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}> 
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+    > 
       <NavigationContainer>
         <MyStack />
       </NavigationContainer>
+    </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 }

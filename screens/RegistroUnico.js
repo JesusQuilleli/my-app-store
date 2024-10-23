@@ -107,7 +107,8 @@ const RegistroUnico = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.contentTittle}>
-        <Text style={styles.contentTittleText}>Bienvenid@</Text>
+        <Text style={styles.contentTittleText}>Bienvenid<Text style={{color:'#000', fontSize: 42, fontWeight: '700', fontStyle:'italic'}}>o</Text></Text>
+        <Text style={styles.contentTittleText}><Text style={{fontSize: 36, textAlign:'center', color:'#fad105'}}>Registrate Aqui</Text></Text>
       </View>
 
       <View style={styles.cardLogin}>
@@ -153,10 +154,17 @@ const RegistroUnico = ({ navigation }) => {
             style={styles.boxButton}
             onPress={handleRegisterAdmin}
           >
-            <Text style={styles.textButton}>Guardar</Text>
+            <Text style={styles.textButton}>Registrarme</Text>
           </TouchableOpacity>
         </View>
+        <TouchableOpacity
+              style={styles.linkRegistro}
+              onPress={() => navigation.navigate("Login")}
+            >
+              <Text style={styles.linkRegistroText}>Login</Text>
+            </TouchableOpacity>
       </View>
+      
     </View>
   );
 };
@@ -164,12 +172,12 @@ const RegistroUnico = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: 'flex-start',
     alignItems: "center",
     backgroundColor: "#fff",
   },
   cardLogin: {
-    margin: 20,
+    marginTop: 40,
     backgroundColor: "#fff",
     borderRadius: 20,
     width: "90%",
@@ -184,12 +192,14 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   contentTittle: {
-    position: "relative",
-    top: -50,
+    marginTop: 125
   },
   contentTittleText: {
-    fontSize: 24,
+    fontSize: 40,
     fontWeight: "700",
+    textAlign:'center',
+    fontStyle:'italic',
+    letterSpacing:4
   },
   boxText: {
     paddingVertical: 20,
@@ -221,15 +231,28 @@ const styles = StyleSheet.create({
   },
   boxButton: {
     backgroundColor: "#fee03e",
-    borderRadius: 30,
+    borderRadius: 15,
     paddingVertical: 20,
     paddingHorizontal: 15,
     marginTop: 20,
+    width:'80%'
   },
   textButton: {
     color: "#000",
     fontWeight: "600",
-    fontSize: 16,
+    fontSize: 20,
+    textAlign:'center',
+    letterSpacing: 6
+  },
+  linkRegistro: {
+    marginTop: 20,
+    alignItems:'center'
+  },
+  linkRegistroText: {
+    fontSize: 14,
+    color: "#ccc",
+    textTransform: 'uppercase',
+    letterSpacing: 5
   },
 });
 

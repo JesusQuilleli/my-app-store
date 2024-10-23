@@ -8,8 +8,8 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  Pressable,
 } from "react-native";
+
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
 
@@ -40,7 +40,7 @@ const Login = ({ navigation }) => {
       "Autenticación Fallida, Verifique los Datos Ingresados",
       [
         {
-          text: "Intentarlo nuevamente",
+          text: "OK",
         },
       ]
     );
@@ -81,6 +81,7 @@ const Login = ({ navigation }) => {
       }
     } catch (error) {
       console.log("Error en la autenticación (EN EL SERVIDOR)", error);
+      authIncorrect();
     } finally {
       setIsLoading(false);
     }
@@ -106,75 +107,88 @@ const Login = ({ navigation }) => {
   }
 
   return (
-    <View style={styles.container}>
-      <View>
-        <Image
-          source={require("../assets/resources/perfil.webp")}
-          style={styles.imagenProfile}
-        />
-      </View>
-      <View style={styles.cardLogin}>
-        <View style={styles.boxText}>
-          <TextInput
-            placeholder="Email@email.com"
-            style={styles.boxInput}
-            value={email}
-            onChangeText={(email) => setEmail(email.toLowerCase())}
+      <View style={styles.container}>
+        <View>
+          <Image
+            source={require("../assets/resources/perfil.webp")}
+            style={styles.imagenProfile}
           />
+          <Text style={styles.titulo}>Iniciar{' '}<Text style ={styles.tituloBold}>Sesión</Text></Text>
         </View>
-
-        <View style={styles.boxText_Password}>
-          <TextInput
-            style={styles.boxInput_Password}
-            placeholder="Contraseña"
-            value={password}
-            onChangeText={(password) => setPassword(password)}
-            secureTextEntry={!passwordVisible}
-          />
-          <TouchableOpacity onPress={viewPassword} style={styles.eyeIcon}>
-            <Ionicons
-              name={passwordVisible ? "eye-off" : "eye"}
-              size={24}
-              color="black"
+        <View style={styles.cardLogin}>
+          <View style={styles.boxText}>
+            <TextInput
+              placeholder="email@email.com"
+              style={styles.boxInput}
+              value={email}
+              onChangeText={(email) => setEmail(email.toLowerCase())}
+              keyboardType="email-address"
             />
-          </TouchableOpacity>
-        </View>
+          </View>
 
-        <View style={styles.containerButton}>
-          <TouchableOpacity
-            style={styles.boxButton}
-            onPress={handleIniciarSesion}
-          >
-            <Text style={styles.textButton}>Acceder</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.linkRegistro}
-            onPress={() => navigation.navigate("RegistroUnico")}
-          >
-            <Text style={styles.linkRegistroText}>Registrarse</Text>
-          </TouchableOpacity>
+          <View style={styles.boxText_Password}>
+            <TextInput
+              style={styles.boxInput_Password}
+              placeholder="Contraseña"
+              value={password}
+              onChangeText={(password) => setPassword(password)}
+              secureTextEntry={!passwordVisible}
+            />
+            <TouchableOpacity onPress={viewPassword} style={styles.eyeIcon}>
+              <Ionicons
+                name={passwordVisible ? "eye-off" : "eye"}
+                size={24}
+                color="black"
+              />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.containerButton}>
+            <TouchableOpacity
+              style={styles.boxButton}
+              onPress={handleIniciarSesion}
+            >
+              <Text style={styles.textButton}>Acceder</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.linkRegistro}
+              onPress={() => navigation.navigate("RegistroUnico")}
+            >
+              <Text style={styles.linkRegistroText}>Registrarse</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
-    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: 'flex-start',
     alignItems: "center",
     backgroundColor: "#fff",
   },
   imagenProfile: {
-    width: 120,
-    height: 120,
+    width: 100,
+    height: 100,
     borderRadius: 50,
     borderColor: "#000",
     borderWidth: 1,
+    margin:'auto',
+    marginTop: 125
   },
+  titulo:{
+    fontSize: 30,
+    fontWeight:'700',
+    marginTop: 20
+ },
+ tituloBold:{
+    fontWeight:'900',
+    color:'#fee03e'
+ },
   cardLogin: {
-    margin: 20,
+    marginTop: 30,
     backgroundColor: "#fff",
     borderRadius: 20,
     width: "90%",
@@ -218,15 +232,18 @@ const styles = StyleSheet.create({
   },
   boxButton: {
     backgroundColor: "#fee03e",
-    borderRadius: 30,
+    borderRadius: 15,
     paddingVertical: 20,
     paddingHorizontal: 15,
     marginTop: 20,
+    width:'80%'
   },
   textButton: {
     color: "#000",
     fontWeight: "600",
-    fontSize: 16,
+    fontSize: 20,
+    textAlign:'center',
+    letterSpacing: 6
   },
   absolute: {
     position: "absolute",
@@ -241,6 +258,8 @@ const styles = StyleSheet.create({
   linkRegistroText: {
     fontSize: 14,
     color: "#ccc",
+    textTransform: 'uppercase',
+    letterSpacing: 5
   },
 });
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -36,13 +36,22 @@ const FormularioProductos = ({
   setCategoriaSeleccionada,
   categoriaSeleccionada,
   cargarProductos,
+  formProductoAcciones,
+  productos,
+  producto, // SE GUARDA EL PRODUCTO SELECCIONADO
+  setOptions,
+  closeInformacion,
 }) => {
-  //DATOS DEL PRODUCTO A LA BASE DE DATOS
-  const [categoria, setCategoria] = useState(0);
-  const [nombre, setNombre] = useState("");
-  const [descripcion, setDescripcion] = useState("");
-  const [precio, setPrecio] = useState(0);
-  const [cantidad, setCantidad] = useState(0);
+  //ALMACENAMIENTO DE DATOS DEL PRODUCTO A LA BASE DE DATOS
+  const [categoria, setCategoria] = useState(
+    producto ? producto.CATEGORIA_ID : 0
+  );
+  const [nombre, setNombre] = useState(producto ? producto.PRODUCTO : "");
+  const [descripcion, setDescripcion] = useState(
+    producto ? producto.DESCRIPCION : ""
+  );
+  const [precio, setPrecio] = useState(producto ? producto.PRECIO : 0);
+  const [cantidad, setCantidad] = useState(producto ? producto.CANTIDAD : 0);
   const [image, setImage] = useState(null);
 
   //CARGA
@@ -101,10 +110,7 @@ const FormularioProductos = ({
           name: "imagen.jpg", // O el nombre del archivo
           type: "image/jpeg", // O el tipo de archivo correcto
         });
-      } else {
-        Alert.alert("Error", "No se ha seleccionado ninguna imagen.");
-        return; // Salir si no hay imagen
-      }
+      } 
 
       // Esperar a que se registre el producto
       const response = await axios.post(`${url}/registerProduct`, formData, {
@@ -112,14 +118,6 @@ const FormularioProductos = ({
           "Content-Type": "multipart/form-data", // Importante para enviar archivos
         },
       });
-
-      // Mostrar los datos que se están enviando al backend
-      console.log(categoria);
-      console.log(nombre);
-      console.log(descripcion);
-      console.log(precio);
-      console.log(cantidad);
-      console.log(image);
 
       // Si la respuesta es exitosa
       if (response.status === 200) {
@@ -150,6 +148,66 @@ const FormularioProductos = ({
     }
   };
 
+  const updateProduct = async (id_producto) => {
+    try {
+      setIsLoading(true);
+
+      // Crear un objeto FormData para enviar el producto y la imagen
+      const formData = new FormData();
+      formData.append("categoria", categoria);
+      formData.append("nombre", nombre);
+      formData.append("descripcion", descripcion);
+      formData.append("precio", precio);
+      formData.append("cantidad", cantidad);
+
+      // Asegúrate de que 'image' contenga un URI válido solo si se cambia la imagen
+      if (image) {
+        formData.append("imagen", {
+          uri: image, // URI de la imagen seleccionada
+          name: "imagen.jpg", // O el nombre del archivo
+          type: "image/jpeg", // O el tipo de archivo correcto
+        });
+      }
+
+      // Enviar la solicitud para modificar el producto
+      const response = await axios.put(
+        `${url}/updateProduct/${id_producto}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data", // Importante para enviar archivos
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        // Llamar a la función para recargar los productos
+        await cargarProductos();
+
+        // Mostrar alerta de éxito
+        Alert.alert("Éxito", "Producto modificado correctamente", [
+          {
+            text: "OK",
+            onPress: () => {
+              setFormProducto(false);
+              closeInformacion();
+            },
+          },
+        ]);
+      } else {
+        Alert.alert("Error", "No se pudo modificar el producto");
+      }
+    } catch (error) {
+      console.log("Error al modificar el producto:", error);
+      Alert.alert(
+        "Error",
+        "Ocurrió un error al intentar modificar el producto"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const cleaningInputs = () => {
     setCategoria(0);
     setNombre("");
@@ -159,19 +217,14 @@ const FormularioProductos = ({
     setImage(null);
 
     setCategoriaSeleccionada("Seleccione Categoria");
-    setFormProducto(false);
   };
 
   const handleProducto = () => {
-    if (
-      !categoria ||
-      !nombre ||
-      !descripcion ||
-      !precio ||
-      !cantidad ||
-      !image
-    ) {
-      Alert.alert("Error", "Todos los campos son obligatorios");
+    if (!categoria || !nombre || !precio || !cantidad) {
+      Alert.alert(
+        "Error",
+        "Los campos Categoria, Nombre, Precio, Cantidad, Son Obligatorios!"
+      );
       return;
     }
 
@@ -184,51 +237,162 @@ const FormularioProductos = ({
     cleaningInputs();
   };
 
+  const handleModificar = async () => {
+    const productInteger = parseInt(producto.ID_PRODUCTO);
+
+    if (
+      !categoriaSeleccionada ||
+      !categoria ||
+      !nombre ||
+      !precio ||
+      !cantidad
+    ) {
+      Alert.alert(
+        "Error al Modificar",
+        "Los campos Categoria, Nombre, Precio, Cantidad, Son Obligatorios"
+      );
+      return;
+    }
+
+    if (!validateEntero(cantidad)) {
+      Alert.alert("Error", "La Cantidad debe ser un Numero Entero");
+      return;
+    }
+
+    try {
+      await updateProduct(productInteger);
+      cargarProductos();
+    } catch (error) {
+      console.error("Error al modificar el producto:", error);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <View></View>
-      <ScrollView>
-        <View style={styles.contenido}>
-          <TouchableOpacity
-            style={styles.btnCerrar}
-            onPress={() => {
-              setFormProducto(false);
+    {isLoading && (
+        <View
+            style={{
+                position: "absolute", 
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                justifyContent: "center",
+                alignItems: "center",
+                backgroundColor: "rgba(242, 243, 244, 0.8)", 
+                zIndex: 1000,
             }}
-          >
-            <Ionicons name="close-sharp" size={30} color="#FFF" />
-          </TouchableOpacity>
-          <Text style={styles.titulo}>
-            Agregar Productos al{" "}
-            <Text style={styles.tituloBold}>Inventario</Text>
-          </Text>
+        >
+            <ActivityIndicator
+                size="large"
+                color="#fee03e"
+                style={{ transform: [{ scale: 2 }] }}
+            />
+        </View>
+    )}
+      <ScrollView>
+      
+        <View style={styles.contenido}>
+          {producto ? (
+            <TouchableOpacity
+              style={styles.btnCerrar}
+              onPress={() => {
+                setFormProducto(false);
+                setCategoriaSeleccionada("");
+                setOptions(false);
+              }}
+            >
+              <Ionicons name="close-sharp" size={30} color="#FFF" />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={styles.btnCerrar}
+              onPress={() => {
+                setFormProducto(false);
+                setCategoriaSeleccionada("");
+              }}
+            >
+              <Ionicons name="close-sharp" size={30} color="#FFF" />
+            </TouchableOpacity>
+          )}
+
+          {formProductoAcciones ? (
+            <Text style={styles.titulo}>
+              Modificar Producto del{" "}
+              <Text style={styles.tituloBold}>Inventario</Text>
+            </Text>
+          ) : (
+            <Text style={styles.titulo}>
+              Agregar Productos al{" "}
+              <Text style={styles.tituloBold}>Inventario</Text>
+            </Text>
+          )}
+
           <View style={styles.campo}>
             <Text style={styles.label}>Categoria</Text>
 
-            <Picker
-              style={styles.picker}
-              selectedValue={categoriaSeleccionada}
-              value={"Seleccione Categoria"}
-              onValueChange={(itemValue) => {
-                setCategoriaSeleccionada(itemValue);
-                setCategoria(itemValue);
-              }}
-            >
-              <Picker.Item label="Seleccione Categoria" value="" color="#ccc" />
+            {producto ? (
+              <Picker
+                style={styles.picker}
+                selectedValue={
+                  categoriaSeleccionada ? categoriaSeleccionada : null
+                }
+                onValueChange={(itemValue) => {
+                  setCategoriaSeleccionada(itemValue);
+                  setCategoria(itemValue);
+                }}
+              >
+                <Picker.Item
+                  label="Nueva Categoria Para el Producto"
+                  value={null}
+                  color="#ccc"
+                />
 
-              {categorias && categorias.length > 0 ? (
-                categorias.map((categoria) => (
-                  <Picker.Item
-                    key={categoria.ID_CATEGORIA}
-                    label={categoria.NOMBRE}
-                    value={categoria.ID_CATEGORIA}
-                    style={styles.pickerItem}
-                    color="#433a3f"
-                  />
-                ))
-              ) : (
-                <Picker.Item label="Cargando categorías..." value="" />
-              )}
-            </Picker>
+                {categorias && categorias.length > 0 ? (
+                  categorias.map((categoria) => (
+                    <Picker.Item
+                      key={categoria.ID_CATEGORIA}
+                      label={categoria.NOMBRE}
+                      value={categoria.ID_CATEGORIA}
+                      style={styles.pickerItem}
+                      color="#433a3f"
+                    />
+                  ))
+                ) : (
+                  <Picker.Item label="Cargando categorías..." value="" />
+                )}
+              </Picker>
+            ) : (
+              <Picker
+                style={styles.picker}
+                selectedValue={categoriaSeleccionada}
+                value={"Seleccione Categoria"}
+                onValueChange={(itemValue) => {
+                  setCategoriaSeleccionada(itemValue);
+                  setCategoria(itemValue);
+                }}
+              >
+                {productos.length > 0 && (<Picker.Item
+                  label="Seleccione Categoria"
+                  value=""
+                  color="#ccc"
+                />)}
+
+                {categorias && categorias.length > 0 ? (
+                  categorias.map((categoria) => (
+                    <Picker.Item
+                      key={categoria.ID_CATEGORIA}
+                      label={categoria.NOMBRE}
+                      value={categoria.ID_CATEGORIA}
+                      style={styles.pickerItem}
+                      color="#433a3f"
+                    />
+                  ))
+                ) : (
+                  <Picker.Item label="Cargando... o no hay Categorias" value="" />
+                )}
+              </Picker>
+            )}
           </View>
           <View style={styles.campo}>
             <Text style={styles.label}>Marca</Text>
@@ -242,6 +406,7 @@ const FormularioProductos = ({
           </View>
           <View style={styles.campo}>
             <Text style={styles.label}>Descripción</Text>
+
             <TextInput
               style={[styles.Input, { height: 120, textAlignVertical: "top" }]}
               placeholder=""
@@ -254,28 +419,47 @@ const FormularioProductos = ({
           <View style={styles.campo}>
             <View style={styles.campoNumeric}>
               <Text style={[styles.label, styles.labelNumeric]}>Precio</Text>
+
               <TextInput
                 style={[styles.Input, styles.InputNumeric]}
                 placeholder=""
                 placeholderTextColor={"#ccc"}
                 keyboardType="numeric"
-                value={parseFloat(precio)}
+                value={precio}
                 onChangeText={(precio) => setPrecio(precio)}
               />
+
               <Text style={[styles.label, styles.labelNumeric]}>Cantidad</Text>
-              <TextInput
-                style={[styles.Input, styles.InputNumeric]}
-                placeholder=""
-                placeholderTextColor={"#ccc"}
-                keyboardType="numeric"
-                value={parseInt(cantidad)}
-                onChangeText={(cantidad) => setCantidad(cantidad)}
-              />
+              {producto ? (
+                <TextInput
+                  style={[styles.Input, styles.InputNumeric]}
+                  placeholder=""
+                  placeholderTextColor={"#ccc"}
+                  keyboardType="numeric"
+                  value={cantidad.toString()}
+                  onChangeText={(cantidad) => setCantidad(cantidad)}
+                />
+              ) : (
+                <TextInput
+                  style={[styles.Input, styles.InputNumeric]}
+                  placeholder=""
+                  placeholderTextColor={"#ccc"}
+                  keyboardType="numeric"
+                  value={parseInt(cantidad)}
+                  onChangeText={(cantidad) => setCantidad(cantidad)}
+                />
+              )}
             </View>
           </View>
           <View style={styles.campo}>
             <View style={styles.containerFoto}>
-              {!image && <Text style={styles.label}>Seleccionar Imagen</Text>}
+              {producto
+                ? !image && (
+                    <Text style={styles.label}>Seleccionar Nueva Imagen</Text>
+                  )
+                : !image && (
+                    <Text style={styles.label}>Seleccionar Imagen</Text>
+                  )}
 
               {image && <Text style={styles.label}>Seleccionada: </Text>}
 
@@ -316,14 +500,25 @@ const FormularioProductos = ({
               )}
             </View>
           </View>
-          <View style={styles.campo}>
-            <TouchableOpacity
-              style={styles.btnRegistrar}
-              onPress={handleProducto}
-            >
-              <Text style={styles.btnRegistrarText}>Registrar Producto</Text>
-            </TouchableOpacity>
-          </View>
+          {formProductoAcciones ? (
+            <View style={styles.campo}>
+              <TouchableOpacity
+                style={styles.btnModificar}
+                onPress={handleModificar}
+              >
+                <Text style={styles.btnModificarText}>Modificar Producto</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.campo}>
+              <TouchableOpacity
+                style={styles.btnRegistrar}
+                onPress={handleProducto}
+              >
+                <Text style={styles.btnRegistrarText}>Registrar Producto</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -428,6 +623,19 @@ const styles = StyleSheet.create({
     marginHorizontal: 25,
   },
   btnRegistrarText: {
+    textAlign: "center",
+    textTransform: "uppercase",
+    fontWeight: "bold",
+    fontSize: 18,
+    color: "#FFF",
+  },
+  btnModificar: {
+    backgroundColor: "#fee03a",
+    padding: 10,
+    borderRadius: 5,
+    marginHorizontal: 25,
+  },
+  btnModificarText: {
     textAlign: "center",
     textTransform: "uppercase",
     fontWeight: "bold",
