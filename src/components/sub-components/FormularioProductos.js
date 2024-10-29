@@ -112,6 +112,15 @@ const FormularioProductos = ({
         });
       } 
 
+      console.log(categoria);
+      console.log(nombre);
+      console.log(descripcion);
+      console.log(precio);
+      console.log(cantidad);
+      console.log(adminId);
+      console.log(image);
+      
+
       // Esperar a que se registre el producto
       const response = await axios.post(`${url}/registerProduct`, formData, {
         headers: {
@@ -220,10 +229,10 @@ const FormularioProductos = ({
   };
 
   const handleProducto = () => {
-    if (!categoria || !nombre || !precio || !cantidad) {
+    if (!categoria || !nombre || !precio || !cantidad || cantidad < 0 || precio < 0) {
       Alert.alert(
         "Error",
-        "Los campos Categoria, Nombre, Precio, Cantidad, Son Obligatorios!"
+        "Los campos Categoria, Nombre, Precio, Cantidad (Cantidad y Precio debe ser mayor a 0), Son Obligatorios!"
       );
       return;
     }
@@ -238,6 +247,7 @@ const FormularioProductos = ({
   };
 
   const handleModificar = async () => {
+    
     const productInteger = parseInt(producto.ID_PRODUCTO);
 
     if (

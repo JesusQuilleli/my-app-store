@@ -76,6 +76,8 @@ const Login = ({ navigation }) => {
         await AsyncStorage.setItem("adminNombre", resultado.nombre);
 
         navigation.navigate("HomeDrawer");
+        setEmail("");
+        setPassword("");
       } else {
         authIncorrect();
       }

@@ -1,6 +1,13 @@
 //IMPORTS REACT Y REACT - NATIVE
-import { KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from "react-native";
-import React, { useContext } from "react";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
+  SafeAreaView,
+  StyleSheet
+} from "react-native";
+import React from "react";
 
 //IMPORTS PARA LA NAVEGACIÓN
 import "react-native-gesture-handler";
@@ -49,18 +56,27 @@ export default function App() {
       </Stack.Navigator>
     );
   }
-// TouchableWithoutFeedback -> USAR GESTOS EN LA APLICACION
-// KeyboardAvoidingView -> RENDERIZAR MEJOR EL TECLADO
+  // TouchableWithoutFeedback -> USAR GESTOS EN LA APLICACION
+  // KeyboardAvoidingView -> RENDERIZAR MEJOR EL TECLADO
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}> 
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1 }}
-    > 
-      <NavigationContainer>
-        <MyStack />
-      </NavigationContainer>
-    </KeyboardAvoidingView>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <SafeAreaView style={styles.safeArea}>
+          <NavigationContainer>
+            <MyStack />
+          </NavigationContainer>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#fff", // Opcional: color de fondo
+  },
+});

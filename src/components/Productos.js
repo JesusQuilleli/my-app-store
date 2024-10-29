@@ -31,18 +31,25 @@ import FormularioProductos from "./sub-components/FormularioProductos";
 //ALMACENAMIENTO LOCAL
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import SkeletonLoader from "../helpers/skeletonAnimation";
+
 const Productos = () => {
   const [categorias, setCategorias] = useState([]);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("");
 
   const [productos, setProductos] = useState([]);
   const [producto, setProducto] = useState({});
+
+  const [productoNoEncontrado, setProductoNoEncontrado] = useState(false);
+
   const [modalproducto, setModalProducto] = useState(false);
 
   const [renderBusqueda, setRenderBusqueda] = useState(false);
 
   //FORMULARIO PARA AGREGAR PRODUCTOS
   const [formProducto, setFormProducto] = useState(false);
+
+  const [isLoading, setIsLoading] = useState(true);
 
   //FUNCION CARGAR CATEGORIAS
   const cargarCategorias = async () => {
@@ -83,6 +90,7 @@ const Productos = () => {
       const respuesta = await axios.get(`${url}/cargarProductos/${adminId}`);
       const resultadoProductos = respuesta.data.resultado;
       setProductos(resultadoProductos);
+      setProductoNoEncontrado(false);
     } catch (error) {
       console.log("Error al cargar Productos", error);
     }
@@ -123,9 +131,11 @@ const Productos = () => {
 
       if (response.data && response.data.response.length > 0) {
         setProductos(response.data.response);
+        setProductoNoEncontrado(false);
       } else {
         console.log("No se encontraron productos.");
         setProductos([]);
+        setProductoNoEncontrado(true);
       }
     } catch (error) {
       console.log("Error en la busqueda Front-End", error);
@@ -143,6 +153,13 @@ const Productos = () => {
     cargarProductos();
     cargarCategorias();
   }, []);
+
+  //USE PARA COMPONENTE DE CARGA SKELETON
+  useEffect(() => {
+    if (productos && productos.length > 0) {
+      setIsLoading(false); // Cuando los productos se cargan, termina la animación
+    }
+  }, [productos]);
 
   //CALLBACK DE CERRAR EL MODAL DE INFORMACION AL ELIMINAR EL PRODUCTO
   const closeInformacion = () => {
@@ -169,23 +186,21 @@ const Productos = () => {
   const Item = ({ categoria, nombre, precio, cantidad, imagen }) => (
     <View style={styles.item}>
       <View style={styles.textContainer}>
-        <Text style={{ fontWeight: "bold", fontSize: 18, color: "#fcd53f" }}>
-          {categoria}
-        </Text>
-        <Text style={{ fontWeight: "bold" }}>Marca: {nombre}</Text>
-        <Text style={styles.defecto}>Precio: {precio} $</Text>
-        <Text style={styles.defecto}>Cantidad: {cantidad} Unidades</Text>
+        <Text style={styles.categoriaText}>{categoria}</Text>
+        <Text style={styles.nombreText}>{nombre}</Text>
+        <Text style={styles.defecto}>Disponible: {cantidad}</Text>
+        <Text style={styles.defecto}>{precio} $</Text>
       </View>
       <View style={styles.boxImagen}>
-        <Text></Text>
         {!imagen.includes("null") ? (
           <Image source={{ uri: imagen }} style={styles.image} />
         ) : (
           <View>
             <MaterialCommunityIcons
               name="image-remove"
-              size={80}
-              color="#fcd53f"
+              color="#888"
+              size={120}
+              style={{ height: 120, width: 120 }}
             />
           </View>
         )}
@@ -234,10 +249,7 @@ const Productos = () => {
                 />
               ))
             ) : (
-              <Picker.Item
-                label="Cargando o Sin Categorias Registradas"
-                value=""
-              />
+              <Picker.Item label="No hay Categorias Registradas" value="" />
             )}
           </Picker>
 
@@ -271,11 +283,23 @@ const Productos = () => {
           </View>
         )}
 
+        {productoNoEncontrado && (
+          <View style={styles.noSearch}>
+            <Text style={styles.noSearchText}>
+              No se ha Encontrado el Producto
+            </Text>
+          </View>
+        )}
+
         <View style={styles.tableProductos}>
-          {productos && productos.length > 0 ? (
+          {isLoading ? (
+            <SkeletonLoader />
+          ) : (
             <FlatList
               data={productos}
               keyExtractor={(item) => item.ID_PRODUCTO}
+              numColumns={2}
+              columnWrapperStyle={styles.row}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   onLongPress={() => productIndex(item.ID_PRODUCTO)}
@@ -290,15 +314,6 @@ const Productos = () => {
                 </TouchableOpacity>
               )}
             />
-          ) : (
-            <View style={styles.cNoProductos}>
-              <Text style={styles.tNoProductos}>
-                ...{" "}
-                <Text style={{ fontSize: 10 }}>
-                  Cargando
-                </Text>
-              </Text>
-            </View>
           )}
         </View>
 
@@ -318,7 +333,7 @@ const Productos = () => {
 
         {/*MODAL PARA MODIFICAR PRODUCTO Y DAR INFORMACION */}
 
-        <Modal visible={modalproducto} animationType="slide">
+        <Modal visible={modalproducto} animationType="fade">
           <InformacionProductos
             producto={producto}
             setProducto={setProducto}
@@ -356,10 +371,20 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontSize: 24,
     fontWeight: "900",
+    letterSpacing: 4,
   },
   tituloBold: {
     color: "#fcd53f",
     fontSize: 26,
+  },
+  row: {
+    flex: 1,
+    justifyContent: "space-evenly",
+  },
+  rowSkeleton: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 10,
   },
   boxCategoria: {
     flexDirection: "row",
@@ -400,33 +425,6 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     flex: 1,
   },
-  categoria: {
-    fontSize: 18,
-    color: "#e2bf00",
-    fontWeight: "600",
-  },
-  item: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-    backgroundColor: "#f5f5f5",
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-  },
-  textContainer: {
-    flex: 1,
-  },
-  image: {
-    width: 90,
-    height: 90,
-    borderRadius: 25,
-  },
-  defecto: {
-    color: "#666",
-    fontSize: 16,
-  },
   cNoProductos: {
     justifyContent: "center",
     alignItems: "center",
@@ -445,6 +443,73 @@ const styles = StyleSheet.create({
     bottom: 0,
     marginRight: 10,
     marginBottom: 10,
+  },
+  item: {
+    backgroundColor: "#fff",
+    padding: 10,
+    flex: 1,
+    marginHorizontal: 25,
+    marginVertical: 10,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "space-evenly",
+    minHeight: 200,
+  },
+  textContainer: {
+    alignItems: "center",
+    marginBottom: 5,
+  },
+  categoriaText: {
+    fontWeight: "bold",
+    fontSize: 20,
+    color: "#fcd53f",
+    textAlign: "center",
+  },
+  nombreText: {
+    fontWeight: "bold",
+    fontSize: 18,
+    textAlign: "center",
+  },
+  defecto: {
+    fontSize: 15,
+    color: "#333",
+    textAlign: "center",
+    fontWeight: "800",
+  },
+  boxImagen: {
+    alignItems: "center",
+  },
+  image: {
+    width: 120,
+    height: 120,
+    borderRadius: 15,
+  },
+  // Skeleton styles
+  skeletonItem: {
+    width: "48%",
+    backgroundColor: "#e0e0e0",
+    borderRadius: 5,
+    padding: 10,
+  },
+  skeletonImage: {
+    height: 100,
+    backgroundColor: "#d0d0d0",
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  skeletonText: {
+    height: 20,
+    backgroundColor: "#d0d0d0",
+    borderRadius: 5,
+    marginBottom: 5,
+  },
+  noSearch: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  noSearchText: {
+    fontSize: 20,
+    fontWeight: "bold",
   },
 });
 

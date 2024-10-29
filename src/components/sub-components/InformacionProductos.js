@@ -135,7 +135,7 @@ const InformacionProductos = ({
               <MaterialCommunityIcons
                 name="image-remove"
                 size={200}
-                color="#fcd53f"
+                color="#888"
               />
             </View>
           ) : (

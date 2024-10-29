@@ -42,6 +42,9 @@ const RegistroUnico = ({ navigation }) => {
           text: "OK",
           onPress: () => {
             navigation.navigate("Login");
+            setEmail("");
+            setName("");
+            setPassword("");
           },
           style: "default",
         },

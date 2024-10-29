@@ -27,3 +27,30 @@
   }
  }
 
+
+ //FORMATEAR FECHA
+ export const formatearFecha = fecha => {
+  const nuevaFecha = new Date(fecha);
+  const opciones = {
+     weeday: 'long',
+     year: 'numeric',
+     month: 'long',
+     day: 'numeric'
+  }
+
+  return nuevaFecha.toLocaleDateString('es-Es', opciones)
+}
+
+//HORA ACTUAL
+export const formatearHora = () => {
+  const nuevaHora = new Date();
+  const opciones = {
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    hour12: true // Formato de 12 horas con AM/PM
+  };
+
+  return nuevaHora.toLocaleTimeString('es-ES', opciones);
+};
+
