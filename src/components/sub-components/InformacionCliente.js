@@ -9,17 +9,19 @@ import {
   Alert
 } from "react-native";
 
+//STYLES
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Foundation from "@expo/vector-icons/Foundation";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
-
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 import { formatearFecha } from "../../helpers/validaciones";
 
 import FormularioCliente from "./FormularioCliente";
+
+import * as Clipboard from 'expo-clipboard';
 
 //AXIOS
 import axios from "axios";
@@ -39,6 +41,7 @@ const InformacionCliente = ({
   cargarClientes,
 }) => {
   const [options, setOptions] = useState(false);
+  const [copiedText, setCopiedText] = useState('');
 
   //FUNCIONES ELIMINAR CLIENTES
   const eliminarCliente = async (id_cliente) => {
@@ -85,6 +88,12 @@ const InformacionCliente = ({
       ],
       { cancelable: true } // Permite cancelar tocando fuera de la alerta
     );
+  };
+
+  // FUNCION PARA COPIAR TEXTO A PORTAPAPELES
+  const copyToClipboard = async (text) => {
+    await Clipboard.setStringAsync(text);
+    setCopiedText(text); 
   };
 
   return (
@@ -141,10 +150,10 @@ const InformacionCliente = ({
         />
         <View style={styles.copyContent}>
           <Text style={styles.nombreCliente}>{cliente.NOMBRE}</Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => copyToClipboard(cliente.NOMBRE)}>
             <MaterialIcons
               name="content-copy"
-              size={24}
+              size={20}
               color="black"
               style={{ marginLeft: 15 }}
             />
@@ -155,25 +164,22 @@ const InformacionCliente = ({
       <View style={styles.campos}>
         <FontAwesome5 name="phone-alt" size={24} color="black" />
         <Text style={styles.textCampos}>{cliente.TELEFONO}</Text>
-        <TouchableOpacity>
-          <MaterialIcons name="content-copy" size={24} color="black" />
+        <TouchableOpacity onPress={() => copyToClipboard(cliente.TELEFONO)}>
+          <MaterialIcons name="content-copy" size={20} color="black" />
         </TouchableOpacity>
       </View>
 
       <View style={styles.campos}>
         <MaterialCommunityIcons name="email" size={26} color="black" />
         <Text style={styles.textCampos}>{cliente.EMAIL}</Text>
-        <TouchableOpacity>
-          <MaterialIcons name="content-copy" size={24} color="black" />
+        <TouchableOpacity onPress={() => copyToClipboard(cliente.EMAIL)}>
+          <MaterialIcons name="content-copy" size={20} color="black" />
         </TouchableOpacity>
       </View>
 
       <View style={styles.campos}>
         <FontAwesome5 name="directions" size={24} color="black" />
         <Text style={styles.textCampos}>{cliente.DIRECCION}</Text>
-        <TouchableOpacity>
-          <MaterialIcons name="content-copy" size={24} color="black" />
-        </TouchableOpacity>
       </View>
 
       <View style={styles.campos}>
@@ -181,9 +187,6 @@ const InformacionCliente = ({
         <Text style={styles.textCampos}>
           {formatearFecha(cliente.FECHA_REGISTRO)}
         </Text>
-        <TouchableOpacity>
-          <MaterialIcons name="content-copy" size={24} color="black" />
-        </TouchableOpacity>
       </View>
 
       <Modal animationType="fade" visible={formClientes}>
@@ -273,4 +276,7 @@ const styles = StyleSheet.create({
   textCampos: {
     fontSize: 18,
   },
+  copiedText:{
+    //AGREGAR ESTILOS
+  }
 });

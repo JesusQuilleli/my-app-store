@@ -57,9 +57,9 @@ const FormularioProductos = ({
   //CARGA
   const [isLoading, setIsLoading] = useState(false);
 
-  // Función para seleccionar la imagen
+  // FUNCION PARA SELECCIONAR LA IMAGEN
   const pickImage = async () => {
-    // Pedir permiso de acceso a la galería
+    // PERDIR PERMISO A LA GALERIA
     const { status: galleryStatus } =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
     const { status: cameraStatus } =
@@ -73,7 +73,7 @@ const FormularioProductos = ({
       return;
     }
 
-    // Abrir la galería para seleccionar una imagen
+    //ABRIR LA GALERIA
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -81,9 +81,8 @@ const FormularioProductos = ({
       quality: 1,
     });
 
-    // Si no se canceló la selección, actualiza la imagen
     if (!result.canceled) {
-      setImage(result.assets[0].uri); // Asegurarse de que se usa la nueva estructura de `result`
+      setImage(result.assets[0].uri);
     } else {
       console.log("Selección cancelada");
     }
@@ -94,7 +93,6 @@ const FormularioProductos = ({
     try {
       setIsLoading(true);
 
-      // Crear un objeto FormData
       const formData = new FormData();
       formData.append("categoria", categoria);
       formData.append("nombre", nombre);
@@ -103,47 +101,32 @@ const FormularioProductos = ({
       formData.append("cantidad", cantidad);
       formData.append("adminId", adminId);
 
-      // Asegúrate de que 'image' contenga un URI válido
       if (image) {
         formData.append("imagen", {
-          uri: image, // URI de la imagen seleccionada
-          name: "imagen.jpg", // O el nombre del archivo
-          type: "image/jpeg", // O el tipo de archivo correcto
+          uri: image,
+          name: "imagen.jpg",
+          type: "image/jpeg",
         });
-      } 
+      }
 
-      console.log(categoria);
-      console.log(nombre);
-      console.log(descripcion);
-      console.log(precio);
-      console.log(cantidad);
-      console.log(adminId);
-      console.log(image);
-      
-
-      // Esperar a que se registre el producto
       const response = await axios.post(`${url}/registerProduct`, formData, {
         headers: {
-          "Content-Type": "multipart/form-data", // Importante para enviar archivos
+          "Content-Type": "multipart/form-data",
         },
       });
 
-      // Si la respuesta es exitosa
       if (response.status === 200) {
-        // Llamar a la función para recargar los productos
         await cargarProductos();
 
-        // Mostrar alerta de éxito
         Alert.alert("Éxito", "Producto registrado correctamente", [
           {
             text: "OK",
             onPress: () => {
-              setFormProducto(false); // Cerrar el modal si todo está bien
+              setFormProducto(false);
             },
           },
         ]);
       } else {
-        // Si no se registra correctamente
         Alert.alert("Error", "No se pudo registrar el producto");
       }
     } catch (error) {
@@ -161,7 +144,6 @@ const FormularioProductos = ({
     try {
       setIsLoading(true);
 
-      // Crear un objeto FormData para enviar el producto y la imagen
       const formData = new FormData();
       formData.append("categoria", categoria);
       formData.append("nombre", nombre);
@@ -169,31 +151,27 @@ const FormularioProductos = ({
       formData.append("precio", precio);
       formData.append("cantidad", cantidad);
 
-      // Asegúrate de que 'image' contenga un URI válido solo si se cambia la imagen
       if (image) {
         formData.append("imagen", {
-          uri: image, // URI de la imagen seleccionada
-          name: "imagen.jpg", // O el nombre del archivo
-          type: "image/jpeg", // O el tipo de archivo correcto
+          uri: image,
+          name: "imagen.jpg",
+          type: "image/jpeg",
         });
       }
 
-      // Enviar la solicitud para modificar el producto
       const response = await axios.put(
         `${url}/updateProduct/${id_producto}`,
         formData,
         {
           headers: {
-            "Content-Type": "multipart/form-data", // Importante para enviar archivos
+            "Content-Type": "multipart/form-data",
           },
         }
       );
 
       if (response.status === 200) {
-        // Llamar a la función para recargar los productos
         await cargarProductos();
 
-        // Mostrar alerta de éxito
         Alert.alert("Éxito", "Producto modificado correctamente", [
           {
             text: "OK",
@@ -229,7 +207,14 @@ const FormularioProductos = ({
   };
 
   const handleProducto = () => {
-    if (!categoria || !nombre || !precio || !cantidad || cantidad < 0 || precio < 0) {
+    if (
+      !categoria ||
+      !nombre ||
+      !precio ||
+      !cantidad ||
+      cantidad < 0 ||
+      precio < 0
+    ) {
       Alert.alert(
         "Error",
         "Los campos Categoria, Nombre, Precio, Cantidad (Cantidad y Precio debe ser mayor a 0), Son Obligatorios!"
@@ -247,7 +232,6 @@ const FormularioProductos = ({
   };
 
   const handleModificar = async () => {
-    
     const productInteger = parseInt(producto.ID_PRODUCTO);
 
     if (
@@ -279,29 +263,28 @@ const FormularioProductos = ({
 
   return (
     <View style={styles.container}>
-    {isLoading && (
+      {isLoading && (
         <View
-            style={{
-                position: "absolute", 
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                justifyContent: "center",
-                alignItems: "center",
-                backgroundColor: "rgba(242, 243, 244, 0.8)", 
-                zIndex: 1000,
-            }}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(242, 243, 244, 0.8)",
+            zIndex: 1000,
+          }}
         >
-            <ActivityIndicator
-                size="large"
-                color="#fee03e"
-                style={{ transform: [{ scale: 2 }] }}
-            />
+          <ActivityIndicator
+            size="large"
+            color="#fee03e"
+            style={{ transform: [{ scale: 2 }] }}
+          />
         </View>
-    )}
+      )}
       <ScrollView>
-      
         <View style={styles.contenido}>
           {producto ? (
             <TouchableOpacity
@@ -382,11 +365,13 @@ const FormularioProductos = ({
                   setCategoria(itemValue);
                 }}
               >
-                {productos.length > 0 && (<Picker.Item
-                  label="Seleccione Categoria"
-                  value=""
-                  color="#ccc"
-                />)}
+                {productos.length > 0 && (
+                  <Picker.Item
+                    label="Seleccione Categoria"
+                    value=""
+                    color="#ccc"
+                  />
+                )}
 
                 {categorias && categorias.length > 0 ? (
                   categorias.map((categoria) => (
@@ -399,7 +384,10 @@ const FormularioProductos = ({
                     />
                   ))
                 ) : (
-                  <Picker.Item label="Cargando... o no hay Categorias" value="" />
+                  <Picker.Item
+                    label="Cargando... o no hay Categorias"
+                    value=""
+                  />
                 )}
               </Picker>
             )}

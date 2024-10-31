@@ -33,6 +33,8 @@ const Clientes = () => {
   const [formClientes, setFormClientes] = useState(false);
   const [modalInformacionCliente, setModalInformacionCliente] = useState(false);
 
+  const [clienteNoEncontrado, setClienteNoEncontrado] = useState(false);
+
 
   useEffect(() => {
     cargarClientes()
@@ -91,6 +93,30 @@ const Clientes = () => {
     </View>
   );
 
+  const verClientes = async () => {
+    setClientes([]);
+    await cargarClientes();
+  };
+
+  //FUNCION BUSCAR CLIENTE
+  const searchCliente = async (nombre) => {
+    try {
+      const response = await axios.get(`${url}/buscarCliente`, {
+        params: { nombre: nombre },
+      });
+
+      if (response.data && response.data.response.length > 0) {
+        setClientes(response.data.response);
+        setClienteNoEncontrado(false);
+      } else {
+        setClientes([]);
+        setClienteNoEncontrado(true);
+      }
+    } catch (error) {
+      console.log("Error en la busqueda Front-End", error);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.titulo}>Clientes</Text>
@@ -99,6 +125,14 @@ const Clientes = () => {
           placeholder="BUSCAR CLIENTES"
           placeholderTextColor="#ccc"
           style={{ textAlign: "center", letterSpacing: 6 }}
+          onChangeText={(value) => {
+            if (value.length > 0) {
+              searchCliente(value);
+            } else {
+              verClientes();
+              setClienteNoEncontrado(false);
+            }
+          }}
         />
       </View>
 
@@ -110,6 +144,14 @@ const Clientes = () => {
       >
         <AntDesign name="caretup" size={30} color="#fff" />
       </TouchableOpacity>
+
+      {clienteNoEncontrado && (
+          <View style={styles.noSearch}>
+            <Text style={styles.noSearchText}>
+              No se ha Encontrado el Producto
+            </Text>
+          </View>
+        )}
 
       <View style={styles.tableClientes}>
         {clientes && clientes.length > 0 ? (
@@ -128,6 +170,8 @@ const Clientes = () => {
         />
         ) : (<SkeletonLoaderClientes/>)}
       </View>
+
+      
 
       <Modal visible={formClientes} animationType="slide">
         <FormularioCliente 
@@ -219,5 +263,14 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     margin: 10,
+  },
+  noSearch: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 20
+  },
+  noSearchText: {
+    fontSize: 20,
+    fontWeight: "bold",
   },
 });
