@@ -536,6 +536,7 @@ const styles = StyleSheet.create({
     color: "#fee03a",
     fontWeight: "600",
     padding: 5,
+    letterSpacing: 2
   },
   tituloBold: {
     fontSize: 26,

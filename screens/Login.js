@@ -22,68 +22,67 @@ import { validateEmail } from "../src/helpers/validaciones";
 //GUARDAR EL ID DE MANERA LOCAL PARA USARLO DESPUES
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+//SIN CONEXION
+import SinConexion from "../src/components/components--/sinConexion";
+
 const Login = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [showSinConexion, setShowSinConexion] = useState(false);
+
   //MOSTRAR CONTRASEÑA
   const viewPassword = () => {
     setPasswordVisible(!passwordVisible);
   };
 
-  //ALERT NOTIFICAR AUTENTICACION INCORRECTA -> LOGIN
-  const authIncorrect = () => {
-    Alert.alert(
-      "Muy Mal",
-      "Autenticación Fallida, Verifique los Datos Ingresados",
-      [
-        {
-          text: "OK",
-        },
-      ]
-    );
-  };
-
-  //FUNCION PARA VALIDAR SESION
   const handleIniciarSesion = async () => {
     try {
-      // Validaciones de campos obligatorios
       if (!email || !password) {
         Alert.alert("Error", "Todos los campos son obligatorios", [
           { text: "OK" },
         ]);
         return;
       }
-      // Validación del formato del correo electrónico
+
       if (!validateEmail(email)) {
         Alert.alert("Error", "El correo no tiene un formato válido.");
         return;
       }
-      // Indicador de carga
+
       setIsLoading(true);
-      // Realizar la petición POST al backend
+
       const respuesta = await axios.post(`${url}/autenticacionInicio`, {
         email,
         password,
       });
+
       const { resultado } = respuesta.data;
       if (resultado) {
-        // Guardar el ID del administrador en AsyncStorage
-        await AsyncStorage.setItem("adminId", resultado.idAdmin.toString()); // Convertir a string
-
+        await AsyncStorage.setItem("adminId", resultado.idAdmin.toString());
         await AsyncStorage.setItem("adminNombre", resultado.nombre);
 
         navigation.navigate("HomeDrawer");
         setEmail("");
         setPassword("");
-      } else {
-        authIncorrect();
       }
     } catch (error) {
-      console.log("Error en la autenticación (EN EL SERVIDOR)", error);
-      authIncorrect();
+      if (error.response) {
+        if (error.response.status === 401) {
+          Alert.alert("Error", "Email o Contraseña Incorrectos");
+        } else if (error.response.status === 500) {
+          Alert.alert(
+            "Error",
+            "Hubo un problema en el servidor. Por favor, intenta más tarde."
+          );
+        }
+      } else {
+        // Muestra el componente SinConexion si el error no tiene respuesta del servidor
+        setShowSinConexion(true);
+        setTimeout(() => setShowSinConexion(false), 3000); // Ocultar después de 3 segundos
+      }
     } finally {
       setIsLoading(false);
     }
@@ -109,65 +108,71 @@ const Login = ({ navigation }) => {
   }
 
   return (
-      <View style={styles.container}>
-        <View>
-          <Image
-            source={require("../assets/resources/perfil.webp")}
-            style={styles.imagenProfile}
+    <View style={styles.container}>
+
+      <View>
+        <Image
+          source={require("../assets/resources/perfil.webp")}
+          style={styles.imagenProfile}
+        />
+        <Text style={styles.titulo}>
+          Iniciar <Text style={styles.tituloBold}>Sesión</Text>
+        </Text>
+      </View>
+      <View style={styles.cardLogin}>
+        <View style={styles.boxText}>
+          <TextInput
+            placeholder="email@email.com"
+            style={styles.boxInput}
+            value={email}
+            onChangeText={(email) => setEmail(email.toLowerCase())}
+            keyboardType="email-address"
           />
-          <Text style={styles.titulo}>Iniciar{' '}<Text style ={styles.tituloBold}>Sesión</Text></Text>
         </View>
-        <View style={styles.cardLogin}>
-          <View style={styles.boxText}>
-            <TextInput
-              placeholder="email@email.com"
-              style={styles.boxInput}
-              value={email}
-              onChangeText={(email) => setEmail(email.toLowerCase())}
-              keyboardType="email-address"
-            />
-          </View>
 
-          <View style={styles.boxText_Password}>
-            <TextInput
-              style={styles.boxInput_Password}
-              placeholder="Contraseña"
-              value={password}
-              onChangeText={(password) => setPassword(password)}
-              secureTextEntry={!passwordVisible}
+        <View style={styles.boxText_Password}>
+          <TextInput
+            style={styles.boxInput_Password}
+            placeholder="Contraseña"
+            value={password}
+            onChangeText={(password) => setPassword(password)}
+            secureTextEntry={!passwordVisible}
+          />
+          <TouchableOpacity onPress={viewPassword} style={styles.eyeIcon}>
+            <Ionicons
+              name={passwordVisible ? "eye-off" : "eye"}
+              size={24}
+              color="black"
             />
-            <TouchableOpacity onPress={viewPassword} style={styles.eyeIcon}>
-              <Ionicons
-                name={passwordVisible ? "eye-off" : "eye"}
-                size={24}
-                color="black"
-              />
-            </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
+        </View>
 
-          <View style={styles.containerButton}>
-            <TouchableOpacity
-              style={styles.boxButton}
-              onPress={handleIniciarSesion}
-            >
-              <Text style={styles.textButton}>Acceder</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.linkRegistro}
-              onPress={() => navigation.navigate("RegistroUnico")}
-            >
-              <Text style={styles.linkRegistroText}>Registrarse</Text>
-            </TouchableOpacity>
-          </View>
+        <View style={styles.containerButton}>
+          <TouchableOpacity
+            style={styles.boxButton}
+            onPress={handleIniciarSesion}
+          >
+            <Text style={styles.textButton}>Acceder</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.linkRegistro}
+            onPress={() => navigation.navigate("RegistroUnico")}
+          >
+            <Text style={styles.linkRegistroText}>Registrarse</Text>
+          </TouchableOpacity>
         </View>
       </View>
+
+      {showSinConexion && <SinConexion />}
+
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-start',
+    justifyContent: "flex-start",
     alignItems: "center",
     backgroundColor: "#fff",
   },
@@ -177,18 +182,18 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     borderColor: "#000",
     borderWidth: 1,
-    margin:'auto',
-    marginTop: 125
+    margin: "auto",
+    marginTop: 125,
   },
-  titulo:{
+  titulo: {
     fontSize: 30,
-    fontWeight:'700',
-    marginTop: 20
- },
- tituloBold:{
-    fontWeight:'900',
-    color:'#fee03e'
- },
+    fontWeight: "700",
+    marginTop: 20,
+  },
+  tituloBold: {
+    fontWeight: "900",
+    color: "#fee03e",
+  },
   cardLogin: {
     marginTop: 30,
     backgroundColor: "#fff",
@@ -238,14 +243,14 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     paddingHorizontal: 15,
     marginTop: 20,
-    width:'80%'
+    width: "80%",
   },
   textButton: {
     color: "#000",
     fontWeight: "600",
     fontSize: 20,
-    textAlign:'center',
-    letterSpacing: 6
+    textAlign: "center",
+    letterSpacing: 6,
   },
   absolute: {
     position: "absolute",
@@ -260,8 +265,9 @@ const styles = StyleSheet.create({
   linkRegistroText: {
     fontSize: 14,
     color: "#ccc",
-    textTransform: 'uppercase',
-    letterSpacing: 5
+    textTransform: "uppercase",
+    letterSpacing: 5,
+    textDecorationLine:'underline'
   },
 });
 

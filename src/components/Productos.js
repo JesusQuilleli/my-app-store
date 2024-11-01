@@ -31,7 +31,7 @@ import FormularioProductos from "./sub-components/FormularioProductos";
 //ALMACENAMIENTO LOCAL
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import SkeletonLoader from "../helpers/skeletonAnimation";
+import SkeletonLoader from "./components--/skeletonAnimation";
 
 const Productos = () => {
   const [categorias, setCategorias] = useState([]);

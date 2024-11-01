@@ -1,69 +1,27 @@
-//IMPORTS REACT Y REACT - NATIVE
 import {
   KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
   SafeAreaView,
-  StyleSheet
+  StyleSheet,
+  StatusBar
 } from "react-native";
 import React from "react";
-
-//IMPORTS PARA LA NAVEGACIÓN
-import "react-native-gesture-handler";
-import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
+import MyStack from "./src/components/navigation/appNavigation";
 
-//IMPORTS RUTAS NECESARIAS
-import Login from "./screens/Login";
-import Welcome from "./screens/Welcome";
-import RegistroUnico from "./screens/RegistroUnico";
-import HomeDrawer from "./src/components/HomeDrawer";
+ // TouchableWithoutFeedback -> USAR GESTOS EN LA APLICACION
+  // KeyboardAvoidingView -> RENDERIZAR MEJOR EL TECLADO
 
 export default function App() {
-  const Stack = createStackNavigator();
-
-  function MyStack() {
-    return (
-      <Stack.Navigator initialRouteName="Welcome">
-        <Stack.Screen
-          name="Login"
-          component={Login}
-          options={{
-            headerShown: false,
-          }}
-        />
-
-        <Stack.Screen
-          name="Welcome"
-          component={Welcome}
-          options={{ headerShown: false }}
-        />
-
-        <Stack.Screen
-          name="HomeDrawer"
-          component={HomeDrawer}
-          options={{ headerShown: false }}
-        />
-
-        <Stack.Screen
-          name="RegistroUnico"
-          component={RegistroUnico}
-          options={{
-            headerShown: false,
-          }}
-        />
-      </Stack.Navigator>
-    );
-  }
-  // TouchableWithoutFeedback -> USAR GESTOS EN LA APLICACION
-  // KeyboardAvoidingView -> RENDERIZAR MEJOR EL TECLADO
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
+        <StatusBar backgroundColor='#000'/>
         <SafeAreaView style={styles.safeArea}>
           <NavigationContainer>
             <MyStack />
@@ -77,6 +35,6 @@ export default function App() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#fff", // Opcional: color de fondo
+    backgroundColor: "#fff",
   },
 });

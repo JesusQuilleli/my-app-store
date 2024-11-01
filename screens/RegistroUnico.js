@@ -18,6 +18,7 @@ import { url } from "../src/helpers/url";
 
 //IMPORTS VALIDACIONES Y ALERTAS
 import { validateEmail, validatePassword } from "../src/helpers/validaciones";
+import SinConexion from "../src/components/components--/sinConexion";
 
 const RegistroUnico = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -26,6 +27,7 @@ const RegistroUnico = ({ navigation }) => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [rolId, setRolId] = useState(1);
 
+  const [showSinConexion, setShowSinConexion] = useState(false);
 
   //MOSTRAR CONTRASEÑA
   const viewPassword = () => {
@@ -88,30 +90,54 @@ const RegistroUnico = ({ navigation }) => {
         return;
       }
 
-      const response = await axios.post(
-        `${url}/registerAdmin`,
-        {
-          name,
-          email,
-          password,
-          rolId,
-        }
-      );
-      if (response) {
+      const response = await axios.post(`${url}/registerAdmin`, {
+        name,
+        email,
+        password,
+        rolId,
+      });
+      if (response.status === 200) {
         nextAlert();
-      } else {
-        console.error("Error al Registrar Datos");
-      }
+      } 
     } catch (error) {
-      console.error("Error al registrar administrador:", error);
+      if (error.response) {
+        if (error.response.status === 401) {
+          Alert.alert("Error", "Datos Incorrectos");
+        } else if (error.response.status === 500) {
+          Alert.alert(
+            "Error",
+            "Hubo un problema en el servidor. Por favor, intenta más tarde."
+          );
+        }
+      } else {
+        // Muestra el componente SinConexion si el error no tiene respuesta del servidor
+        setShowSinConexion(true);
+        setTimeout(() => setShowSinConexion(false), 3000); // Ocultar después de 3 segundos
+      }
     }
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.contentTittle}>
-        <Text style={styles.contentTittleText}>Bienvenid<Text style={{color:'#000', fontSize: 42, fontWeight: '700', fontStyle:'italic'}}>o</Text></Text>
-        <Text style={styles.contentTittleText}><Text style={{fontSize: 36, textAlign:'center', color:'#fad105'}}>Registrate Aqui</Text></Text>
+        <Text style={styles.contentTittleText}>
+          Bienvenid
+          <Text
+            style={{
+              color: "#000",
+              fontSize: 42,
+              fontWeight: "700",
+              fontStyle: "italic",
+            }}
+          >
+            o
+          </Text>
+        </Text>
+        <Text style={styles.contentTittleText}>
+          <Text style={{ fontSize: 36, textAlign: "center", color: "#fad105" }}>
+            Registrate Aqui
+          </Text>
+        </Text>
       </View>
 
       <View style={styles.cardLogin}>
@@ -161,13 +187,14 @@ const RegistroUnico = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         <TouchableOpacity
-              style={styles.linkRegistro}
-              onPress={() => navigation.navigate("Login")}
-            >
-              <Text style={styles.linkRegistroText}>Login</Text>
-            </TouchableOpacity>
+          style={styles.linkRegistro}
+          onPress={() => navigation.navigate("Login")}
+        >
+          <Text style={styles.linkRegistroText}>Login</Text>
+        </TouchableOpacity>
       </View>
-      
+
+      {showSinConexion && <SinConexion />}
     </View>
   );
 };
@@ -175,7 +202,7 @@ const RegistroUnico = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-start',
+    justifyContent: "flex-start",
     alignItems: "center",
     backgroundColor: "#fff",
   },
@@ -195,14 +222,14 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   contentTittle: {
-    marginTop: 125
+    marginTop: 125,
   },
   contentTittleText: {
     fontSize: 40,
     fontWeight: "700",
-    textAlign:'center',
-    fontStyle:'italic',
-    letterSpacing:4
+    textAlign: "center",
+    fontStyle: "italic",
+    letterSpacing: 4,
   },
   boxText: {
     paddingVertical: 20,
@@ -238,24 +265,25 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     paddingHorizontal: 15,
     marginTop: 20,
-    width:'80%'
+    width: "80%",
   },
   textButton: {
     color: "#000",
     fontWeight: "600",
     fontSize: 20,
-    textAlign:'center',
-    letterSpacing: 6
+    textAlign: "center",
+    letterSpacing: 6,
   },
   linkRegistro: {
     marginTop: 20,
-    alignItems:'center'
+    alignItems: "center",
   },
   linkRegistroText: {
     fontSize: 14,
     color: "#ccc",
-    textTransform: 'uppercase',
-    letterSpacing: 5
+    textTransform: "uppercase",
+    letterSpacing: 5,
+    textDecorationLine:'underline'
   },
 });
 

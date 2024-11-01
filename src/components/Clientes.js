@@ -23,7 +23,7 @@ import {url} from './../helpers/url'
 //ALMACENAMIENTO LOCAL
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import SkeletonLoaderClientes from "../helpers/skeletonAnimatedClientes";
+import SkeletonLoaderClientes from "./components--/skeletonAnimatedClientes";
 
 const Clientes = () => {
 

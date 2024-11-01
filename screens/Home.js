@@ -6,8 +6,9 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 //COMPONENTES
 import Clientes from "../src/components/Clientes.js";
 import Productos from "../src/components/Productos.js";
-import Pedidos from "../src/components/Pedidos.js";
+import Ventas from "../src/components/Ventas.js";
 import Resumen from "../src/components/Resumen.js";
+import Pedidos from "../src/components/Pedidos.js"
 
 const Tab = createBottomTabNavigator();
 
@@ -33,6 +34,8 @@ export default function Home() {
             iconName = focused ? "cart" : "cart-outline"; // Ionicons para Productos
           } else if (route.name === "Pedidos") {
             iconName = focused ? "clipboard" : "clipboard-outline"; // Ionicons para Pedidos
+          } else if(route.name === "Ventas") {
+            iconName = focused ? "cash" : "cash-outline";
           }
 
           // Devolvemos el ícono con Ionicons para las otras rutas
@@ -72,9 +75,14 @@ export default function Home() {
         options={{ headerShown: false }}
       />
       <Tab.Screen
-        name="Pedidos"
-        component={Pedidos}
-        options={{ headerShown: false, tabBarBadge: 3 }}
+        name="Ventas"
+        component={Ventas}
+        options={{ headerShown: false }}
+      />
+      <Tab.Screen
+      name="Pedidos"
+      component={Pedidos}
+      options={{ headerShown: false, tabBarBadge: 3 }}
       />
     </Tab.Navigator>
   );
