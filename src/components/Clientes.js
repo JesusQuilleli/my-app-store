@@ -148,7 +148,7 @@ const Clientes = () => {
       {clienteNoEncontrado && (
           <View style={styles.noSearch}>
             <Text style={styles.noSearchText}>
-              No se ha Encontrado el Producto
+              No se ha Encontrado el Cliente
             </Text>
           </View>
         )}

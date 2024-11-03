@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -12,30 +12,111 @@ import Checkbox from "expo-checkbox";
 
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import { formatearFechaOtroFormato } from "../../helpers/validaciones";
 
-const ProcesarVenta = ({ setModalVenta, productosCarrito }) => {
+import axios from "axios";
+import { url } from "./../../helpers/url.js";
 
-  const Item = ({ nombre, cantidad, monto }) => (
+const ProcesarVenta = ({
+  setModalVenta,
+  productosCarrito,
+  setProductosCarrito,
+  productos,
+  setProductos,
+  fecha,
+  clienteSeleccionado,
+}) => {
+  //CALCULAR EL PRECIO TOTAL DE PRODUCTOS SELECCIONADOS
+  const totalPrecio = productosCarrito.reduce(
+    (total, item) => total + item.PRECIO * item.CANTIDAD,
+    0
+  );
+
+  //CALCULAR EL CANTIDAD TOTAL DE PRODUCTOS SELECCIONADOS TOTAL
+  const totalCantidadProductos = productosCarrito.reduce(
+    (total, item) => total + item.CANTIDAD,
+    0
+  );
+
+  const quitarProductoDelCarrito = async (producto) => {
+    // Verifica si el producto ya está en el carrito
+    const productoEnCarrito = productosCarrito.find(
+      (item) => item.ID_PRODUCTO === producto.ID_PRODUCTO
+    );
+
+    if (!productoEnCarrito) {
+      console.log("El producto no está en el carrito");
+      return;
+    }
+
+    // Sumar uno a la cantidad del producto en la lista de productos
+    const productosActualizados = productos.map((item) => {
+      if (item.ID_PRODUCTO === producto.ID_PRODUCTO) {
+        return { ...item, CANTIDAD: item.CANTIDAD + 1 }; // Suma uno
+      }
+      return item;
+    });
+    setProductos(productosActualizados);
+
+    // Disminuir la cantidad en el carrito
+    let carritoActualizado;
+    if (productoEnCarrito.CANTIDAD > 1) {
+      // Si la cantidad es mayor que 1, simplemente resta uno
+      carritoActualizado = productosCarrito.map((item) => {
+        if (item.ID_PRODUCTO === producto.ID_PRODUCTO) {
+          return { ...item, CANTIDAD: item.CANTIDAD - 1 };
+        }
+        return item;
+      });
+    } else {
+      // Si la cantidad es 1, elimina el producto del carrito
+      carritoActualizado = productosCarrito.filter(
+        (item) => item.ID_PRODUCTO !== producto.ID_PRODUCTO
+      );
+    }
+    setProductosCarrito(carritoActualizado);
+
+    // Actualizar la cantidad en la base de datos usando Axios
+    try {
+      await axios.put(`${url}/updateProductoStock/${producto.ID_PRODUCTO}`, {
+        cantidad: 1, // Suma uno en la base de datos
+      });
+      console.log("Cantidad actualizada en la base de datos");
+    } catch (error) {
+      console.error(
+        "Error al actualizar la cantidad en la base de datos",
+        error
+      );
+    }
+  };
+
+  const Item = ({ nombre, cantidad, precio, quitar }) => (
     <View style={styles.item}>
       <View>
-        <Text style={styles.nombre}>{nombre}</Text>
-        <Text style={styles.cantidad}>{cantidad}</Text>
-        <Text style={styles.monto}>{monto}</Text>
+        <Text style={styles.nombre}>
+          PRODUCTO:{" "}
+          <Text style={{ textDecorationLine: "underline" }}>{nombre}</Text>
+        </Text>
+        <Text style={styles.cantidad}>CANTIDAD: {cantidad}</Text>
+        <Text style={styles.precio}>PRECIO: {precio}</Text>
+        <Text style={styles.precio}>TOTAL: {precio * cantidad}</Text>
       </View>
-      <TouchableOpacity style={styles.BtnMenos}>
+      <TouchableOpacity onPress={quitar} style={styles.BtnMenos}>
         <AntDesign name="minus" size={30} color="#FFF" />
       </TouchableOpacity>
     </View>
   );
 
-  const totalPrecio = productosCarrito.reduce((total, item) => total + item.PRECIO * item.CANTIDAD, 0);
-  const totalCantidadProductos = productosCarrito.reduce((total, item) => total + item.CANTIDAD, 0);
-
   return (
     <View style={styles.modalOverlay}>
       <View style={styles.modalContent}>
         <View style={styles.header}>
-          <Text style={styles.titulo}>Productos en el Carrito</Text>
+          <View style={styles.headerTitulo}>
+            <Text style={styles.titulo}>Cliente </Text>
+            <Text style={styles.tituloCliente}>
+              {clienteSeleccionado.NOMBRE}
+            </Text>
+          </View>
           <TouchableOpacity
             style={styles.btnClose}
             onPress={() => {
@@ -48,21 +129,27 @@ const ProcesarVenta = ({ setModalVenta, productosCarrito }) => {
 
         <View style={styles.content}>
           <View style={styles.tableVentas}>
+          {productosCarrito.length < 1 && (
+            <Text style={{textAlign:'center', fontSize: 20, fontWeight: 'bold', letterSpacing: 3}}>Sin Productos Seleccionados</Text>
+          )}
             <FlatList
               data={productosCarrito}
               renderItem={({ item }) => (
                 <Item
                   nombre={item.NOMBRE}
                   cantidad={item.CANTIDAD}
-                  monto={item.PRECIO}
+                  precio={item.PRECIO}
+                  quitar={() => quitarProductoDelCarrito(item)}
                 />
               )}
-              keyExtractor={(item) => item.id}
+              keyExtractor={(item) => item.ID_PRODUCTO}
             />
           </View>
           <View style={styles.contentFecha}>
             <Text style={styles.textFecha}>FECHA VENTA</Text>
-            <Text style={styles.textFecha}>10/12/2024</Text>
+            <Text style={styles.textFecha}>
+              {formatearFechaOtroFormato(fecha)}
+            </Text>
           </View>
           <View
             style={{ borderTopColor: "#000", borderTopWidth: 1, marginTop: 5 }}
@@ -80,7 +167,7 @@ const ProcesarVenta = ({ setModalVenta, productosCarrito }) => {
             </View>
           </View>
           <View style={styles.contentTotal}>
-            <Text style={styles.textTotal}>TOTAL</Text>
+            <Text style={styles.textTotal}>MONTO TOTAL</Text>
             <Text style={styles.textTotal}>{totalPrecio}</Text>
           </View>
           <View style={styles.contentTotal}>
@@ -90,10 +177,10 @@ const ProcesarVenta = ({ setModalVenta, productosCarrito }) => {
           <View style={styles.primerAbono}>
             <Text style={styles.textAbono}>PRIMER ABONO</Text>
             <TextInput
-            placeholder="500"
-            keyboardAppearance='default'
-            keyboardType="numeric"
-            style={styles.keyAbono}
+              placeholder="500"
+              keyboardAppearance="default"
+              keyboardType="numeric"
+              style={styles.keyAbono}
             />
           </View>
         </View>
@@ -123,20 +210,33 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
+  },
+  headerTitulo: {
+    flex: 1,
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
     borderBottomColor: "#000",
-    borderBottomWidth: 2,
   },
   titulo: {
-    fontSize: 18,
-    textTransform: "uppercase",
-    color: "#000",
-    padding: 5,
+    fontSize: 24,
+    color: "#fcd53f",
     fontWeight: "bold",
+    textAlign: "center",
+    letterSpacing: 2,
+    textTransform: "uppercase",
+  },
+  tituloCliente: {
+    fontSize: 24,
+    color: "#000",
+    fontWeight: "900",
+    textAlign: "center",
+    letterSpacing: 3,
   },
   btnClose: {
     position: "absolute",
     top: -20,
-    right: -18,
+    right: -15,
   },
   content: {
     marginTop: 20,
@@ -144,10 +244,11 @@ const styles = StyleSheet.create({
   },
   tableVentas: {
     width: "100%",
-    marginTop: 10,
-    borderRadius: 25,
+    borderRadius: 12,
     overflow: "hidden",
     maxHeight: 250,
+    borderTopColor: "#000",
+    borderTopWidth: 2,
   },
   item: {
     flexDirection: "row",
@@ -156,6 +257,19 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
     paddingVertical: 8,
     paddingHorizontal: 10,
+  },
+  nombre: {
+    fontSize: 16,
+    fontWeight: "900",
+    textTransform: "uppercase",
+  },
+  cantidad: {
+    fontSize: 14,
+    fontWeight: "900",
+  },
+  precio: {
+    fontSize: 14,
+    fontWeight: "900",
   },
   contentTotal: {
     flexDirection: "row",
@@ -212,15 +326,15 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "900",
   },
-  textAbono:{
+  textAbono: {
     fontSize: 18,
-    fontWeight: '900',
-    letterSpacing: 2
+    fontWeight: "900",
+    letterSpacing: 2,
   },
-  keyAbono:{
+  keyAbono: {
     fontSize: 20,
-    fontWeight: '900',
-    width:'25%'
+    fontWeight: "900",
+    width: "25%",
   },
   BtnMenos: {
     backgroundColor: "#F00",

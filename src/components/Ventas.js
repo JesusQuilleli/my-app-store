@@ -40,7 +40,7 @@ const Ventas = () => {
     }
   };
 
-  //FUNCION CARGAR PRODUCTOS
+  //FUNCION CARGAR PRODUCTOS EN VENTAS
   const cargarProductos = async () => {
     try {
       const adminIdString = await AsyncStorage.getItem("adminId");
@@ -136,31 +136,34 @@ const Ventas = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.ventasText}>Ultimas Ventas Realizadas</Text>
+        <Text style={styles.ventasText}>Ultimas Ventas <Text style={{color:'#fcd53f'}}>Realizadas</Text></Text>
       </View>
 
       <View style={styles.tableVentas}>
         <FlatList
           data={DATA}
           keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.flatListContent}
           renderItem={({ item }) => (
             <Item
               cliente={item.cliente}
               FechaPedido={item.FechaPedido}
               EstadoPedido={item.EstadoPedido}
             />
+            
           )}
         />
       </View>
-
-      <TouchableOpacity
-        style={styles.BtnVenta}
-        onPress={() => {
-          setFormVentas(true);
-        }}
-      >
-        <Text style={styles.BtnVentaText}>Realizar Venta</Text>
-      </TouchableOpacity>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          style={styles.BtnVenta}
+          onPress={() => {
+            setFormVentas(true);
+          }}
+        >
+          <Text style={styles.BtnVentaText}>Realizar Venta</Text>
+        </TouchableOpacity>
+      </View>
 
       <Modal visible={formVentas} animationType="fade">
         <FormularioVenta
@@ -184,13 +187,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f2f2f2",
   },
+  flatListContent: {
+    flexGrow: 1, 
+  },
   header: {},
+  buttonContainer: {
+    marginVertical: 10,
+    padding: 10,
+  },
   BtnVenta: {
     backgroundColor: "#433a3f",
     padding: 5,
     marginHorizontal: 40,
     borderRadius: 5,
-    marginTop: 5,
   },
   BtnVentaText: {
     textAlign: "center",
@@ -215,7 +224,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderBottomColor: "#000",
     borderBottomWidth: 1,
-    maxHeight: 480,
+    maxHeight: 450,
   },
   item: {
     backgroundColor: "#f5f5f5",

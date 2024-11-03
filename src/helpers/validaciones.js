@@ -41,6 +41,17 @@
   return nuevaFecha.toLocaleDateString('es-Es', opciones)
 }
 
+//FORMATO DD/MM/YYYY
+export const formatearFechaOtroFormato = fecha => {
+  const nuevaFecha = new Date(fecha);
+  const dia = nuevaFecha.getDate().toString().padStart(2, '0'); // Asegura que tenga 2 dígitos
+  const mes = (nuevaFecha.getMonth() + 1).toString().padStart(2, '0'); // Mes en 2 dígitos
+  const año = nuevaFecha.getFullYear();
+
+  return `${dia}/${mes}/${año}`;
+};
+
+
 //HORA ACTUAL
 export const formatearHora = () => {
   const nuevaHora = new Date();

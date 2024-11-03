@@ -23,6 +23,8 @@ import axios from "axios";
 import { url } from "../../helpers/url.js";
 //import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
+
 const FormularioVenta = ({
   setFormVentas,
   cargarClientes,
@@ -35,12 +37,29 @@ const FormularioVenta = ({
   const [modalVenta, setModalVenta] = useState(false);
   const [modalselectClient, setModalSelectClient] = useState(false);
 
+  //ALMACEN DATOS VENTA
   const [clienteSeleccionado, setClienteSeleccionado] = useState({
     ID_CLIENTE: null,
     NOMBRE: "",
   });
-
   const [productosCarrito, setProductosCarrito] = useState([]);
+  const [fecha, setFecha] = useState(new Date());
+
+  //SHOWS INFORMACION
+  const [productoNoEncontrado, setProductoNoEncontrado] = useState(false);
+
+  const comprobarCarrito = () => {
+    if (productosCarrito.length > 0) {
+      Alert.alert(
+        "Obligatorio",
+        "Debe devolver los productos cargados en el carrito, para cambiar de cliente.",
+        [{ text: "Vale" }]
+      );
+      return;
+    } else {
+      setModalSelectClient(true);
+    }
+  };
 
   useEffect(() => {
     cargarProductos();
@@ -52,36 +71,34 @@ const FormularioVenta = ({
     setModalSelectClient(false); // Cierra el modal después de seleccionar el cliente
   };
 
-  //FUNCION PARA LIMPIAR EL CLIENTE
-  const handlerLimpiar = () => {
-    setClienteSeleccionado({ ID_CLIENTE: null, NOMBRE: "" });
-  };
-
+  //FUNCION PARA AGREGAR Y RESTARLOS DE LA BASE DE DATOS PRODUCTOS AL CARRITO
   const agregarProductoAlCarrito = async (producto) => {
-    // Verifica si el producto está agotado
+    if (clienteSeleccionado.NOMBRE == "") {
+      Alert.alert(
+        "Obligatorio",
+        "Seleccione el cliente para poder cargar los productos al carrito.",
+        [{ text: "Vale" }]
+      );
+      return;
+    }
+
     if (producto.CANTIDAD === 0) {
       Alert.alert("Producto Agotado", "Este producto ya no está disponible.");
       return;
     }
-
-    // Restar uno de la cantidad del producto en la lista de productos si está disponible
     const productosActualizados = productos.map((item) => {
       if (item.ID_PRODUCTO === producto.ID_PRODUCTO) {
-        return { ...item, CANTIDAD: item.CANTIDAD - 1 }; // Resta uno
+        return { ...item, CANTIDAD: item.CANTIDAD - 1 };
       }
       return item;
     });
-
-    // Actualiza el estado de productos
     setProductos(productosActualizados);
 
-    // Verifica si el producto ya está en el carrito
     const productoExistente = productosCarrito.find(
       (item) => item.ID_PRODUCTO === producto.ID_PRODUCTO
     );
 
     if (productoExistente) {
-      // Si el producto ya está en el carrito, solo aumenta la cantidad en el carrito
       const carritoActualizado = productosCarrito.map((item) => {
         if (item.ID_PRODUCTO === producto.ID_PRODUCTO) {
           return { ...item, CANTIDAD: item.CANTIDAD + 1 };
@@ -90,7 +107,6 @@ const FormularioVenta = ({
       });
       setProductosCarrito(carritoActualizado);
     } else {
-      // Si no está, lo añade al carrito con cantidad 1
       setProductosCarrito([
         ...productosCarrito,
         {
@@ -101,11 +117,9 @@ const FormularioVenta = ({
         },
       ]);
     }
-
-    // Actualizar la cantidad en la base de datos usando Axios
     try {
       await axios.put(`${url}/updateProductoStock/${producto.ID_PRODUCTO}`, {
-        cantidad: -1, // Resta uno en la base de datos
+        cantidad: -1,
       });
       console.log("Cantidad actualizada en la base de datos");
     } catch (error) {
@@ -114,6 +128,44 @@ const FormularioVenta = ({
         error
       );
     }
+  };
+
+  //FUNCION BUSCAR PRODUCTOS
+  const searchProducto = async (nombre) => {
+    try {
+      const response = await axios.get(`${url}/buscarProductos`, {
+        params: { nombre: nombre },
+      });
+
+      if (response.data && response.data.response.length > 0) {
+        setProductos(response.data.response);
+        setProductoNoEncontrado(false);
+      } else {
+        setProductos([]);
+        setProductoNoEncontrado(true);
+      }
+    } catch (error) {
+      console.log("Error en la busqueda Front-End", error);
+    }
+  };
+
+  //VER TODOS LOS PRODUCTOS
+  async function verProductos() {
+    setProductos([]);
+    await cargarProductos();
+  }
+
+  //FUNCION SELECCIONAR FECHA
+  const showDatepicker = () => {
+    DateTimePickerAndroid.open({
+      value: fecha,
+      onChange: (event, selectedDate) => {
+        const currentDate = selectedDate || fecha;
+        setFecha(currentDate); // Actualiza la fecha seleccionada
+      },
+      mode: "date",
+      is24Hour: true,
+    });
   };
 
   const Item = ({ nombre, cantidad, precio, agregar }) => (
@@ -131,8 +183,16 @@ const FormularioVenta = ({
           Precio <Text style={{ color: "#000" }}>{precio}</Text>
         </Text>
       </View>
-      <TouchableOpacity style={styles.btnAgregarProducto} onPress={agregar}>
-        <FontAwesome name="cart-plus" size={24} color="#FFF" />
+      <TouchableOpacity
+        style={
+          cantidad === 0
+            ? styles.btnAgregarProductoDisable
+            : styles.btnAgregarProducto
+        }
+        onPress={agregar}
+        disabled={cantidad === 0}
+      >
+        <FontAwesome name="cart-plus" size={30} color="#FFF" />
       </TouchableOpacity>
     </View>
   );
@@ -152,7 +212,10 @@ const FormularioVenta = ({
           onPress={() => {
             setModalVenta(true);
           }}
-          style={styles.verCar}
+          style={
+            clienteSeleccionado.NOMBRE === "" ? styles.NoverCar : styles.verCar
+          }
+          disabled={clienteSeleccionado.NOMBRE === ""}
         >
           <Entypo name="shopping-cart" size={32} color="black" />
         </TouchableOpacity>
@@ -165,39 +228,26 @@ const FormularioVenta = ({
             value={clienteSeleccionado.NOMBRE}
             editable={false}
           />
-          {clienteSeleccionado.ID_CLIENTE ? (
-            <TouchableOpacity
-              style={styles.BtnLimpiar}
-              onPress={handlerLimpiar}
-            >
-              <MaterialIcons
-                name="cleaning-services"
-                size={30}
-                color="black"
-                style={{ textAlign: "center" }}
-              />
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              onPress={() => {
-                setModalSelectClient(true);
-              }}
-              style={styles.BtnCliente}
-            >
-              <Ionicons
-                name="person"
-                size={30}
-                color="#000"
-                style={{ textAlign: "center" }}
-              />
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity style={styles.BtnCalendar} onPress={handlerLimpiar}>
+          <TouchableOpacity
+            onPress={() => {
+              comprobarCarrito();
+            }}
+            style={styles.BtnCliente}
+          >
+            <Ionicons
+              name="person"
+              size={30}
+              color="#000"
+              style={{ textAlign: "center" }}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.BtnCalendar}>
             <Entypo
               name="calendar"
               size={30}
-              color="black"
+              color="#fff"
               style={{ textAlign: "center" }}
+              onPress={showDatepicker}
             />
           </TouchableOpacity>
         </View>
@@ -211,10 +261,27 @@ const FormularioVenta = ({
           <FontAwesome5 name="search" size={24} color="black" />
           <TextInput
             placeholder=""
-            placeholderTextColor={"#FFF"}
+            placeholderTextColor="#FFF"
             style={styles.inputBuscar}
+            onChangeText={(value) => {
+              if (value.length > 0) {
+                searchProducto(value);
+                setProductoNoEncontrado(true);
+              } else {
+                verProductos();
+                setProductoNoEncontrado(false);
+              }
+            }}
           />
         </View>
+
+        {productoNoEncontrado && (
+          <View style={styles.noSearch}>
+            <Text style={styles.noSearchText}>
+              No se ha Encontrado el Producto
+            </Text>
+          </View>
+        )}
 
         <View style={styles.tableProductos}>
           <FlatList
@@ -232,12 +299,21 @@ const FormularioVenta = ({
         </View>
       </View>
 
-      <Modal animationType="slide" transparent={true} visible={modalVenta}>
-        <ProcesarPedido setModalVenta={setModalVenta} productosCarrito={productosCarrito} />
+      <Modal animationType="fade" transparent={true} visible={modalVenta}>
+        <ProcesarPedido
+          setModalVenta={setModalVenta}
+          productosCarrito={productosCarrito}
+          fecha={fecha}
+          setFecha={setFecha}
+          setProductosCarrito={setProductosCarrito}
+          productos={productos}
+          setProductos={setProductos}
+          clienteSeleccionado={clienteSeleccionado}
+        />
       </Modal>
 
       <Modal
-        animationType="slide"
+        animationType="fade"
         transparent={true}
         visible={modalselectClient}
       >
@@ -269,7 +345,12 @@ const styles = StyleSheet.create({
   verCar: {
     backgroundColor: "#fcd53f",
     padding: 8,
-    borderRadius: 50,
+    borderRadius: 12,
+  },
+  NoverCar: {
+    backgroundColor: "#888",
+    padding: 8,
+    borderRadius: 12,
   },
   titulo: {
     textAlign: "center",
@@ -287,24 +368,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#fcd53f",
     padding: 5,
     borderRadius: 10,
-    borderColor: "#000",
-    borderWidth: 1,
-    width: "20%",
-  },
-  BtnLimpiar: {
-    backgroundColor: "#f00",
-    padding: 5,
-    borderRadius: 10,
-    borderColor: "#000",
-    borderWidth: 1,
     width: "20%",
   },
   BtnCalendar: {
-    backgroundColor: "#8c8c8c",
+    backgroundColor: "#1b72b5",
     padding: 5,
     borderRadius: 10,
-    borderColor: "#000",
-    borderWidth: 1,
     width: "15%",
   },
   camposClientes: {
@@ -355,6 +424,16 @@ const styles = StyleSheet.create({
   inputBuscar: {
     width: "80%",
     marginVertical: 4,
+    color: "#FFF",
+  },
+  noSearch: {
+    marginTop: 25,
+  },
+  noSearchText: {
+    fontWeight: "bold",
+    fontSize: 18,
+    color: "#FFF",
+    textTransform: "uppercase",
   },
   tableProductos: {
     width: "90%",
@@ -394,6 +473,12 @@ const styles = StyleSheet.create({
   },
   btnAgregarProducto: {
     backgroundColor: "#0e6a00",
+    paddingVertical: 5,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  btnAgregarProductoDisable: {
+    backgroundColor: "#888",
     paddingVertical: 5,
     paddingHorizontal: 20,
     borderRadius: 10,
