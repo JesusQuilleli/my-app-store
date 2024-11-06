@@ -28,7 +28,7 @@
  }
 
 
- //FORMATEAR FECHA
+ //FORMATEAR FECHA MOSTRAR
  export const formatearFecha = fecha => {
   const nuevaFecha = new Date(fecha);
   const opciones = {

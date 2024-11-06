@@ -17,6 +17,7 @@ import { Picker } from "@react-native-picker/picker";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 //PETICIONES AL SERVIDOR
 import axios from "axios";
@@ -27,6 +28,7 @@ import { url, urlBase } from "../helpers/url";
 //COMPONENTE MODAL
 import InformacionProductos from "./sub-components/InformacionProductos";
 import FormularioProductos from "./sub-components/FormularioProductos";
+import FormularioCategoria from "./sub-components/FormularioCategoria";
 
 //ALMACENAMIENTO LOCAL
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -34,9 +36,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import SkeletonLoader from "./components--/skeletonAnimation";
 
 const Productos = () => {
+  //CATEGORIAS
   const [categorias, setCategorias] = useState([]);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("");
+  const [modalCategoria, setModalCategoria] = useState(false);
 
+  //PRODUCTOS
   const [productos, setProductos] = useState([]);
   const [producto, setProducto] = useState({});
 
@@ -48,7 +53,6 @@ const Productos = () => {
 
   //FORMULARIO PARA AGREGAR PRODUCTOS
   const [formProducto, setFormProducto] = useState(false);
-
   const [isLoading, setIsLoading] = useState(true);
 
   //FUNCION CARGAR CATEGORIAS
@@ -253,6 +257,15 @@ const Productos = () => {
             )}
           </Picker>
 
+          <TouchableOpacity 
+          style={styles.BtnCategoria}
+          onPress={() => {
+            setModalCategoria(true);
+          }}
+          >
+            <MaterialIcons name="category" size={24} color="#FFF" />
+          </TouchableOpacity>
+
           {productos.length > 0 && (
             <TouchableOpacity
               style={styles.btnBusqueda}
@@ -317,7 +330,14 @@ const Productos = () => {
           )}
         </View>
 
-        {/*MODAL PARA GUARDAR UN PRODUCTO */}
+        <Modal visible={modalCategoria} animationType="fade">
+          <FormularioCategoria 
+          setModalCategoria={setModalCategoria}
+          categorias={categorias}
+          setCategorias={setCategorias}
+          cargarCategorias={cargarCategorias}
+          />
+        </Modal>
 
         <Modal visible={formProducto} animationType="slide">
           <FormularioProductos
@@ -330,8 +350,6 @@ const Productos = () => {
             productos={productos}
           />
         </Modal>
-
-        {/*MODAL PARA MODIFICAR PRODUCTO Y DAR INFORMACION */}
 
         <Modal visible={modalproducto} animationType="fade">
           <InformacionProductos
@@ -417,7 +435,13 @@ const styles = StyleSheet.create({
     color: "#ccc",
   },
   picker: {
-    width: 200,
+    width: 160,
+  },
+  BtnCategoria: {
+    backgroundColor: "#fcd53f",
+    padding: 10,
+    borderRadius: 50,
+    marginLeft: 5,
   },
   tableProductos: {
     width: "90%",

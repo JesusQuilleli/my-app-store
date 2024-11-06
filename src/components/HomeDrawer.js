@@ -8,7 +8,7 @@ import {
 } from "@react-navigation/drawer";
 
 import Home from "../../screens/Home";
-import Monetario from "./sub-components/Monetario";
+import TasaCambio from "./sub-components/TasaCambio";
 
 import { formatearFecha } from "../helpers/validaciones";
 
@@ -107,26 +107,32 @@ function CustomDrawerContent(props) {
           <Entypo name="log-out" size={26} color="#888" />
         )}
         onPress={() => {
-            props.navigation.closeDrawer();
-            Alert.alert(
-              "Cerrar Sesión",
-              "¿Estás seguro de que deseas cerrar sesión?",
-              [
-                {
-                  text: "Cancelar",
-                  style: "cancel",
-                },
-                {
-                  text: "Cerrar Sesión",
-                  onPress: () => {
-                    AsyncStorage.clear();
+          props.navigation.closeDrawer();
+          Alert.alert(
+            "Cerrar Sesión",
+            "¿Estás seguro de que deseas cerrar sesión?",
+            [
+              {
+                text: "Cancelar",
+                style: "cancel",
+              },
+              {
+                text: "Cerrar Sesión",
+                onPress: async () => {
+                  try {
+                    // Elimina solo el id_administrador
+                    await AsyncStorage.removeItem('adminId'); // Asegúrate de que esta sea la clave correcta
+                    // Navega a la pantalla de Login
                     props.navigation.navigate("Login");
-                  },
-                  style: "destructive",
+                  } catch (error) {
+                    console.error("Error al cerrar sesión:", error);
+                  }
                 },
-              ],
-              { cancelable: true }
-            );
+                style: "destructive",
+              },
+            ],
+            { cancelable: true }
+          );
         }}
       />
     </DrawerContentScrollView>
@@ -183,8 +189,8 @@ export default function HomeDrawer() {
         }}
       />
       <Drawer.Screen
-        name="Monetario"
-        component={Monetario}
+        name="TasaCambio"
+        component={TasaCambio}
         options={{
           title: "Tasa de Cambio",
           headerTitleAlign: "center", // Centra el título en el header

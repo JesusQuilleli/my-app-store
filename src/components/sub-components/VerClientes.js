@@ -29,6 +29,7 @@ const VerClientes = ({
     cargarClientes();
   }, []);
 
+  //SELECCIONAR CLIENTE
   const toggleSelection = (ID_CLIENTE, NOMBRE) => {
     const nuevoSeleccionado =
       clienteSeleccionado === ID_CLIENTE ? null : ID_CLIENTE;
@@ -41,6 +42,7 @@ const VerClientes = ({
     }
   };
 
+  //PROCESAR DOS FUNCIONES
   const verAllClientes = async () => {
     setClientes([]);
     await cargarClientes();
@@ -65,7 +67,7 @@ const VerClientes = ({
     }
   };
 
-  // Componente Item que representa cada cliente
+  //RENDER DE LOS CLIENTES EN LA FLAT-LIST
   const Item = ({ ID_CLIENTE, NOMBRE }) => {
     const isSelected = ID_CLIENTE === clienteSeleccionado;
 
@@ -110,6 +112,12 @@ const VerClientes = ({
             <Text style={styles.noSearchText}>
               No se ha Encontrado el Cliente
             </Text>
+          </View>
+        )}
+
+        {clientes.length === 0 && (
+          <View style={{marginTop: 20}}>
+            <Text style={{fontSize: 18, fontWeight: '900'}}>No hay Clientes Registrados</Text>
           </View>
         )}
 

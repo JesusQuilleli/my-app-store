@@ -14,9 +14,8 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
-import ProcesarPedido from "./ProcesarVenta";
+import ProcesarVenta from "./ProcesarVenta";
 import VerClientes from "./VerClientes";
 
 import axios from "axios";
@@ -33,7 +32,11 @@ const FormularioVenta = ({
   cargarProductos,
   productos,
   setProductos,
+  closeForm,
+  cargarVentas
 }) => {
+
+  //USE-STATE PARA LOS MODALES
   const [modalVenta, setModalVenta] = useState(false);
   const [modalselectClient, setModalSelectClient] = useState(false);
 
@@ -45,9 +48,10 @@ const FormularioVenta = ({
   const [productosCarrito, setProductosCarrito] = useState([]);
   const [fecha, setFecha] = useState(new Date());
 
-  //SHOWS INFORMACION
+  //RENDER INFORMACION
   const [productoNoEncontrado, setProductoNoEncontrado] = useState(false);
 
+  //FUNCION COMPROBAR CARRITO PARA PODER CAMBIAR CLIENTE
   const comprobarCarrito = () => {
     if (productosCarrito.length > 0) {
       Alert.alert(
@@ -60,10 +64,6 @@ const FormularioVenta = ({
       setModalSelectClient(true);
     }
   };
-
-  useEffect(() => {
-    cargarProductos();
-  }, []);
 
   //FUNCION PARA RECIBIR EL NOMBRE Y EL ID CLIENTE
   const handleClienteSeleccionado = (ID_CLIENTE, NOMBRE) => {
@@ -121,7 +121,6 @@ const FormularioVenta = ({
       await axios.put(`${url}/updateProductoStock/${producto.ID_PRODUCTO}`, {
         cantidad: -1,
       });
-      console.log("Cantidad actualizada en la base de datos");
     } catch (error) {
       console.error(
         "Error al actualizar la cantidad en la base de datos",
@@ -167,6 +166,10 @@ const FormularioVenta = ({
       is24Hour: true,
     });
   };
+
+  useEffect(() => {
+    cargarProductos();
+  }, []);
 
   const Item = ({ nombre, cantidad, precio, agregar }) => (
     <View style={styles.item}>
@@ -283,6 +286,12 @@ const FormularioVenta = ({
           </View>
         )}
 
+        {productos.length === 0 && (
+          <View style={{marginTop: 20}}>
+            <Text style={{fontSize: 24, color:'#FFF', fontWeight: '900'}}>No hay Productos Disponibles</Text>
+          </View>
+        )}
+
         <View style={styles.tableProductos}>
           <FlatList
             data={productos}
@@ -300,7 +309,7 @@ const FormularioVenta = ({
       </View>
 
       <Modal animationType="fade" transparent={true} visible={modalVenta}>
-        <ProcesarPedido
+        <ProcesarVenta
           setModalVenta={setModalVenta}
           productosCarrito={productosCarrito}
           fecha={fecha}
@@ -309,6 +318,8 @@ const FormularioVenta = ({
           productos={productos}
           setProductos={setProductos}
           clienteSeleccionado={clienteSeleccionado}
+          closeForm={closeForm}
+          cargarVentas={cargarVentas}
         />
       </Modal>
 
@@ -458,10 +469,9 @@ const styles = StyleSheet.create({
   },
   nombreText: {
     fontWeight: "bold",
-    fontSize: 18,
-    textTransform: "uppercase",
-    textDecorationLine: "underline",
-    color: "#000",
+    fontSize: 20,
+    textTransform: 'capitalize',
+    color: "#fcd53f",
     letterSpacing: 5,
     fontStyle: "italic",
   },

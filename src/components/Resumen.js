@@ -32,7 +32,7 @@ const Resumen = () => {
       style={styles.btn}
       onLongPress={()=> console.log('Abrir Modal Ventas')}
       >
-        <Text style={styles.tituloBtn}><Text style={{color:'#000'}}>Ultimas{' '}</Text>Ventas</Text>
+        <Text style={styles.tituloBtn}><Text style={{color:'#000'}}>Ventas{' '}</Text>Del Dia</Text>
       </Pressable>
 
       <View style={styles.tableVentas}>
@@ -49,7 +49,7 @@ const Resumen = () => {
       style={styles.btn}
       onLongPress={()=> console.log('Abrir Modal Deudores')}
       >
-        <Text style={styles.tituloBtn}>Deudores <Text style={{color:'#000'}}>Recientes</Text></Text>
+        <Text style={styles.tituloBtn}>Deudores <Text style={{color:'#000'}}></Text></Text>
       </Pressable>
 
       <View style={styles.tableVentas}>

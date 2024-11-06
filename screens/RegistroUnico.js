@@ -25,7 +25,6 @@ const RegistroUnico = ({ navigation }) => {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [rolId, setRolId] = useState(1);
 
   const [showSinConexion, setShowSinConexion] = useState(false);
 
@@ -93,8 +92,7 @@ const RegistroUnico = ({ navigation }) => {
       const response = await axios.post(`${url}/registerAdmin`, {
         name,
         email,
-        password,
-        rolId,
+        password
       });
       if (response.status === 200) {
         nextAlert();

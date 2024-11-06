@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   FlatList,
   TextInput,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 
 import Checkbox from "expo-checkbox";
@@ -16,16 +18,27 @@ import { formatearFechaOtroFormato } from "../../helpers/validaciones";
 
 import axios from "axios";
 import { url } from "./../../helpers/url.js";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ProcesarVenta = ({
   setModalVenta,
-  productosCarrito,
+  productosCarrito, // SE USA PARA INSERTAR LA VENTA (MONTO TOTAL: PRECIO * CANTIDAD, )
   setProductosCarrito,
   productos,
   setProductos,
-  fecha,
-  clienteSeleccionado,
+  fecha, // SE USA PARA INSERTAR LA VENTA
+  clienteSeleccionado, // SE USA PARA INSERTAR LA VENTA
+  closeForm,
+  cargarVentas
 }) => {
+  //USE-STATE PARA LA VENTA
+  const [tipoPago, setTipoPago] = useState("AL CONTADO");
+  const [estadoPago, setEstadoPago] = useState("PAGADO");
+  const [primerAbono, setPrimerAbono] = useState(0);
+
+  //CARGA
+  const [isLoading, setIsLoading] = useState(false);
+
   //CALCULAR EL PRECIO TOTAL DE PRODUCTOS SELECCIONADOS
   const totalPrecio = productosCarrito.reduce(
     (total, item) => total + item.PRECIO * item.CANTIDAD,
@@ -38,8 +51,13 @@ const ProcesarVenta = ({
     0
   );
 
+  // FUNCION PARA MANEJAR EL TIPO DE PAGO
+  const handleTipoPago = (tipo) => {
+    setTipoPago(tipo);
+    setEstadoPago(tipo === "AL CONTADO" ? "PAGADO" : "PENDIENTE");
+  };
+
   const quitarProductoDelCarrito = async (producto) => {
-    // Verifica si el producto ya está en el carrito
     const productoEnCarrito = productosCarrito.find(
       (item) => item.ID_PRODUCTO === producto.ID_PRODUCTO
     );
@@ -49,19 +67,16 @@ const ProcesarVenta = ({
       return;
     }
 
-    // Sumar uno a la cantidad del producto en la lista de productos
     const productosActualizados = productos.map((item) => {
       if (item.ID_PRODUCTO === producto.ID_PRODUCTO) {
-        return { ...item, CANTIDAD: item.CANTIDAD + 1 }; // Suma uno
+        return { ...item, CANTIDAD: item.CANTIDAD + 1 };
       }
       return item;
     });
     setProductos(productosActualizados);
 
-    // Disminuir la cantidad en el carrito
     let carritoActualizado;
     if (productoEnCarrito.CANTIDAD > 1) {
-      // Si la cantidad es mayor que 1, simplemente resta uno
       carritoActualizado = productosCarrito.map((item) => {
         if (item.ID_PRODUCTO === producto.ID_PRODUCTO) {
           return { ...item, CANTIDAD: item.CANTIDAD - 1 };
@@ -69,19 +84,15 @@ const ProcesarVenta = ({
         return item;
       });
     } else {
-      // Si la cantidad es 1, elimina el producto del carrito
       carritoActualizado = productosCarrito.filter(
         (item) => item.ID_PRODUCTO !== producto.ID_PRODUCTO
       );
     }
     setProductosCarrito(carritoActualizado);
-
-    // Actualizar la cantidad en la base de datos usando Axios
     try {
       await axios.put(`${url}/updateProductoStock/${producto.ID_PRODUCTO}`, {
-        cantidad: 1, // Suma uno en la base de datos
+        cantidad: 1,
       });
-      console.log("Cantidad actualizada en la base de datos");
     } catch (error) {
       console.error(
         "Error al actualizar la cantidad en la base de datos",
@@ -89,6 +100,82 @@ const ProcesarVenta = ({
       );
     }
   };
+
+  const procesarVenta = async () => {
+    setIsLoading(true); // Comienza la carga
+    try {
+      const totalPendiente = totalPrecio - primerAbono;
+      const adminId = await AsyncStorage.getItem("adminId");
+
+      // Validaciones básicas
+      if (!adminId) throw new Error("ID de administrador no encontrado");
+      if (!clienteSeleccionado || !clienteSeleccionado.ID_CLIENTE)
+        throw new Error("Cliente no seleccionado");
+      if (productosCarrito.length === 0)
+        throw new Error("El carrito está vacío");
+
+      const ventaData = {
+        clienteId: clienteSeleccionado.ID_CLIENTE,
+        pagoTotal: parseFloat(parseFloat(totalPrecio).toFixed(2)),
+        montoPendiente: tipoPago === "POR ABONO" ? parseFloat(totalPendiente.toFixed(2)) : 0,
+        fechaVenta: fecha.toISOString().slice(0, 10),
+        estadoPago: tipoPago === "AL CONTADO" ? "PAGADO" : "PENDIENTE",
+        tipoPago: tipoPago,
+        administradorId: adminId,
+      };
+
+      // Enviar los datos de la venta a la API
+      const response = await axios.post(`${url}/procesarVenta`, ventaData);
+      const ventaId = response.data.ID_VENTA;
+
+      // Iterar sobre los productos en el carrito y registrarlos
+      for (const producto of productosCarrito) {
+        try {
+          await axios.post(`${url}/ventaProductos`, {
+            ventaId: ventaId,
+            productoId: producto.ID_PRODUCTO,
+            cantidad: producto.CANTIDAD,
+          });
+        } catch (error) {
+          console.error(
+            `Error al agregar el producto ${producto.ID_PRODUCTO} a la venta`,
+            error
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error al procesar la venta", error);
+      alert("Ocurrió un error al procesar la venta. Inténtalo nuevamente.");
+    } finally {
+      setIsLoading(false); // Finaliza la carga
+    }
+  };
+
+  // Función para procesar la venta
+const handleVenta = async () => {
+  try {
+    await procesarVenta(); // Supón que esta es tu función que procesa la venta
+
+    // Mostrar la alerta de éxito
+    Alert.alert("Éxito", "Venta procesada exitosamente.", [
+      {
+        text: "Vale",
+        onPress: () => {
+          // Aquí limpias los campos que necesites
+          setProductosCarrito([]); // Limpia el carrito de productos
+          setPrimerAbono(''); // Limpia el campo de abono
+          cargarVentas();
+          setModalVenta(false);
+          closeForm();
+        }
+      }
+    ]);
+  } catch (error) {
+    console.error("Error al procesar la venta", error);
+    Alert.alert("Error", "Ocurrió un error al procesar la venta.");
+  }
+};
+
 
   const Item = ({ nombre, cantidad, precio, quitar }) => (
     <View style={styles.item}>
@@ -98,8 +185,8 @@ const ProcesarVenta = ({
           <Text style={{ textDecorationLine: "underline" }}>{nombre}</Text>
         </Text>
         <Text style={styles.cantidad}>CANTIDAD: {cantidad}</Text>
-        <Text style={styles.precio}>PRECIO: {precio}</Text>
-        <Text style={styles.precio}>TOTAL: {precio * cantidad}</Text>
+        <Text style={styles.precio}>PRECIO: {precio} $</Text>
+        <Text style={styles.precio}>COSTO TOTAL: {precio * cantidad} $</Text>
       </View>
       <TouchableOpacity onPress={quitar} style={styles.BtnMenos}>
         <AntDesign name="minus" size={30} color="#FFF" />
@@ -109,6 +196,27 @@ const ProcesarVenta = ({
 
   return (
     <View style={styles.modalOverlay}>
+      {isLoading && (
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(242, 243, 244, 0.8)",
+            zIndex: 1000,
+          }}
+        >
+          <ActivityIndicator
+            size="large"
+            color="#fee03e"
+            style={{ transform: [{ scale: 2 }] }}
+          />
+        </View>
+      )}
       <View style={styles.modalContent}>
         <View style={styles.header}>
           <View style={styles.headerTitulo}>
@@ -129,9 +237,19 @@ const ProcesarVenta = ({
 
         <View style={styles.content}>
           <View style={styles.tableVentas}>
-          {productosCarrito.length < 1 && (
-            <Text style={{textAlign:'center', fontSize: 20, fontWeight: 'bold', letterSpacing: 3}}>Sin Productos Seleccionados</Text>
-          )}
+            {productosCarrito.length < 1 && (
+              <Text
+                style={{
+                  textAlign: "center",
+                  fontSize: 20,
+                  fontWeight: "bold",
+                  letterSpacing: 3,
+                  textTransform: "uppercase",
+                }}
+              >
+                Sin Productos Seleccionados
+              </Text>
+            )}
             <FlatList
               data={productosCarrito}
               renderItem={({ item }) => (
@@ -158,33 +276,55 @@ const ProcesarVenta = ({
           </View>
           <View style={styles.contentOpcionesPago}>
             <View style={styles.hijoOpcionesPago}>
-              <Text style={styles.hijoOpcionesPagoText}>CUOTAS</Text>
-              <Checkbox />
+              <Text style={styles.hijoOpcionesPagoText}>POR ABONO</Text>
+              <Checkbox
+                value={tipoPago === "POR ABONO"}
+                onValueChange={() => handleTipoPago("POR ABONO")}
+              />
             </View>
             <View style={styles.hijoOpcionesPago}>
               <Text style={styles.hijoOpcionesPagoText}>AL CONTADO</Text>
-              <Checkbox />
+              <Checkbox
+                value={tipoPago === "AL CONTADO"}
+                onValueChange={() => handleTipoPago("AL CONTADO")}
+              />
             </View>
           </View>
           <View style={styles.contentTotal}>
             <Text style={styles.textTotal}>MONTO TOTAL</Text>
-            <Text style={styles.textTotal}>{totalPrecio}</Text>
+            <Text style={styles.textTotal}>{totalPrecio.toFixed(2)} $</Text>
           </View>
           <View style={styles.contentTotal}>
             <Text style={styles.textTotal}>CANTIDAD</Text>
             <Text style={styles.textTotal}>{totalCantidadProductos}</Text>
           </View>
-          <View style={styles.primerAbono}>
-            <Text style={styles.textAbono}>PRIMER ABONO</Text>
-            <TextInput
-              placeholder="500"
-              keyboardAppearance="default"
-              keyboardType="numeric"
-              style={styles.keyAbono}
-            />
-          </View>
+          {tipoPago === "POR ABONO" && (
+            <View style={styles.primerAbono}>
+              <Text style={styles.textAbono}>PRIMER ABONO</Text>
+              <TextInput
+                placeholder="500"
+                keyboardAppearance="default"
+                keyboardType="numeric"
+                style={styles.keyAbono}
+                value={primerAbono}
+                onChangeText={(value) => {
+                  const numericValue = parseFloat(value); // Convertir a número
+          
+                  if (numericValue < 0) {
+                    Alert.alert('Error', "Error: no se puede un Abono Negativo o 0");
+                    setPrimerAbono(''); // Reiniciar el estado
+                  } else {
+                    setPrimerAbono(value); // Solo establece el valor si es válido
+                  }
+                }}
+              />
+            </View>
+          )}
         </View>
-        <TouchableOpacity style={styles.BtnProcesarVenta}>
+        <TouchableOpacity
+          style={styles.BtnProcesarVenta}
+          onPress={handleVenta}
+        >
           <Text style={styles.BtnProcesarVentaText}>Procesar Venta</Text>
         </TouchableOpacity>
       </View>
@@ -246,7 +386,7 @@ const styles = StyleSheet.create({
     width: "100%",
     borderRadius: 12,
     overflow: "hidden",
-    maxHeight: 250,
+    maxHeight: 200,
     borderTopColor: "#000",
     borderTopWidth: 2,
   },
@@ -329,7 +469,7 @@ const styles = StyleSheet.create({
   textAbono: {
     fontSize: 18,
     fontWeight: "900",
-    letterSpacing: 2,
+    letterSpacing: 1,
   },
   keyAbono: {
     fontSize: 20,
