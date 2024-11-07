@@ -43,7 +43,7 @@ const FormularioCategoria = ({
 
       if (response.status === 200) {
         await cargarCategorias();
-        Alert.alert("Éxito", "Categoria registrada correctamente", [
+        Alert.alert("Vale", "Categoria registrada", [
           {
             text: "OK",
             onPress: () => {
@@ -124,7 +124,7 @@ const FormularioCategoria = ({
         </View>
         <View style={styles.ContainerAgregarCategoria}>
           <TextInput
-            placeholder="Nombre"
+            placeholder="Ingrese el Nombre"
             style={styles.inputAgregar}
             value={nombreCategoria}
             onChangeText={(value) => {

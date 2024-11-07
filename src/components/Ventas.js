@@ -21,24 +21,34 @@ import { formatearFecha } from "../helpers/validaciones.js";
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+
+import { Picker } from "@react-native-picker/picker";
 
 const Ventas = () => {
+  //FORMULARIO VENTAS
   const [formVentas, setFormVentas] = useState(false);
+
+  //CLIENTES Y PRODUCTOS
   const [clientes, setClientes] = useState([]);
   const [productos, setProductos] = useState([]);
 
+  //VENTAS
   const [ventasResumidas, setVentasResumidas] = useState([]);
-
   const [ventasDetalladas, setVentasDetalladas] = useState([]);
-
   const [modalVentasDetalladas, setModalVentasDetalladas] = useState(false);
 
+  //FECHAS
   const [verFecha, setVerFecha] = useState(false);
-
   const [fechaInicial, setFechaIncial] = useState(new Date());
   const [fechaFinal, setFechaFinal] = useState(new Date());
   const [botonLimpiarFecha, setBotonLimpiarFecha] = useState(false);
 
+  //VER VENTAS POR ESTADO
+  const [filtro, setFiltro] = useState("todas"); // Estado inicial en "todas"
+
+  //FUNCION CARGAR CLIENTES
   const cargarClientes = async () => {
     try {
       const adminIdString = await AsyncStorage.getItem("adminId");
@@ -103,6 +113,7 @@ const Ventas = () => {
     }
   };
 
+  //FUNCION OBTENER DETALLES EN VENTAS
   const cargarVentasDetalladas = async (ID_VENTA) => {
     try {
       const adminIdString = await AsyncStorage.getItem("adminId");
@@ -127,6 +138,7 @@ const Ventas = () => {
     }
   };
 
+  //CALL-BACK CERRAR FORMULARIO
   const closeForm = () => {
     setFormVentas(false);
   };
@@ -157,6 +169,7 @@ const Ventas = () => {
     });
   };
 
+  //FUNCION VER VENTAS POR FECHAS
   const verRangoFechas = async () => {
     try {
       if (!fechaInicial || !fechaFinal) {
@@ -202,10 +215,24 @@ const Ventas = () => {
     }
   };
 
-  const limpiarFecha =  async () => {
+  //FUNCION LIMPIAR FECHAS VISTAS
+  const limpiarFecha = async () => {
     await cargarVentas();
     setBotonLimpiarFecha(false);
     setVerFecha(false);
+  };
+
+  const handleFiltroChange = (value) => {
+    setFiltro(value);
+    // Aquí puedes agregar la lógica para filtrar la tabla según el valor seleccionado
+    // Ejemplo:
+    // if (value === "pendientes") {
+    //   // Filtrar ventas pendientes
+    // } else if (value === "pagadas") {
+    //   // Filtrar ventas pagadas
+    // } else {
+    //   // Mostrar todas las ventas
+    // }
   };
 
   useEffect(() => {
@@ -232,22 +259,13 @@ const Ventas = () => {
         Ventas <Text style={{ color: "#fcd53f" }}>Realizadas</Text>
       </Text>
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.BtnVenta}
-          onPress={() => {
-            setFormVentas(true);
-          }}
-        >
-          <Text style={styles.BtnVentaText}>Realizar Venta</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={{ borderBottomColor: "#000", borderBottomWidth: 1 }}></View>
-      <View style={{ borderTopColor: "#000", borderTopWidth: 1 }}></View>
-
       <View
-        style={{ alignItems: "center", justifyContent: "center", marginTop: 5 }}
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-evenly",
+          marginTop: 5,
+        }}
       >
         <TouchableOpacity
           onPress={() => {
@@ -257,6 +275,17 @@ const Ventas = () => {
         >
           <Text style={styles.BtnFechaText}>Rango de Fechas</Text>
         </TouchableOpacity>
+        <View>
+          <Picker
+            selectedValue={filtro}
+            onValueChange={(value) => handleFiltroChange(value)}
+            style={styles.picker}
+          >
+            <Picker.Item label="Todas" value="todas" />
+            <Picker.Item label="Pendientes" value="pendientes" />
+            <Picker.Item label="Pagadas" value="pagadas" />
+          </Picker>
+        </View>
       </View>
 
       {verFecha && (
@@ -289,7 +318,7 @@ const Ventas = () => {
               }}
               style={styles.btnverFecha}
             >
-              <Text style={styles.btnverFechaText}>Ver</Text>
+              <MaterialIcons name="pageview" size={30} color="black" />
             </TouchableOpacity>
           )}
         </View>
@@ -324,7 +353,18 @@ const Ventas = () => {
         />
       </View>
 
-      <Modal visible={formVentas} animationType="fade">
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          style={styles.BtnVenta}
+          onPress={() => {
+            setFormVentas(true);
+          }}
+        >
+          <Text style={styles.BtnVentaText}>Realizar Venta</Text>
+        </TouchableOpacity>
+      </View>
+
+      <Modal visible={formVentas} animationType="slide">
         <FormularioVenta
           setFormVentas={setFormVentas}
           cargarClientes={cargarClientes}
@@ -359,12 +399,14 @@ const styles = StyleSheet.create({
   header: {},
   buttonContainer: {
     padding: 10,
+    alignItems: "center",
   },
   BtnVenta: {
-    backgroundColor: "#433a3f",
+    backgroundColor:'green',
     padding: 5,
-    marginHorizontal: 40,
     borderRadius: 5,
+    alignItems: "center",
+    justifyContent: "center",
   },
   BtnVentaText: {
     textAlign: "center",
@@ -376,7 +418,6 @@ const styles = StyleSheet.create({
   ventasText: {
     fontSize: 30,
     fontWeight: "900",
-    letterSpacing: 6,
     textAlign: "center",
     marginTop: 20,
     textTransform: "uppercase",
@@ -458,13 +499,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   btnverFecha: {
-    backgroundColor: "#FFC300",
     padding: 8,
-    borderRadius: 50,
   },
-  btnverFechaText: {
-    fontSize: 15,
-    fontWeight: "900",
-    textTransform: "uppercase",
+  picker: {
+    height: 50,
+    width: 160,
   },
 });

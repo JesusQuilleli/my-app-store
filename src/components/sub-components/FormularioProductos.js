@@ -207,23 +207,68 @@ const FormularioProductos = ({
   };
 
   const handleProducto = () => {
+    if (!categoria) {
+      Alert.alert("Obligatorio", "La categoria es Requerida", [
+        { text: "Vale" },
+      ]);
+      return;
+    }
+
+    if (!nombre) {
+      Alert.alert("Obligatorio", "El nombre es Requerido", [{ text: "Vale" }]);
+      return;
+    }
+
+    if (!precio) {
+      Alert.alert("Obligatorio", "El precio es Requerido", [{ text: "Vale" }]);
+      return;
+    }
+
+    if (precio < 0) {
+      Alert.alert("Obligatorio", "Precio invalido.", [{ text: "Vale" }]);
+      return;
+    }
+
+    if (!cantidad) {
+      Alert.alert("Obligatorio", "La cantidad es Requerida", [
+        { text: "Vale" },
+      ]);
+      return;
+    }
+
+    if (cantidad < 0) {
+      Alert.alert("Obligatorio", "Cantidad Invalida. invalido.", [
+        { text: "Vale" },
+      ]);
+      return;
+    }
+
     if (
-      !categoria ||
-      !nombre ||
-      !precio ||
-      !cantidad ||
-      cantidad < 0 ||
-      precio < 0
+      cantidad.includes(",") ||
+      cantidad.includes(" ") ||
+      cantidad.includes("-")
     ) {
       Alert.alert(
-        "Error",
-        "Los campos Categoria, Nombre, Precio, Cantidad (Cantidad y Precio debe ser mayor a 0), Son Obligatorios!"
+        "Obligatorio",
+        "No puede dejar espacios ni colocar una [ , ] ni colocar valores -"
+      );
+      return;
+    }
+
+    if (
+      precio.includes(",") ||
+      precio.includes(" ") ||
+      precio.includes("-")
+    ) {
+      Alert.alert(
+        "Obligatorio",
+        "No puede dejar espacios ni colocar una [ , ] ni colocar valores -"
       );
       return;
     }
 
     if (!validateEntero(cantidad)) {
-      Alert.alert("Error", "La Cantidad debe ser un Numero Entero");
+      Alert.alert("Error", "Cantidad Invalidad, procure usar numeros enteros.");
       return;
     }
 
@@ -234,17 +279,44 @@ const FormularioProductos = ({
   const handleModificar = async () => {
     const productInteger = parseInt(producto.ID_PRODUCTO);
 
-    if (
-      !categoriaSeleccionada ||
-      !categoria ||
-      !nombre ||
-      !precio ||
-      !cantidad
-    ) {
-      Alert.alert(
-        "Error al Modificar",
-        "Los campos Categoria, Nombre, Precio, Cantidad, Son Obligatorios"
-      );
+    if (!categoria) {
+      Alert.alert("Obligatorio", "La categoria es Requerida", [
+        { text: "Vale" },
+      ]);
+      return;
+    }
+
+    if (!nombre) {
+      Alert.alert("Obligatorio", "El nombre es Requerido", [{ text: "Vale" }]);
+      return;
+    }
+
+    if (!precio) {
+      Alert.alert("Obligatorio", "El precio es Requerido", [{ text: "Vale" }]);
+      return;
+    }
+
+    if (precio < 0) {
+      Alert.alert("Obligatorio", "Precio invalido.", [{ text: "Vale" }]);
+      return;
+    }
+
+    if (!cantidad) {
+      Alert.alert("Obligatorio", "La cantidad es Requerida", [
+        { text: "Vale" },
+      ]);
+      return;
+    }
+
+    if (cantidad < 0) {
+      Alert.alert("Obligatorio", "Cantidad Invalida. invalido.", [
+        { text: "Vale" },
+      ]);
+      return;
+    }
+
+    if (!validateEntero(cantidad)) {
+      Alert.alert("Error", "Cantidad Invalidad, procure usar numeros enteros.");
       return;
     }
 
@@ -336,9 +408,10 @@ const FormularioProductos = ({
                 }}
               >
                 <Picker.Item
-                  label="Nueva Categoria Para el Producto"
-                  value={null}
-                  color="#ccc"
+                  label="Solo seleccione si desea cambiar"
+                  value={producto.ID_CATEGORIA}
+                  color="#888"
+                  enabled={false}
                 />
 
                 {categorias && categorias.length > 0 ? (
@@ -424,7 +497,20 @@ const FormularioProductos = ({
                 placeholderTextColor={"#ccc"}
                 keyboardType="numeric"
                 value={precio}
-                onChangeText={(precio) => setPrecio(precio)}
+                onChangeText={(precio) => {
+                  if (
+                    precio.includes(",") ||
+                    precio.includes(" ") ||
+                    precio.includes("-")
+                  ) {
+                    Alert.alert(
+                      "Obligatorio",
+                      "No puede dejar espacios ni colocar una [ , ] ni colocar valores -"
+                    );
+                    return;
+                  }
+                  setPrecio(precio);
+                }}
               />
 
               <Text style={[styles.label, styles.labelNumeric]}>Cantidad</Text>
@@ -435,7 +521,20 @@ const FormularioProductos = ({
                   placeholderTextColor={"#ccc"}
                   keyboardType="numeric"
                   value={cantidad.toString()}
-                  onChangeText={(cantidad) => setCantidad(cantidad)}
+                  onChangeText={(cantidad) => {
+                    if (
+                      cantidad.includes(",") ||
+                      cantidad.includes(" ") ||
+                      cantidad.includes("-")
+                    ) {
+                      Alert.alert(
+                        "Obligatorio",
+                        "No puede dejar espacios ni colocar una [ , ] ni colocar valores -"
+                      );
+                      return;
+                    }
+                    setCantidad(cantidad);
+                  }}
                 />
               ) : (
                 <TextInput
@@ -444,7 +543,20 @@ const FormularioProductos = ({
                   placeholderTextColor={"#ccc"}
                   keyboardType="numeric"
                   value={parseInt(cantidad)}
-                  onChangeText={(cantidad) => setCantidad(cantidad)}
+                  onChangeText={(cantidad) => {
+                    if (
+                      cantidad.includes(",") ||
+                      cantidad.includes(" ") ||
+                      cantidad.includes("-")
+                    ) {
+                      Alert.alert(
+                        "Obligatorio",
+                        "No puede dejar espacios ni colocar una [ , ] ni colocar valores -"
+                      );
+                      return;
+                    }
+                    setCantidad(cantidad);
+                  }}
                 />
               )}
             </View>
@@ -536,7 +648,7 @@ const styles = StyleSheet.create({
     color: "#fee03a",
     fontWeight: "600",
     padding: 5,
-    letterSpacing: 2
+    letterSpacing: 2,
   },
   tituloBold: {
     fontSize: 26,

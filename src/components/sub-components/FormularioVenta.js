@@ -33,9 +33,8 @@ const FormularioVenta = ({
   productos,
   setProductos,
   closeForm,
-  cargarVentas
+  cargarVentas,
 }) => {
-
   //USE-STATE PARA LOS MODALES
   const [modalVenta, setModalVenta] = useState(false);
   const [modalselectClient, setModalSelectClient] = useState(false);
@@ -207,26 +206,20 @@ const FormularioVenta = ({
           onPress={() => {
             setFormVentas(false);
           }}
+          disabled={productosCarrito.length > 0}
         >
-          <Ionicons name="arrow-back" size={30} color="#fff" />
+          <Ionicons
+            name="arrow-back"
+            size={30}
+            color={productosCarrito.length > 0 ? "#888" : "#fff"}
+          />
         </TouchableOpacity>
         <Text style={styles.titulo}>Hacer Venta</Text>
-        <TouchableOpacity
-          onPress={() => {
-            setModalVenta(true);
-          }}
-          style={
-            clienteSeleccionado.NOMBRE === "" ? styles.NoverCar : styles.verCar
-          }
-          disabled={clienteSeleccionado.NOMBRE === ""}
-        >
-          <Entypo name="shopping-cart" size={32} color="black" />
-        </TouchableOpacity>
       </View>
       <View style={styles.containerSelectClient}>
         <View style={styles.camposClientes}>
           <TextInput
-            placeholder="Nombre Cliente"
+            placeholder="Cliente"
             style={styles.input}
             value={clienteSeleccionado.NOMBRE}
             editable={false}
@@ -287,8 +280,10 @@ const FormularioVenta = ({
         )}
 
         {productos.length === 0 && (
-          <View style={{marginTop: 20}}>
-            <Text style={{fontSize: 24, color:'#FFF', fontWeight: '900'}}>No hay Productos Disponibles</Text>
+          <View style={{ marginTop: 20 }}>
+            <Text style={{ fontSize: 24, color: "#FFF", fontWeight: "900" }}>
+              No hay Productos Disponibles
+            </Text>
           </View>
         )}
 
@@ -306,6 +301,20 @@ const FormularioVenta = ({
             )}
           />
         </View>
+      </View>
+
+      <View style={{alignItems:'center', marginTop: 6}}>
+        <TouchableOpacity
+          onPress={() => {
+            setModalVenta(true);
+          }}
+          style={
+            clienteSeleccionado.NOMBRE === "" ? styles.NoverCar : styles.verCar
+          }
+          disabled={clienteSeleccionado.NOMBRE === ""}
+        >
+          <Entypo name="shopping-cart" size={32} color="black" />
+        </TouchableOpacity>
       </View>
 
       <Modal animationType="fade" transparent={true} visible={modalVenta}>
@@ -357,11 +366,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#fcd53f",
     padding: 8,
     borderRadius: 12,
+    width: "50%",
+    alignItems:'center'
   },
   NoverCar: {
     backgroundColor: "#888",
     padding: 8,
     borderRadius: 12,
+    width:'50%',
+    alignItems:'center'
   },
   titulo: {
     textAlign: "center",
@@ -385,7 +398,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#1b72b5",
     padding: 5,
     borderRadius: 10,
-    width: "15%",
+    width: "20%",
   },
   camposClientes: {
     flexDirection: "row",
@@ -451,7 +464,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     overflow: "hidden",
     marginTop: 20,
-    maxHeight: 460,
+    maxHeight: 445,
   },
   item: {
     flexDirection: "row",
@@ -470,7 +483,7 @@ const styles = StyleSheet.create({
   nombreText: {
     fontWeight: "bold",
     fontSize: 20,
-    textTransform: 'capitalize',
+    textTransform: "capitalize",
     color: "#fcd53f",
     letterSpacing: 5,
     fontStyle: "italic",

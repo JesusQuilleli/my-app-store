@@ -29,7 +29,7 @@ const ProcesarVenta = ({
   fecha, // SE USA PARA INSERTAR LA VENTA
   clienteSeleccionado, // SE USA PARA INSERTAR LA VENTA
   closeForm,
-  cargarVentas
+  cargarVentas,
 }) => {
   //USE-STATE PARA LA VENTA
   const [tipoPago, setTipoPago] = useState("AL CONTADO");
@@ -107,17 +107,11 @@ const ProcesarVenta = ({
       const totalPendiente = totalPrecio - primerAbono;
       const adminId = await AsyncStorage.getItem("adminId");
 
-      // Validaciones básicas
-      if (!adminId) throw new Error("ID de administrador no encontrado");
-      if (!clienteSeleccionado || !clienteSeleccionado.ID_CLIENTE)
-        throw new Error("Cliente no seleccionado");
-      if (productosCarrito.length === 0)
-        throw new Error("El carrito está vacío");
-
       const ventaData = {
         clienteId: clienteSeleccionado.ID_CLIENTE,
         pagoTotal: parseFloat(parseFloat(totalPrecio).toFixed(2)),
-        montoPendiente: tipoPago === "POR ABONO" ? parseFloat(totalPendiente.toFixed(2)) : 0,
+        montoPendiente:
+        tipoPago === "POR ABONO" ? parseFloat(totalPendiente.toFixed(2)) : 0,
         fechaVenta: fecha.toISOString().slice(0, 10),
         estadoPago: tipoPago === "AL CONTADO" ? "PAGADO" : "PENDIENTE",
         tipoPago: tipoPago,
@@ -152,30 +146,45 @@ const ProcesarVenta = ({
   };
 
   // Función para procesar la venta
-const handleVenta = async () => {
-  try {
-    await procesarVenta(); // Supón que esta es tu función que procesa la venta
-
-    // Mostrar la alerta de éxito
-    Alert.alert("Éxito", "Venta procesada exitosamente.", [
-      {
-        text: "Vale",
-        onPress: () => {
-          // Aquí limpias los campos que necesites
-          setProductosCarrito([]); // Limpia el carrito de productos
-          setPrimerAbono(''); // Limpia el campo de abono
-          cargarVentas();
-          setModalVenta(false);
-          closeForm();
-        }
+  const handleVenta = async () => {
+    try {
+      if (productosCarrito.length === 0) {
+        Alert.alert(
+          "Carga Productos al Carrito",
+          "No puedes procesar la venta sin productos que vender."
+        );
+        return;
       }
-    ]);
-  } catch (error) {
-    console.error("Error al procesar la venta", error);
-    Alert.alert("Error", "Ocurrió un error al procesar la venta.");
-  }
-};
 
+      if(!primerAbono){
+        Alert.alert(
+          "Debe ingresar un primer Abono",
+          "Ingrese su Abono."
+        );
+        return;
+      }
+
+      await procesarVenta(); // Supón que esta es tu función que procesa la venta
+
+      // Mostrar la alerta de éxito
+      Alert.alert("Éxito", "Venta procesada exitosamente.", [
+        {
+          text: "Vale",
+          onPress: () => {
+            // Aquí limpias los campos que necesites
+            setProductosCarrito([]); // Limpia el carrito de productos
+            setPrimerAbono(""); // Limpia el campo de abono
+            cargarVentas();
+            setModalVenta(false);
+            closeForm();
+          },
+        },
+      ]);
+    } catch (error) {
+      console.error("Error al procesar la venta", error);
+      Alert.alert("Error", "Ocurrió un error al procesar la venta.");
+    }
+  };
 
   const Item = ({ nombre, cantidad, precio, quitar }) => (
     <View style={styles.item}>
@@ -309,10 +318,13 @@ const handleVenta = async () => {
                 value={primerAbono}
                 onChangeText={(value) => {
                   const numericValue = parseFloat(value); // Convertir a número
-          
+
                   if (numericValue < 0) {
-                    Alert.alert('Error', "Error: no se puede un Abono Negativo o 0");
-                    setPrimerAbono(''); // Reiniciar el estado
+                    Alert.alert(
+                      "Error",
+                      "Error: no se puede un Abono Negativo"
+                    );
+                    setPrimerAbono(""); // Reiniciar el estado
                   } else {
                     setPrimerAbono(value); // Solo establece el valor si es válido
                   }
@@ -321,10 +333,7 @@ const handleVenta = async () => {
             </View>
           )}
         </View>
-        <TouchableOpacity
-          style={styles.BtnProcesarVenta}
-          onPress={handleVenta}
-        >
+        <TouchableOpacity style={styles.BtnProcesarVenta} onPress={handleVenta}>
           <Text style={styles.BtnProcesarVentaText}>Procesar Venta</Text>
         </TouchableOpacity>
       </View>

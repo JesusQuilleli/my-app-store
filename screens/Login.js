@@ -30,7 +30,6 @@ const Login = ({ navigation }) => {
   const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
   const [showSinConexion, setShowSinConexion] = useState(false);
 
   //MOSTRAR CONTRASEÑA

@@ -18,7 +18,7 @@ const InformacionVenta = ({
   ventasDetalladas,
   setVentasDetalladas,
 }) => {
-  const DEUDA_RESTANTE = (
+  const ABONO = (
     parseFloat(ventasDetalladas.MONTO_TOTAL) -
     parseFloat(ventasDetalladas.MONTO_PENDIENTE)
   ).toFixed(2);
@@ -42,7 +42,7 @@ const InformacionVenta = ({
   // Función para procesar el abono
   const procesarPago = () => {
     if (!esDeudaRestante && montoAbonado > 0) {
-      const nuevoSaldo = (parseFloat(DEUDA_RESTANTE) - montoAbonado).toFixed(2); // Calcula el nuevo saldo
+      const nuevoSaldo = (parseFloat(ABONO) - montoAbonado).toFixed(2); // Calcula el nuevo saldo
       setMontoAbonado(0); // Limpiar el campo después de procesar el abono
       setEsDeudaRestante(true); // Volver a seleccionar "Deuda Restante" después de procesar
     }
@@ -78,6 +78,13 @@ const InformacionVenta = ({
           </Text>
         </View>
 
+        {parseFloat(ventasDetalladas.MONTO_PENDIENTE) !== 0.0 && (
+          <View style={styles.content}>
+            <Text style={styles.label}>Monto Abonado</Text>
+            <Text style={styles.valor}>{ABONO}</Text>
+          </View>
+        )}
+
         <View style={styles.content}>
           <Text style={styles.label}>Monto Pendiente</Text>
           <Text style={styles.valor}>
@@ -94,12 +101,6 @@ const InformacionVenta = ({
           <Text style={styles.valor}>{ventasDetalladas.MONTO_TOTAL}</Text>
         </View>
 
-        {parseFloat(ventasDetalladas.MONTO_PENDIENTE) !== 0.0 && (
-          <View style={styles.content}>
-            <Text style={styles.label}>Monto Restante</Text>
-            <Text style={styles.valor}>{DEUDA_RESTANTE}</Text>
-          </View>
-        )}
         <View style={styles.content}>
           <Text style={styles.label}>Estado de Pago</Text>
           <Text
@@ -159,7 +160,7 @@ const InformacionVenta = ({
                       keyboardType="numeric"
                       value={
                         esDeudaRestante
-                          ? DEUDA_RESTANTE
+                          ? ventasDetalladas.MONTO_PENDIENTE
                           : montoAbonado.toString()
                       }
                       editable={!esDeudaRestante}

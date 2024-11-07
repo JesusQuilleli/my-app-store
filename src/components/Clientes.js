@@ -122,9 +122,9 @@ const Clientes = () => {
       <Text style={styles.titulo}>Clientes</Text>
       <View style={styles.boxInput}>
         <TextInput
-          placeholder="BUSCAR CLIENTES"
+          placeholder="B U S C A R   C L I E N T E S"
           placeholderTextColor="#ccc"
-          style={{ textAlign: "center", letterSpacing: 6 }}
+          style={{textAlign:'center'}}
           onChangeText={(value) => {
             if (value.length > 0) {
               searchCliente(value);
@@ -168,11 +168,9 @@ const Clientes = () => {
             </TouchableOpacity>
           )}
         />
-        ) : (<SkeletonLoaderClientes/>)}
+        ) : (!clienteNoEncontrado && <SkeletonLoaderClientes/>)}
       </View>
-
       
-
       <Modal visible={formClientes} animationType="slide">
         <FormularioCliente 
         setFormClientes={setFormClientes}
@@ -210,7 +208,6 @@ const styles = StyleSheet.create({
     fontSize: 40,
     fontWeight: "900",
     color: "#000",
-    letterSpacing: 8,
   },
   boxInput: {
     backgroundColor: "#efefef",
@@ -258,7 +255,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color:'#000',
     fontWeight:'900',
-    letterSpacing: 3,
     marginLeft: 5
   },
   textContainer: {
