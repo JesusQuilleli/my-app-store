@@ -129,9 +129,23 @@ const FormularioCliente = ({
       Alert.alert("Error", "Los campos Son Obligatorios");
       return;
     }
+    if(!telefono) {
+      Alert.alert("Obligatorio", "El Telefono es Requerido.");
+      return;
+    }
 
     if (telefono < 0) {
       Alert.alert("Error", "El Telefono no puede ser Negativo");
+      return;
+    }
+
+    if(!correo) {
+      Alert.alert("Obligatorio", "El Correo es Requerido.");
+      return;
+    }
+
+    if(!direccion) {
+      Alert.alert("Obligatorio", "La Dirección es Requerida.");
       return;
     }
 
@@ -221,6 +235,7 @@ const FormularioCliente = ({
           </Text>
           <TextInput
             placeholder="Telefono"
+            maxLength={11}
             style={styles.input}
             value={telefono}
             onChangeText={(telefono) => {

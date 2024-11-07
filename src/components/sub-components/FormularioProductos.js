@@ -388,7 +388,7 @@ const FormularioProductos = ({
             </Text>
           ) : (
             <Text style={styles.titulo}>
-              Agregar Productos al{" "}
+              Agregar Producto al{" "}
               <Text style={styles.tituloBold}>Inventario</Text>
             </Text>
           )}
@@ -466,7 +466,7 @@ const FormularioProductos = ({
             )}
           </View>
           <View style={styles.campo}>
-            <Text style={styles.label}>Marca</Text>
+            <Text style={styles.label}>Nombre</Text>
             <TextInput
               style={styles.Input}
               placeholder=""

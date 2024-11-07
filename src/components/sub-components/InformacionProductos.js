@@ -103,7 +103,7 @@ const InformacionProductos = ({
         </View>
 
         <View style={styles.campo}>
-          <Text style={styles.label}>Marca</Text>
+          <Text style={styles.label}>Nombre</Text>
           <Text style={styles.valor}>{producto.PRODUCTO}</Text>
         </View>
 
@@ -125,7 +125,7 @@ const InformacionProductos = ({
 
         <View style={styles.campo}>
           <Text style={styles.label}>Cantidad</Text>
-          <Text style={styles.valor}>{producto.CANTIDAD} Unidades</Text>
+          <Text style={styles.valor}>{producto.CANTIDAD}</Text>
         </View>
 
         <View style={styles.campo}>

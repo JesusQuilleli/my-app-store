@@ -124,8 +124,9 @@ const FormularioCategoria = ({
         </View>
         <View style={styles.ContainerAgregarCategoria}>
           <TextInput
-            placeholder="Ingrese el Nombre"
+            placeholder="Ingrese el nombre"
             style={styles.inputAgregar}
+            maxLength={20}
             value={nombreCategoria}
             onChangeText={(value) => {
               setNombreCategoria(value);
@@ -241,9 +242,10 @@ const styles = StyleSheet.create({
     marginVertical: 5,
   },
   inputAgregar: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: "bold",
     marginLeft: 5,
+    width: '60%'
   },
   btnAgregarCategoria: {
     backgroundColor: "#0eca00",
