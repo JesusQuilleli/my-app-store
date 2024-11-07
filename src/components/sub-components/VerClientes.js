@@ -115,7 +115,7 @@ const VerClientes = ({
           </View>
         )}
 
-        {clientes.length === 0 && (
+        {!clienteNoEncontrado && clientes.length === 0 && (
           <View style={{marginTop: 20}}>
             <Text style={{fontSize: 18, fontWeight: '900'}}>No hay Clientes Registrados</Text>
           </View>

@@ -1,14 +1,53 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+} from "react-native";
 
 import Entypo from "@expo/vector-icons/Entypo";
 import { formatearFecha } from "../../helpers/validaciones";
+
+import Checkbox from "expo-checkbox";
 
 const InformacionVenta = ({
   setModalVentasDetalladas,
   ventasDetalladas,
   setVentasDetalladas,
 }) => {
+  const DEUDA_RESTANTE = (
+    parseFloat(ventasDetalladas.MONTO_TOTAL) -
+    parseFloat(ventasDetalladas.MONTO_PENDIENTE)
+  ).toFixed(2);
+
+  const [montoAbonado, setMontoAbonado] = useState(0);
+  const [esDeudaRestante, setEsDeudaRestante] = useState(true);
+
+  const [opcionesPago, setOpcionesPago] = useState(false);
+
+  // Función que se llama al seleccionar una opción
+  const manejarSeleccion = (opcion) => {
+    if (opcion === "deudaRestante") {
+      setEsDeudaRestante(true);
+      setMontoAbonado(0); // Limpiar el campo de abono
+    } else {
+      setEsDeudaRestante(false);
+      setMontoAbonado(""); // Permitir ingreso de nuevo monto de abono
+    }
+  };
+
+  // Función para procesar el abono
+  const procesarPago = () => {
+    if (!esDeudaRestante && montoAbonado > 0) {
+      const nuevoSaldo = (parseFloat(DEUDA_RESTANTE) - montoAbonado).toFixed(2); // Calcula el nuevo saldo
+      setMontoAbonado(0); // Limpiar el campo después de procesar el abono
+      setEsDeudaRestante(true); // Volver a seleccionar "Deuda Restante" después de procesar
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -25,11 +64,13 @@ const InformacionVenta = ({
           <Text style={styles.titulo}>INFORMACIÓN - Venta</Text>
         </View>
       </View>
+
       <View style={styles.padreContent}>
         <View style={styles.content}>
           <Text style={styles.label}>Cliente</Text>
           <Text style={styles.valor}>{ventasDetalladas.CLIENTE}</Text>
         </View>
+
         <View style={styles.content}>
           <Text style={styles.label}>Fecha de Venta</Text>
           <Text style={styles.valor}>
@@ -47,19 +88,16 @@ const InformacionVenta = ({
             )}
           </Text>
         </View>
+
         <View style={styles.content}>
           <Text style={styles.label}>Monto Total</Text>
           <Text style={styles.valor}>{ventasDetalladas.MONTO_TOTAL}</Text>
         </View>
+
         {parseFloat(ventasDetalladas.MONTO_PENDIENTE) !== 0.0 && (
           <View style={styles.content}>
             <Text style={styles.label}>Monto Restante</Text>
-            <Text style={styles.valor}>
-              {(
-                parseFloat(ventasDetalladas.MONTO_TOTAL) -
-                parseFloat(ventasDetalladas.MONTO_PENDIENTE)
-              ).toFixed(2)}
-            </Text>
+            <Text style={styles.valor}>{DEUDA_RESTANTE}</Text>
           </View>
         )}
         <View style={styles.content}>
@@ -79,6 +117,65 @@ const InformacionVenta = ({
           <Text style={styles.label}>Lista de Productos</Text>
           <Text style={styles.valor}>{ventasDetalladas.LISTA_PRODUCTOS}</Text>
         </View>
+
+        {ventasDetalladas.ESTADO_PAGO === "PENDIENTE" && (
+          <View>
+            <View style={styles.ContanerBtn}>
+              <TouchableOpacity
+                onPress={() => {
+                  setOpcionesPago(!opcionesPago);
+                }}
+                style={styles.BtnPagar}
+              >
+                <Text style={styles.BtnPagarText}>Formas de Pago</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.BtnPagos}>
+                <Text style={styles.BtnPagoText}>Pagos Realizados</Text>
+              </TouchableOpacity>
+            </View>
+            {opcionesPago && (
+              <View>
+                <View style={styles.containerPago}>
+                  <View style={styles.ItemPago}>
+                    <Text style={styles.defecto}>Abono</Text>
+                    <Checkbox
+                      value={!esDeudaRestante}
+                      onValueChange={() => manejarSeleccion("abono")}
+                    />
+                  </View>
+                  <View style={styles.ItemPago}>
+                    <Text style={styles.defecto}>Deuda Restante</Text>
+                    <Checkbox
+                      value={esDeudaRestante}
+                      onValueChange={() => manejarSeleccion("deudaRestante")}
+                    />
+                  </View>
+                </View>
+                <View style={styles.inputContent}>
+                  <View style={styles.inputContentItem}>
+                    <TextInput
+                      placeholder="Aqui"
+                      style={styles.input}
+                      keyboardType="numeric"
+                      value={
+                        esDeudaRestante
+                          ? DEUDA_RESTANTE
+                          : montoAbonado.toString()
+                      }
+                      editable={!esDeudaRestante}
+                      onChangeText={(valor) =>
+                        setMontoAbonado(parseFloat(valor) || 0)
+                      }
+                    />
+                    <TouchableOpacity style={styles.btnProcesar}>
+                      <Text style={styles.btnProcesarText}>Procesar</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            )}
+          </View>
+        )}
       </View>
     </View>
   );
@@ -162,5 +259,80 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 20,
     color: "#f00",
+  },
+  ContanerBtn: {
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    alignItems: "center",
+  },
+  BtnPagos: {
+    backgroundColor: "gray",
+    padding: 7.5,
+    borderRadius: 50,
+  },
+  BtnPagoText: {
+    color: "#FFF",
+    textAlign: "center",
+    fontSize: 10,
+    textTransform: "uppercase",
+    fontWeight: "900",
+  },
+  BtnPagar: {
+    backgroundColor: "green",
+    padding: 7.5,
+    borderRadius: 50,
+  },
+  BtnPagarText: {
+    color: "#FFF",
+    textAlign: "center",
+    fontSize: 10,
+    textTransform: "uppercase",
+    fontWeight: "900",
+  },
+  containerPago: {
+    marginTop: 15,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  ItemPago: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+  },
+  defecto: {
+    textTransform: "uppercase",
+    color: "#374145",
+    fontWeight: "600",
+    fontSize: 12,
+  },
+  inputContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  inputContentItem: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-evenly",
+    marginTop: 10,
+  },
+  input: {
+    fontSize: 18,
+    fontWeight: "900",
+    color: "#888",
+  },
+  btnProcesar: {
+    backgroundColor: "green",
+    padding: 7.5,
+    borderRadius: 50,
+  },
+  btnProcesarText: {
+    color: "#FFF",
+    textAlign: "center",
+    fontSize: 10,
+    textTransform: "uppercase",
+    fontWeight: "900",
   },
 });
