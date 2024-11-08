@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Inv. Margarita",
+    "name": "Shop-Mg",
     "slug": "Inv-Margarita",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -18,10 +18,17 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.jquilellicdev.InvMargarita",
+      "permissions": ["INTERNET"]
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "6a2c5be1-a031-490d-8b65-d5cef1d8bea9"
+      }
     }
   }
 }

@@ -3,7 +3,6 @@ import {
   Text,
   StyleSheet,
   View,
-  Image,
   TextInput,
   Alert,
   TouchableOpacity,
@@ -37,7 +36,7 @@ const RegistroUnico = ({ navigation }) => {
   const nextAlert = () => {
     Alert.alert(
       "Muy bien!",
-      "Administrador Principal Registrado Exitosamente.",
+      "Administrador Registrado.",
       [
         {
           text: "OK",
@@ -57,17 +56,24 @@ const RegistroUnico = ({ navigation }) => {
   //FUNCION PARA ENVIAR DATOS AL END POINT EN EL SERVER
   const handleRegisterAdmin = async () => {
     try {
-      if (!name || !email || !password) {
-        Alert.alert(
-          "Error",
-          "Todos los campos son obligatorios",
+      if (!name) {
+        Alert.alert("Obligatorio", "El nombre es Requerido.", [
+          { text: "Vale" },
+        ]);
+        return;
+      }
 
-          [
-            {
-              text: "OK",
-            },
-          ]
-        );
+      if (!email) {
+        Alert.alert("Obligatorio", "El email es Requerido.", [
+          { text: "Vale" },
+        ]);
+        return;
+      }
+
+      if (!password) {
+        Alert.alert("Obligatorio", "La contraseña es Requerida.", [
+          { text: "Vale" },
+        ]);
         return;
       }
 
@@ -78,13 +84,9 @@ const RegistroUnico = ({ navigation }) => {
 
       if (!validatePassword(password)) {
         Alert.alert(
-          "Contraseña invalida",
+          "Contraseña inválida",
           "¡Tu contraseña no cumple con los requisitos, Debe Contener 8 Caracteres y 1 Mayuscula!",
-          [
-            {
-              text: "OK",
-            },
-          ]
+          [{ text: "OK" }]
         );
         return;
       }
@@ -92,14 +94,17 @@ const RegistroUnico = ({ navigation }) => {
       const response = await axios.post(`${url}/registerAdmin`, {
         name,
         email,
-        password
+        password,
       });
+
       if (response.status === 200) {
-        nextAlert();
-      } 
+        nextAlert(); // Muestra alerta de registro exitoso o realiza otras acciones
+      }
     } catch (error) {
       if (error.response) {
-        if (error.response.status === 401) {
+        if (error.response.status === 409) {
+          Alert.alert("Error", "Este correo ya está registrado.");
+        } else if (error.response.status === 401) {
           Alert.alert("Error", "Datos Incorrectos");
         } else if (error.response.status === 500) {
           Alert.alert(
@@ -186,7 +191,11 @@ const RegistroUnico = ({ navigation }) => {
         </View>
         <TouchableOpacity
           style={styles.linkRegistro}
-          onPress={() => navigation.navigate("Login")}
+          onPress={() => {navigation.navigate("Login")
+            setEmail("");
+            setPassword("");
+            setName("");
+          }}
         >
           <Text style={styles.linkRegistroText}>Login</Text>
         </TouchableOpacity>
@@ -281,7 +290,7 @@ const styles = StyleSheet.create({
     color: "#ccc",
     textTransform: "uppercase",
     letterSpacing: 5,
-    textDecorationLine:'underline'
+    textDecorationLine: "underline",
   },
 });
 

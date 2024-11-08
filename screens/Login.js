@@ -108,7 +108,6 @@ const Login = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-
       <View>
         <Image
           source={require("../assets/resources/perfil.webp")}
@@ -155,7 +154,11 @@ const Login = ({ navigation }) => {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.linkRegistro}
-            onPress={() => navigation.navigate("RegistroUnico")}
+            onPress={() => {
+              navigation.navigate("RegistroUnico");
+              setEmail("");
+              setPassword("");
+            }}
           >
             <Text style={styles.linkRegistroText}>Registrarse</Text>
           </TouchableOpacity>
@@ -163,7 +166,6 @@ const Login = ({ navigation }) => {
       </View>
 
       {showSinConexion && <SinConexion />}
-
     </View>
   );
 };
@@ -266,7 +268,7 @@ const styles = StyleSheet.create({
     color: "#ccc",
     textTransform: "uppercase",
     letterSpacing: 5,
-    textDecorationLine:'underline'
+    textDecorationLine: "underline",
   },
 });
 
