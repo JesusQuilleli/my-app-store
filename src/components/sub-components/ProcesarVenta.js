@@ -30,6 +30,8 @@ const ProcesarVenta = ({
   clienteSeleccionado, // SE USA PARA INSERTAR LA VENTA
   closeForm,
   cargarVentas,
+  TasaBolivares,
+  TasaPesos
 }) => {
   //USE-STATE PARA LA VENTA
   const [tipoPago, setTipoPago] = useState("AL CONTADO");
@@ -190,12 +192,11 @@ const ProcesarVenta = ({
     <View style={styles.item}>
       <View>
         <Text style={styles.nombre}>
-          PRODUCTO:{" "}
-          <Text style={{ textDecorationLine: "underline" }}>{nombre}</Text>
+          <Text>{nombre}</Text>
         </Text>
-        <Text style={styles.cantidad}>CANTIDAD: {cantidad}</Text>
-        <Text style={styles.precio}>PRECIO: {precio} $</Text>
-        <Text style={styles.precio}>COSTO TOTAL: {precio * cantidad} $</Text>
+        <Text style={styles.cantidad}>Cantidad: {cantidad}</Text>
+        <Text style={styles.precio}>Unidad Precio: {precio} <Text style={{fontSize: 12}}>Dolares</Text></Text>
+        <Text style={styles.precio}>Total: {(precio * cantidad).toFixed(2)} <Text style={{fontSize: 12}}>Dolares</Text></Text>
       </View>
       <TouchableOpacity onPress={quitar} style={styles.BtnMenos}>
         <AntDesign name="minus" size={30} color="#FFF" />
@@ -410,15 +411,15 @@ const styles = StyleSheet.create({
   nombre: {
     fontSize: 16,
     fontWeight: "900",
-    textTransform: "uppercase",
+    textTransform: 'capitalize',
   },
   cantidad: {
     fontSize: 14,
-    fontWeight: "900",
+    fontWeight: "800",
   },
   precio: {
     fontSize: 14,
-    fontWeight: "900",
+    fontWeight: "700",
   },
   contentTotal: {
     flexDirection: "row",

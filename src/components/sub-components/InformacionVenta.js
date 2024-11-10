@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
   TextInput,
+  ActivityIndicator,
+  ScrollView,
 } from "react-native";
 
 import Entypo from "@expo/vector-icons/Entypo";
@@ -17,6 +18,8 @@ const InformacionVenta = ({
   setModalVentasDetalladas,
   ventasDetalladas,
   setVentasDetalladas,
+  TasaBolivares,
+  TasaPesos,
 }) => {
   const ABONO = (
     parseFloat(ventasDetalladas.MONTO_TOTAL) -
@@ -25,8 +28,18 @@ const InformacionVenta = ({
 
   const [montoAbonado, setMontoAbonado] = useState(0);
   const [esDeudaRestante, setEsDeudaRestante] = useState(true);
-
+  const [loading, setLoading] = useState(true); // Estado de carga
   const [opcionesPago, setOpcionesPago] = useState(false);
+
+  useEffect(() => {
+    // Simula la carga de datos
+    if (
+      ventasDetalladas.MONTO_TOTAL !== undefined ||
+      ventasDetalladas.MONTO_PENDIENTE
+    ) {
+      setLoading(false); // Cambia el estado a "cargado" cuando los datos están disponibles
+    }
+  }, [ventasDetalladas]);
 
   // Función que se llama al seleccionar una opción
   const manejarSeleccion = (opcion) => {
@@ -48,6 +61,14 @@ const InformacionVenta = ({
     }
   };
 
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#fee03e" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -65,7 +86,7 @@ const InformacionVenta = ({
         </View>
       </View>
 
-      <View style={styles.padreContent}>
+      <ScrollView style={styles.padreContent}>
         <View style={styles.content}>
           <Text style={styles.label}>Cliente</Text>
           <Text style={styles.valor}>{ventasDetalladas.CLIENTE}</Text>
@@ -78,27 +99,63 @@ const InformacionVenta = ({
           </Text>
         </View>
 
-        {parseFloat(ventasDetalladas.MONTO_PENDIENTE) !== 0.0 && (
+        <View style={styles.content}>
           <View style={styles.content}>
-            <Text style={styles.label}>Monto Abonado</Text>
-            <Text style={styles.valor}>{ABONO}</Text>
+            <Text style={styles.label}>Monto Total</Text>
+            <Text style={styles.valor}>
+              {ventasDetalladas.MONTO_TOTAL}{" "}
+              <Text style={{ fontSize: 12 }}>Dolares</Text>
+            </Text>
+            <Text style={styles.label}>Otros Precios</Text>
+            <Text style={styles.valor}>
+              {(ventasDetalladas.MONTO_TOTAL * TasaBolivares).toFixed(2)}{" "}
+              <Text style={{ fontSize: 12 }}>Bolivares</Text>
+            </Text>
+            <Text style={styles.valor}>
+              {(ventasDetalladas.MONTO_TOTAL * TasaPesos).toFixed(0)}{" "}
+              <Text style={{ fontSize: 12 }}>Pesos</Text>
+            </Text>
           </View>
-        )}
 
-        <View style={styles.content}>
+          {parseFloat(ventasDetalladas.MONTO_PENDIENTE) !== 0.0 && (
+            <View style={styles.content}>
+              <Text style={styles.label}>Monto Abonado</Text>
+              <Text style={styles.valor}>
+                {ABONO} <Text style={{ fontSize: 12 }}>Dolares</Text>
+              </Text>
+            </View>
+          )}
+
           <Text style={styles.label}>Monto Pendiente</Text>
-          <Text style={styles.valor}>
-            {parseFloat(ventasDetalladas.MONTO_PENDIENTE) === 0.0 ? (
-              <Text style={{ textTransform: "uppercase" }}>No hay Deuda</Text>
-            ) : (
-              ventasDetalladas.MONTO_PENDIENTE
-            )}
-          </Text>
-        </View>
 
-        <View style={styles.content}>
-          <Text style={styles.label}>Monto Total</Text>
-          <Text style={styles.valor}>{ventasDetalladas.MONTO_TOTAL}</Text>
+          {parseFloat(ventasDetalladas.MONTO_PENDIENTE) === 0.0 ? (
+            <Text style={[styles.valor, { textTransform: "uppercase" }]}>
+              No hay Deuda
+            </Text>
+          ) : (
+            <>
+              <View style={styles.montoContainer}>
+                <Text style={styles.valor}>
+                  {ventasDetalladas.MONTO_PENDIENTE}{" "}
+                  <Text style={{ fontSize: 12 }}>Dolares</Text>
+                </Text>
+              </View>
+              <Text style={styles.label}>Otros Precios</Text>
+              <View style={styles.montoContainer}>
+                <Text style={styles.valor}>
+                  {ventasDetalladas.MONTO_PENDIENTE * TasaBolivares}{" "}
+                  <Text style={{ fontSize: 12 }}>Bolivares</Text>
+                </Text>
+              </View>
+
+              <View style={styles.montoContainer}>
+                <Text style={styles.valor}>
+                  {ventasDetalladas.MONTO_PENDIENTE * TasaPesos}{" "}
+                  <Text style={{ fontSize: 12 }}>Pesos</Text>
+                </Text>
+              </View>
+            </>
+          )}
         </View>
 
         <View style={styles.content}>
@@ -177,7 +234,7 @@ const InformacionVenta = ({
             )}
           </View>
         )}
-      </View>
+      </ScrollView>
     </View>
   );
 };
@@ -237,7 +294,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   content: {
-    marginBottom: 25,
+    marginBottom: 20,
     alignItems: "center",
   },
   label: {
@@ -335,5 +392,13 @@ const styles = StyleSheet.create({
     fontSize: 10,
     textTransform: "uppercase",
     fontWeight: "900",
+  },
+  montoContainer: {
+    alignItems: "center",
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

@@ -17,7 +17,7 @@ import { Picker } from "@react-native-picker/picker";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 //PETICIONES AL SERVIDOR
 import axios from "axios";
@@ -54,6 +54,22 @@ const Productos = () => {
   //FORMULARIO PARA AGREGAR PRODUCTOS
   const [formProducto, setFormProducto] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  //TASAS
+  const [verTasas, setVerTasas] = useState([]);
+
+
+  //FUNCION CARGAR TASAS
+  const cargarTasaUnica = async () => {
+    const adminId = await AsyncStorage.getItem("adminId");
+    try {
+      const response = await axios.get(`${url}/verTasa/${adminId}`);
+      console.log("Tasa de cambio:", response.data.data);
+      setVerTasas(response.data.data); // Guarda la tasa única en el estado
+    } catch (error) {
+      console.error("Error al cargar la tasa de cambio:", error);
+    }
+  };
 
   //FUNCION CARGAR CATEGORIAS
   const cargarCategorias = async () => {
@@ -156,6 +172,7 @@ const Productos = () => {
   useEffect(() => {
     cargarProductos();
     cargarCategorias();
+    cargarTasaUnica();
   }, []);
 
   //USE PARA COMPONENTE DE CARGA SKELETON
@@ -171,7 +188,8 @@ const Productos = () => {
   };
 
   //FUNCION PARA SELECCIONAR PRODUCTO
-  const productIndex = (id) => {
+  const productIndex = async (id) => {
+    await cargarTasaUnica();
     const productoSeleccionado = productos.find(
       (producto) => producto.ID_PRODUCTO === id
     );
@@ -257,11 +275,11 @@ const Productos = () => {
             )}
           </Picker>
 
-          <TouchableOpacity 
-          style={styles.BtnCategoria}
-          onPress={() => {
-            setModalCategoria(true);
-          }}
+          <TouchableOpacity
+            style={styles.BtnCategoria}
+            onPress={() => {
+              setModalCategoria(true);
+            }}
           >
             <MaterialIcons name="category" size={24} color="#FFF" />
           </TouchableOpacity>
@@ -331,11 +349,11 @@ const Productos = () => {
         </View>
 
         <Modal visible={modalCategoria} animationType="fade">
-          <FormularioCategoria 
-          setModalCategoria={setModalCategoria}
-          categorias={categorias}
-          setCategorias={setCategorias}
-          cargarCategorias={cargarCategorias}
+          <FormularioCategoria
+            setModalCategoria={setModalCategoria}
+            categorias={categorias}
+            setCategorias={setCategorias}
+            cargarCategorias={cargarCategorias}
           />
         </Modal>
 
@@ -362,6 +380,7 @@ const Productos = () => {
             categoriaSeleccionada={categoriaSeleccionada}
             setCategoriaSeleccionada={setCategoriaSeleccionada}
             closeInformacion={closeInformacion}
+            verTasas={verTasas}
           />
         </Modal>
 

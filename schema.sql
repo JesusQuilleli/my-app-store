@@ -66,14 +66,16 @@ CREATE TABLE VENTAS_PRODUCTOS (
         FOREIGN KEY (PRODUCTO_ID) REFERENCES PRODUCTOS(ID_PRODUCTO) ON DELETE CASCADE
     );
 
-    ---------------------------------------------------------------------------------
 
 CREATE TABLE TASAS_CAMBIO (
     ID INT AUTO_INCREMENT PRIMARY KEY,
     MONEDA VARCHAR(50) NOT NULL,      -- Ej. "DOLAR", "BOLIVAR", "PESO"
     TASA DECIMAL(10, 4) NOT NULL,     -- La tasa de cambio (ej. 1, 30.5, 3800)
-    ULTIMA_ACTUALIZACION DATE NOT NULL -- Fecha de la última actualización
+    ADMINISTRADOR_ID INT,
+    FOREIGN KEY (ADMINISTRADOR_ID) REFERENCES ADMINISTRADORES(ID_ADMINISTRADOR) ON DELETE CASCADE
 );
+
+  ---------------------------------------------------------------------------------
 
 
 

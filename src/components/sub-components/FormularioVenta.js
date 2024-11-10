@@ -34,6 +34,8 @@ const FormularioVenta = ({
   setProductos,
   closeForm,
   cargarVentas,
+  TasaBolivares,
+  TasaPesos,
 }) => {
   //USE-STATE PARA LOS MODALES
   const [modalVenta, setModalVenta] = useState(false);
@@ -175,14 +177,26 @@ const FormularioVenta = ({
       <View style={styles.textContainer}>
         <Text style={styles.nombreText}>{nombre}</Text>
         <Text style={styles.defecto}>
-          Disponibles{" "}
           <Text style={cantidad > 1 ? { color: "#0e6a00" } : { color: "#f00" }}>
             {cantidad}
           </Text>{" "}
-          Unidades
+          <Text style={{ fontSize: 14 }}>Disponibles</Text>
         </Text>
         <Text style={styles.defecto}>
-          Precio <Text style={{ color: "#000" }}>{precio}</Text>
+          <Text style={{ color: "#000", fontSize: 14 }}>{precio}</Text>{" "}
+          <Text style={{ fontSize: 12 }}>Dolares</Text>
+        </Text>
+        <Text style={styles.defecto}>
+          <Text style={{ color: "#000", fontSize: 14 }}>
+            {(precio * TasaBolivares).toFixed(2)}
+          </Text>{" "}
+          <Text style={{ fontSize: 12 }}>Bolivares</Text>
+        </Text>
+        <Text style={styles.defecto}>
+          <Text style={{ color: "#000", fontSize: 14 }}>
+            {(precio * TasaPesos).toFixed(0)}
+          </Text>{" "}
+          <Text style={{ fontSize: 12 }}>Pesos</Text>
         </Text>
       </View>
       <TouchableOpacity
@@ -303,7 +317,7 @@ const FormularioVenta = ({
         </View>
       </View>
 
-      <View style={{alignItems:'center', marginTop: 6}}>
+      <View style={{ alignItems: "center", marginTop: 6 }}>
         <TouchableOpacity
           onPress={() => {
             setModalVenta(true);
@@ -329,6 +343,8 @@ const FormularioVenta = ({
           clienteSeleccionado={clienteSeleccionado}
           closeForm={closeForm}
           cargarVentas={cargarVentas}
+          TasaBolivares={TasaBolivares}
+          TasaPesos={TasaPesos}
         />
       </Modal>
 
@@ -367,14 +383,14 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 12,
     width: "50%",
-    alignItems:'center'
+    alignItems: "center",
   },
   NoverCar: {
     backgroundColor: "#888",
     padding: 8,
     borderRadius: 12,
-    width:'50%',
-    alignItems:'center'
+    width: "50%",
+    alignItems: "center",
   },
   titulo: {
     textAlign: "center",
@@ -484,7 +500,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 20,
     textTransform: "capitalize",
-    color: "#fcd53f",
+    color: "#000",
     letterSpacing: 5,
     fontStyle: "italic",
   },

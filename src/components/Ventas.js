@@ -22,7 +22,6 @@ import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 
 import { Picker } from "@react-native-picker/picker";
 
@@ -47,6 +46,34 @@ const Ventas = () => {
 
   //VER VENTAS POR ESTADO
   const [filtro, setFiltro] = useState("todas"); // Estado inicial en "todas"
+
+  //TASAS
+  const [verTasas, setVerTasas] = useState([]);
+
+  const TasaBolivares = verTasas.find((tasa) => tasa.MONEDA === "BOLIVARES")
+    ? parseFloat(
+        verTasas.find((tasa) => tasa.MONEDA === "BOLIVARES").TASA
+      ).toFixed(2)
+    : "No disponible";
+
+  const TasaPesos = verTasas.find((tasa) => tasa.MONEDA === "PESOS")
+    ? parseFloat(verTasas.find((tasa) => tasa.MONEDA === "PESOS").TASA).toFixed(
+        0
+      )
+    : "No disponible";
+
+
+  //FUNCION CARGAR TASAS
+  const cargarTasaUnica = async () => {
+    const adminId = await AsyncStorage.getItem("adminId");
+    try {
+      const response = await axios.get(`${url}/verTasa/${adminId}`);
+      console.log("Tasa de cambio:", response.data.data);
+      setVerTasas(response.data.data); // Guarda la tasa única en el estado
+    } catch (error) {
+      console.error("Error al cargar la tasa de cambio:", error);
+    }
+  };
 
   //FUNCION CARGAR CLIENTES
   const cargarClientes = async () => {
@@ -133,6 +160,7 @@ const Ventas = () => {
       );
       const resultadoVentasDetalladas = respuesta.data.response;
       setVentasDetalladas(resultadoVentasDetalladas[0]);
+      await cargarTasaUnica();
     } catch (error) {
       console.log("Error al cargar Ventas", error);
     }
@@ -237,6 +265,7 @@ const Ventas = () => {
 
   useEffect(() => {
     cargarVentas();
+    cargarTasaUnica();
   }, []);
 
   const Item = ({ cliente, fecha, estado }) => (
@@ -341,6 +370,7 @@ const Ventas = () => {
               onPress={() => {
                 setModalVentasDetalladas(true);
                 cargarVentasDetalladas(item.ID_VENTA);
+                
               }}
             >
               <Item
@@ -356,8 +386,9 @@ const Ventas = () => {
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.BtnVenta}
-          onPress={() => {
+          onPress={async () => {
             setFormVentas(true);
+            await cargarTasaUnica();
           }}
         >
           <Text style={styles.BtnVentaText}>Realizar Venta</Text>
@@ -375,6 +406,8 @@ const Ventas = () => {
           setProductos={setProductos}
           closeForm={closeForm}
           cargarVentas={cargarVentas}
+          TasaBolivares={TasaBolivares}
+          TasaPesos={TasaPesos}
         />
       </Modal>
 
@@ -383,6 +416,8 @@ const Ventas = () => {
           setModalVentasDetalladas={setModalVentasDetalladas}
           ventasDetalladas={ventasDetalladas}
           setVentasDetalladas={setVentasDetalladas}
+          TasaBolivares={TasaBolivares}
+          TasaPesos={TasaPesos}
         />
       </Modal>
     </View>

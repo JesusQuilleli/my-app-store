@@ -7,6 +7,7 @@ import {
   Image,
   Modal,
   Alert,
+  ScrollView
 } from "react-native";
 
 //STYLES
@@ -32,7 +33,20 @@ const InformacionProductos = ({
   categoriaSeleccionada,
   cargarProductos,
   closeInformacion,
+  verTasas,
 }) => {
+  const TasaBolivares = verTasas.find((tasa) => tasa.MONEDA === "BOLIVARES")
+    ? parseFloat(
+        verTasas.find((tasa) => tasa.MONEDA === "BOLIVARES").TASA
+      ).toFixed(2)
+    : "No disponible";
+
+  const TasaPesos = verTasas.find((tasa) => tasa.MONEDA === "PESOS")
+    ? parseFloat(verTasas.find((tasa) => tasa.MONEDA === "PESOS").TASA).toFixed(
+        0
+      )
+    : "No disponible";
+
   const handleClose = () => {
     setModalProducto(false);
     setOptions(false);
@@ -91,7 +105,7 @@ const InformacionProductos = ({
   const [formProductoAcciones, setFormProducto] = useState(false);
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <Text style={styles.titulo}>
         Informacion <Text style={styles.tituloBold}>Producto</Text>
       </Text>
@@ -111,7 +125,7 @@ const InformacionProductos = ({
           <Text style={styles.label}>Descripcion</Text>
           <Text style={styles.valor}>
             {producto.DESCRIPCION === "" || producto.DESCRIPCION === " " ? (
-              <Text style={{color: '#f00'}}>SIN DESCRIPCION</Text>
+              <Text style={{ color: "#f00" }}>SIN DESCRIPCION</Text>
             ) : (
               producto.DESCRIPCION
             )}
@@ -121,6 +135,16 @@ const InformacionProductos = ({
         <View style={styles.campo}>
           <Text style={styles.label}>Precio</Text>
           <Text style={styles.valor}>{producto.PRECIO} $</Text>
+        </View>
+        <Text style={styles.label}>Otros Precios</Text>
+        <View style={[styles.campo, {flexDirection:'row', alignItems:'center', justifyContent:'space-around'}]}>
+          
+          <Text style={styles.valor}>
+            {(producto.PRECIO * TasaBolivares).toFixed(2)} <Text style={{fontSize: 12}}>Bolivares</Text>
+          </Text>
+          <Text style={styles.valor}>
+            {(producto.PRECIO * TasaPesos).toFixed(0)} <Text style={{fontSize: 12}}>Pesos</Text>
+          </Text>
         </View>
 
         <View style={styles.campo}>
@@ -215,7 +239,7 @@ const InformacionProductos = ({
           </Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
@@ -251,7 +275,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   btnCerrar: {
-    marginTop: 25,
+    marginTop: 10,
     backgroundColor: "#2e252a",
     marginHorizontal: 60,
     padding: 20,
