@@ -70,6 +70,12 @@ const InformacionVenta = ({
   }
 
   return (
+
+    <ScrollView
+  contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-start' }}
+  style={{ flex: 1 }}
+>
+
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerContent}>
@@ -86,7 +92,8 @@ const InformacionVenta = ({
         </View>
       </View>
 
-      <ScrollView style={styles.padreContent}>
+
+      <View style={styles.padreContent}>
         <View style={styles.content}>
           <Text style={styles.label}>Cliente</Text>
           <Text style={styles.valor}>{ventasDetalladas.CLIENTE}</Text>
@@ -136,21 +143,21 @@ const InformacionVenta = ({
             <>
               <View style={styles.montoContainer}>
                 <Text style={styles.valor}>
-                  {ventasDetalladas.MONTO_PENDIENTE}{" "}
+                  {parseFloat((ventasDetalladas.MONTO_PENDIENTE)).toFixed(2)}{" "}
                   <Text style={{ fontSize: 12 }}>Dolares</Text>
                 </Text>
               </View>
               <Text style={styles.label}>Otros Precios</Text>
               <View style={styles.montoContainer}>
                 <Text style={styles.valor}>
-                  {ventasDetalladas.MONTO_PENDIENTE * TasaBolivares}{" "}
+                  {parseFloat(ventasDetalladas.MONTO_PENDIENTE * TasaBolivares).toFixed(2)}{" "}
                   <Text style={{ fontSize: 12 }}>Bolivares</Text>
                 </Text>
               </View>
 
               <View style={styles.montoContainer}>
                 <Text style={styles.valor}>
-                  {ventasDetalladas.MONTO_PENDIENTE * TasaPesos}{" "}
+                {parseFloat(ventasDetalladas.MONTO_PENDIENTE * TasaPesos).toFixed(0)}{" "}
                   <Text style={{ fontSize: 12 }}>Pesos</Text>
                 </Text>
               </View>
@@ -234,8 +241,9 @@ const InformacionVenta = ({
             )}
           </View>
         )}
-      </ScrollView>
+      </View>
     </View>
+    </ScrollView>
   );
 };
 
@@ -278,10 +286,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   padreContent: {
-    width: "90%",
+    width:'90%',
     backgroundColor: "#fff",
     marginHorizontal: 30,
-    marginTop: 25,
+    marginTop: 20,
     borderRadius: 10,
     padding: 20,
     shadowColor: "#000",
@@ -294,7 +302,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   content: {
-    marginBottom: 20,
+    marginBottom: 15,
     alignItems: "center",
   },
   label: {

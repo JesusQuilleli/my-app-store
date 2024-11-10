@@ -4,7 +4,8 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  Pressable
+  Pressable,
+  TouchableOpacity
 } from "react-native";
 const Resumen = () => {
   //DATA DE EJEMPLO
@@ -28,39 +29,37 @@ const Resumen = () => {
 
   return (
     <View style={styles.container}>
-      <Pressable 
+      <TouchableOpacity 
       style={styles.btn}
       onLongPress={()=> console.log('Abrir Modal Ventas')}
       >
-        <Text style={styles.tituloBtn}><Text style={{color:'#000'}}>Ventas{' '}</Text>Del Dia</Text>
-      </Pressable>
+        <Text style={{color:'#000', fontSize: 24}}>Pagos{' '}</Text>
+        <Text style={styles.nro}>5</Text>
+      </TouchableOpacity>
 
-      <View style={styles.tableVentas}>
-        <FlatList
-          data={DATA}
-          renderItem={({ item }) => (
-            <Item title={item.title} fecha={item.fecha} monto={item.monto} />
-          )}
-          keyExtractor={(item) => item.id}
-        />
-      </View>
-
-      <Pressable 
+      <TouchableOpacity 
       style={styles.btn}
       onLongPress={()=> console.log('Abrir Modal Deudores')}
       >
-        <Text style={styles.tituloBtn}>Deudores <Text style={{color:'#000'}}></Text></Text>
-      </Pressable>
+        <Text style={{color:'#000', fontSize: 24}}>Deudores</Text>
+        <Text style={styles.nro}>15</Text>
+      </TouchableOpacity>
 
-      <View style={styles.tableVentas}>
-        <FlatList
-          data={DATA}
-          renderItem={({ item }) => (
-            <Item title={item.title} fecha={item.fecha} monto={item.monto} />
-          )}
-          keyExtractor={(item) => item.id}
-        />
+      <TouchableOpacity 
+      style={styles.btn}
+      onLongPress={()=> console.log('Abrir Modal Deudores')}
+      >
+        <Text style={{color:'#000', fontSize: 24}}>Hoy</Text>
+        <Text style={styles.nro}>15</Text>
+      </TouchableOpacity>
+
+      <Text>Totales</Text>
+
+      <View style={styles.contentGroup}>
+        <Text style={{color:'#000', fontSize: 24}}>Productos</Text>
+        <Text style={styles.nro}>20</Text>
       </View>
+
     </View>
   );
 };
@@ -74,19 +73,21 @@ const styles = StyleSheet.create({
   },
   btn: {
     backgroundColor: "#fff",
-    width: "70%",
+    width: "90%",
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 25,
-    borderColor: "#000",
-    borderWidth: 0.5,
-    marginTop: 20
+    borderRadius: 12,
+    marginTop: 20,
+    padding: 20,
+    flexDirection:'row',
+    alignItems:'center',
+    justifyContent:'space-around'
   },
-  tituloBtn: {
-    fontSize: 24,
-    color: "#fee03e",
-    fontWeight: "700",
+  nro:{
+    fontSize: 30,
+    fontWeight: '900'
   },
+ 
   tableVentas: {
     width: "90%",
     marginTop: 10,

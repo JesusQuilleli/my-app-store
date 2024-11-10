@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Linking,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 
@@ -30,6 +31,9 @@ import InformacionProductos from "./sub-components/InformacionProductos";
 import FormularioProductos from "./sub-components/FormularioProductos";
 import FormularioCategoria from "./sub-components/FormularioCategoria";
 
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
+
 //ALMACENAMIENTO LOCAL
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -44,11 +48,18 @@ const Productos = () => {
   //PRODUCTOS
   const [productos, setProductos] = useState([]);
   const [producto, setProducto] = useState({});
+  //PRODUCTOS SELECCIONADOS PARA COMPARTIR
+  const [productosSeleccionados, setProductosSeleccionados] = useState([]);
+  const [todosSeleccionados, setTodosSeleccionados] = useState(false);
 
+  //ESTADO PARA CONOCER SI HAY PRODUCTOS
   const [productoNoEncontrado, setProductoNoEncontrado] = useState(false);
+  const [modoSeleccion, setModoSeleccion] = useState(false);
 
+  //MODA DE INFO PRODUCTOS
   const [modalproducto, setModalProducto] = useState(false);
 
+  //BOTON DE BUSQUEDA
   const [renderBusqueda, setRenderBusqueda] = useState(false);
 
   //FORMULARIO PARA AGREGAR PRODUCTOS
@@ -58,13 +69,23 @@ const Productos = () => {
   //TASAS
   const [verTasas, setVerTasas] = useState([]);
 
+  const TasaBolivares = verTasas.find((tasa) => tasa.MONEDA === "BOLIVARES")
+    ? parseFloat(
+        verTasas.find((tasa) => tasa.MONEDA === "BOLIVARES").TASA
+      ).toFixed(2)
+    : "No disponible";
+
+  const TasaPesos = verTasas.find((tasa) => tasa.MONEDA === "PESOS")
+    ? parseFloat(verTasas.find((tasa) => tasa.MONEDA === "PESOS").TASA).toFixed(
+        0
+      )
+    : "No disponible";
 
   //FUNCION CARGAR TASAS
   const cargarTasaUnica = async () => {
     const adminId = await AsyncStorage.getItem("adminId");
     try {
       const response = await axios.get(`${url}/verTasa/${adminId}`);
-      console.log("Tasa de cambio:", response.data.data);
       setVerTasas(response.data.data); // Guarda la tasa única en el estado
     } catch (error) {
       console.error("Error al cargar la tasa de cambio:", error);
@@ -204,9 +225,213 @@ const Productos = () => {
     }
   };
 
-  // CARGAR DATOS EN LA FLATLIST
-  const Item = ({ categoria, nombre, precio, cantidad, imagen }) => (
-    <View style={styles.item}>
+  //FUNCIONES COMPARTIR PRODUCTOS
+
+  // Función para manejar la selección de todos los productos
+  const toggleSeleccionTodos = () => {
+    if (todosSeleccionados) {
+      // Si ya están todos seleccionados, desmarcamos todos
+      setProductosSeleccionados([]); // Vaciamos la lista de seleccionados
+    } else {
+      // Si no están seleccionados, los marcamos todos
+      const todosLosProductos = productos.map(
+        (producto) => producto.ID_PRODUCTO
+      );
+      setProductosSeleccionados(todosLosProductos); // Seleccionamos todos los productos
+    }
+    setTodosSeleccionados(!todosSeleccionados); // Invertir el estado de "todos seleccionados"
+  };
+
+  const toggleSeleccionProducto = (productoID) => {
+    if (productosSeleccionados.includes(productoID)) {
+      // Si el producto ya está seleccionado, lo desmarcamos
+      setProductosSeleccionados((prev) =>
+        prev.filter((id) => id !== productoID)
+      );
+    } else {
+      // Si el producto no está seleccionado, lo seleccionamos
+      setProductosSeleccionados((prev) => [...prev, productoID]);
+    }
+  };
+
+  const compartirProductosSeleccionados = async () => {
+    // Filtramos los productos seleccionados
+    const productosParaCompartir = productos.filter((producto) =>
+      productosSeleccionados.includes(producto.ID_PRODUCTO)
+    );
+
+    // Agrupamos los productos por categoría
+    const productosPorCategoria = productosParaCompartir.reduce(
+      (acc, producto) => {
+        const categoria = producto.CATEGORIA || "Sin categoría"; // Si no tiene categoría, ponemos "Sin categoría"
+        if (!acc[categoria]) {
+          acc[categoria] = []; // Si no existe la categoría, la creamos
+        }
+        acc[categoria].push(producto); // Agregamos el producto a la categoría correspondiente
+        return acc;
+      },
+      {}
+    );
+
+    // Creamos el mensaje
+    const mensaje = Object.keys(productosPorCategoria)
+      .map((categoria) => {
+        // Para cada categoría, primero agregamos el nombre de la categoría
+        const productosEnCategoria = productosPorCategoria[categoria]
+          .map((producto) => {
+            // Para cada producto dentro de la categoría, lo mostramos con su nombre, precio, etc.
+            const nombre = String(producto.PRODUCTO || "Producto sin nombre");
+            const descripcion = String(
+              producto.DESCRIPCION || "Sin descripción"
+            );
+            const precioDolares = producto.PRECIO || "Precio no disponible";
+
+            // Convertimos el precio a Bolívares y Pesos
+            const precioBolivares =
+              TasaBolivares !== "No disponible"
+                ? (
+                    parseFloat(precioDolares) * parseFloat(TasaBolivares)
+                  ).toFixed(2)
+                : "No disponible";
+            const precioPesos =
+              TasaPesos !== "No disponible"
+                ? (parseFloat(precioDolares) * parseFloat(TasaPesos)).toFixed(0)
+                : "No disponible";
+
+            const cantidad =
+              producto.CANTIDAD !== undefined
+                ? String(producto.CANTIDAD)
+                : "Cantidad desconocida";
+            const imagen = producto.IMAGEN
+              ? `${urlBase}${producto.IMAGEN}`
+              : "Imagen no disponible";
+
+            // Formato del producto con precio en diferentes monedas
+            return `🛍️ *${nombre}*\n📝 *Descripción:* ${descripcion}\n💵 *Precio en Dólares:* ${precioDolares}$\n💰 *Precio en Bolívares:* ${precioBolivares} Bs\n💸 *Precio en Pesos:* ${precioPesos} MXN\n📦 *Disponible:* ${cantidad}\n📸 *Imagen:* ${imagen}\n`;
+          })
+          .join("\n");
+
+        // Formato de la categoría y sus productos, con separador
+        return `\n--------------------------------------------\n🌟 *${categoria}* 🌟\n--------------------------------------------\n${productosEnCategoria}`;
+      })
+      .join("\n"); // Separar las categorías con dos saltos de línea
+
+    // Agregar una bienvenida
+    const bienvenida = `🎉 *Shop-Mg* ¡Hola! Estos son mis Productos Disponibles. ¡Echa un vistazo!, ¡Estamos a la orden! 🛍️\n\n`;
+
+    // Combine la bienvenida con el mensaje
+    const mensajeCompleto = bienvenida + mensaje;
+
+    try {
+      // Compartir el mensaje con WhatsApp
+      await Linking.openURL(
+        `https://wa.me/?text=${encodeURIComponent(mensajeCompleto)}`
+      );
+    } catch (error) {
+      console.log("Error al compartir:", error);
+    }
+  };
+
+  const compartirProductosSeleccionadosPDF = async () => {
+    // Filtramos los productos seleccionados
+    const productosParaCompartir = productos.filter((producto) =>
+      productosSeleccionados.includes(producto.ID_PRODUCTO)
+    );
+
+    // Agrupamos los productos por categoría
+    const productosPorCategoria = productosParaCompartir.reduce(
+      (acc, producto) => {
+        const categoria = producto.CATEGORIA || "Sin categoría"; // Si no tiene categoría, ponemos "Sin categoría"
+        if (!acc[categoria]) {
+          acc[categoria] = []; // Si no existe la categoría, la creamos
+        }
+        acc[categoria].push(producto); // Agregamos el producto a la categoría correspondiente
+        return acc;
+      },
+      {}
+    );
+
+    // Creamos el contenido HTML para el PDF
+    const mensajeHTML = Object.keys(productosPorCategoria)
+      .map((categoria, index) => {
+        const productosEnCategoria = productosPorCategoria[categoria]
+          .map((producto) => {
+            const nombre = producto.PRODUCTO || "Producto sin nombre";
+            const descripcion = producto.DESCRIPCION || "Sin descripción";
+            const precioDolares = producto.PRECIO || "Precio no disponible";
+            const precioBolivares =
+              TasaBolivares !== "No disponible"
+                ? (
+                    parseFloat(precioDolares) * parseFloat(TasaBolivares)
+                  ).toFixed(2)
+                : "No disponible";
+            const precioPesos =
+              TasaPesos !== "No disponible"
+                ? (parseFloat(precioDolares) * parseFloat(TasaPesos)).toFixed(0)
+                : "No disponible";
+            const cantidad = producto.CANTIDAD || "Cantidad desconocida";
+
+            return `
+              <div style="margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 5px;">
+                <h3 style="margin-bottom: 10px;">🛍️ ${nombre}</h3>
+                <p>📝 <strong>Descripción:</strong> ${descripcion}</p>
+                <p>💵 <strong>Precio en Dólares:</strong> ${precioDolares}$</p>
+                <p>💰 <strong>Precio en Bolívares:</strong> ${precioBolivares} Bs</p>
+                <p>💸 <strong>Precio en Pesos:</strong> ${precioPesos} MXN</p>
+                <p>📦 <strong>Disponible:</strong> ${cantidad}</p>
+              </div>
+              <hr style="border: 1px dashed #ccc; margin: 20px 0;" />
+            `;
+          })
+          .join("");
+
+        return `
+          <hr />
+          <h2 style="color: #ff6600; text-align: center;">🌟 ${categoria} 🌟</h2>
+          ${productosEnCategoria}
+          ${
+            index < Object.keys(productosPorCategoria).length - 1
+              ? '<div style="page-break-before: always;"></div>'
+              : ""
+          }
+        `;
+      })
+      .join("");
+
+    const bienvenida = `<h1 style="text-align: center;">🎉 Shop-Mg</h1><p style="text-align: center;">¡Hola! Estos son mis Productos Disponibles. ¡Echa un vistazo!, ¡Estamos a la orden! 🛍️</p>`;
+    const contenidoHTML = `<html><body style="font-family: Arial, sans-serif; padding: 20px;">${bienvenida}${mensajeHTML}</body></html>`;
+
+    try {
+      // Generar el PDF y definir el nombre del archivo
+      const { uri } = await Print.printToFileAsync({
+        html: contenidoHTML,
+        fileName: "productos_disponibles", // Nombre del archivo PDF
+      });
+
+      // Compartir el PDF
+      await Sharing.shareAsync(uri);
+    } catch (error) {
+      console.log("Error al generar o compartir el PDF:", error);
+    }
+  };
+
+  // Item individual para cada producto
+  const Item = ({
+    categoria,
+    nombre,
+    precio,
+    cantidad,
+    imagen,
+    productoID,
+  }) => (
+    <View
+      style={[
+        styles.item,
+        productosSeleccionados.includes(productoID) && {
+          backgroundColor: "#ccc",
+        },
+      ]}
+    >
       <View style={styles.textContainer}>
         <Text style={styles.categoriaText}>{categoria}</Text>
         <Text style={styles.nombreText}>{nombre}</Text>
@@ -217,14 +442,12 @@ const Productos = () => {
         {!imagen.includes("null") ? (
           <Image source={{ uri: imagen }} style={styles.image} />
         ) : (
-          <View>
-            <MaterialCommunityIcons
-              name="image-remove"
-              color="#888"
-              size={120}
-              style={{ height: 120, width: 120 }}
-            />
-          </View>
+          <MaterialCommunityIcons
+            name="image-remove"
+            color="#888"
+            size={120}
+            style={{ height: 120, width: 120 }}
+          />
         )}
       </View>
     </View>
@@ -326,25 +549,89 @@ const Productos = () => {
           {isLoading ? (
             <SkeletonLoader />
           ) : (
-            <FlatList
-              data={productos}
-              keyExtractor={(item) => item.ID_PRODUCTO}
-              numColumns={2}
-              columnWrapperStyle={styles.row}
-              renderItem={({ item }) => (
+            <>
+              <FlatList
+                data={productos}
+                keyExtractor={(item) => item.ID_PRODUCTO}
+                numColumns={2}
+                columnWrapperStyle={styles.row}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (!modoSeleccion) {
+                        // Solo se ejecuta si no estamos en modo de selección
+                        productIndex(item.ID_PRODUCTO);
+                      } else if (productosSeleccionados.length === 0) {
+                        setModoSeleccion(false);
+                      } else {
+                        toggleSeleccionProducto(item.ID_PRODUCTO);
+                      }
+                    }}
+                    onLongPress={() => {
+                      setModoSeleccion(true);
+                      toggleSeleccionProducto(item.ID_PRODUCTO);
+                    }}
+                    delayLongPress={200}
+                  >
+                    <Item
+                      categoria={item.CATEGORIA}
+                      nombre={item.PRODUCTO}
+                      precio={item.PRECIO}
+                      cantidad={item.CANTIDAD}
+                      imagen={`${urlBase}${item.IMAGEN}`}
+                      productoID={item.ID_PRODUCTO}
+                    />
+                  </TouchableOpacity>
+                )}
+              />
+            </>
+          )}
+
+          {modoSeleccion && productosSeleccionados.length > 0 && (
+            <View style={styles.contentOpcionesP}>
+              <TouchableOpacity
+                onPress={async () => {
+                  await compartirProductosSeleccionadosPDF();
+                  setModoSeleccion(false);
+                  setProductosSeleccionados([]);
+                }}
+                style={styles.botonPDF}
+              >
+                <FontAwesome6 name="file-pdf" size={24} color="#FFF" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={async () => {
+                  await compartirProductosSeleccionados();
+                  setModoSeleccion(false);
+                  setProductosSeleccionados([]);
+                }}
+                style={styles.botonCompartir}
+              >
+                <FontAwesome name="whatsapp" size={24} color="#FFF" />
+              </TouchableOpacity>
+
+              {modoSeleccion && productosSeleccionados.length > 0 && (
                 <TouchableOpacity
-                  onLongPress={() => productIndex(item.ID_PRODUCTO)}
+                  onPress={toggleSeleccionTodos}
+                  style={styles.botonSelectAll}
                 >
-                  <Item
-                    categoria={item.CATEGORIA}
-                    nombre={item.PRODUCTO}
-                    precio={item.PRECIO}
-                    cantidad={item.CANTIDAD}
-                    imagen={`${urlBase}${item.IMAGEN}`}
-                  />
+                  {todosSeleccionados ? (
+                    <MaterialCommunityIcons
+                      name="close-thick"
+                      size={24}
+                      color="#000"
+                    />
+                  ) : (
+                    <MaterialIcons
+                      name="density-small"
+                      size={24}
+                      color="#FFF"
+                    />
+                  )}
                 </TouchableOpacity>
               )}
-            />
+            </View>
           )}
         </View>
 
@@ -552,6 +839,46 @@ const styles = StyleSheet.create({
   noSearchText: {
     fontSize: 20,
     fontWeight: "bold",
+  },
+  contentOpcionesP: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-evenly",
+    marginHorizontal: 40,
+    borderTopWidth: 0.2,
+    borderTopColor: '#000'
+  },
+  botonPDF: {
+    backgroundColor: "#f00", // Color verde característico de WhatsApp
+    padding: 15,
+    margin: 10,
+    borderRadius: 50,
+    alignItems: "center",
+  },
+  botonCompartir: {
+    backgroundColor: "#25D366", // Color verde característico de WhatsApp
+    padding: 15,
+    margin: 10,
+    borderRadius: 50,
+    alignItems: "center",
+  },
+  botonSelectAll: {
+    alignItems: "center",
+    backgroundColor: "#fcca28",
+    padding: 15,
+    margin: 10,
+    borderRadius: 50,
+  },
+  textoBoton: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  textoBotonAll: {
+    color: "#000",
+    fontSize: 12,
+    fontWeight: "bold",
+    textDecorationLine: "underline",
   },
 });
 

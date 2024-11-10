@@ -158,7 +158,7 @@ const ProcesarVenta = ({
         return;
       }
 
-      if(!primerAbono){
+      if(!primerAbono && tipoPago === 'POR ABONO'){
         Alert.alert(
           "Debe ingresar un primer Abono",
           "Ingrese su Abono."

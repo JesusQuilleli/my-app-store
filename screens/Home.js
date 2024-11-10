@@ -79,11 +79,6 @@ export default function Home() {
         component={Ventas}
         options={{ headerShown: false }}
       />
-      <Tab.Screen
-      name="Pedidos"
-      component={Pedidos}
-      options={{ headerShown: false, tabBarBadge: 3 }}
-      />
     </Tab.Navigator>
   );
 }

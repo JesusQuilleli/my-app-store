@@ -45,7 +45,8 @@ const Ventas = () => {
   const [botonLimpiarFecha, setBotonLimpiarFecha] = useState(false);
 
   //VER VENTAS POR ESTADO
-  const [filtro, setFiltro] = useState("todas"); // Estado inicial en "todas"
+  const [filtroVentas, setFiltroVentas] = useState("todas"); // Estado inicial en "todas"
+
 
   //TASAS
   const [verTasas, setVerTasas] = useState([]);
@@ -68,8 +69,7 @@ const Ventas = () => {
     const adminId = await AsyncStorage.getItem("adminId");
     try {
       const response = await axios.get(`${url}/verTasa/${adminId}`);
-      console.log("Tasa de cambio:", response.data.data);
-      setVerTasas(response.data.data); // Guarda la tasa única en el estado
+      setVerTasas(response.data.data);
     } catch (error) {
       console.error("Error al cargar la tasa de cambio:", error);
     }
@@ -135,6 +135,31 @@ const Ventas = () => {
       const respuesta = await axios.get(`${url}/infoResum/${adminId}`);
       const resultadoVentasResumidas = respuesta.data.response;
       setVentasResumidas(resultadoVentasResumidas);
+    } catch (error) {
+      console.log("Error al cargar Ventas", error);
+    }
+  };
+
+  // Función cargarVentasEstadoPago con el estado de pago como argumento
+  const cargarVentasEstadoPago = async (estadoPago) => {
+    try {
+      const adminIdString = await AsyncStorage.getItem("adminId");
+      if (adminIdString === null) {
+        console.log("ID de administrador no encontrado.");
+        return;
+      }
+      const adminId = parseInt(adminIdString, 10);
+      if (isNaN(adminId)) {
+        console.log("ID de administrador no es un número válido.");
+        return;
+      }
+      // Pasamos estadoPago como parámetro de consulta
+      const respuesta = await axios.get(`${url}/ventasEstadoPago/${adminId}`, {
+        params: { estadoPago }
+      });
+      const resultVentas = respuesta.data.response;
+      setVentasResumidas(resultVentas);
+      
     } catch (error) {
       console.log("Error al cargar Ventas", error);
     }
@@ -250,17 +275,15 @@ const Ventas = () => {
     setVerFecha(false);
   };
 
-  const handleFiltroChange = (value) => {
-    setFiltro(value);
-    // Aquí puedes agregar la lógica para filtrar la tabla según el valor seleccionado
-    // Ejemplo:
-    // if (value === "pendientes") {
-    //   // Filtrar ventas pendientes
-    // } else if (value === "pagadas") {
-    //   // Filtrar ventas pagadas
-    // } else {
-    //   // Mostrar todas las ventas
-    // }
+  const handleFiltroChange = async (value) => {
+    
+    setFiltroVentas(value); // Actualizamos el filtro de ventas antes de hacer la carga
+    
+    if (value === "PENDIENTE" || value === "PAGADO") {
+      await cargarVentasEstadoPago(value); // Pasamos el estado de pago seleccionado
+    } else {
+      await cargarVentas(); // Si el valor es diferente, cargamos todas las ventas
+    }
   };
 
   useEffect(() => {
@@ -306,13 +329,13 @@ const Ventas = () => {
         </TouchableOpacity>
         <View>
           <Picker
-            selectedValue={filtro}
+            selectedValue={filtroVentas}
             onValueChange={(value) => handleFiltroChange(value)}
             style={styles.picker}
           >
             <Picker.Item label="Todas" value="todas" />
-            <Picker.Item label="Pendientes" value="pendientes" />
-            <Picker.Item label="Pagadas" value="pagadas" />
+            <Picker.Item label="Pendientes" value="PENDIENTE" />
+            <Picker.Item label="Pagadas" value="PAGADO" />
           </Picker>
         </View>
       </View>
