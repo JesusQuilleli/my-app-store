@@ -113,7 +113,7 @@ const TasaCambio = () => {
                 ? parseFloat(
                     verTasas.find((tasa) => tasa.MONEDA === "BOLIVARES").TASA
                   ).toFixed(2)
-                : "No disponible"}
+                : "0"}
             </Text>
           </View>
           <View style={styles.ItemContent}>
@@ -123,7 +123,7 @@ const TasaCambio = () => {
                 ? parseFloat(
                     verTasas.find((tasa) => tasa.MONEDA === "PESOS").TASA
                   ).toFixed(0)
-                : "No disponible"}
+                : "0"}
             </Text>
           </View>
         </View>

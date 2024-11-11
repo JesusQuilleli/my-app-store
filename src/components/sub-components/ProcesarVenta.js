@@ -31,7 +31,7 @@ const ProcesarVenta = ({
   closeForm,
   cargarVentas,
   TasaBolivares,
-  TasaPesos
+  TasaPesos,
 }) => {
   //USE-STATE PARA LA VENTA
   const [tipoPago, setTipoPago] = useState("AL CONTADO");
@@ -113,7 +113,7 @@ const ProcesarVenta = ({
         clienteId: clienteSeleccionado.ID_CLIENTE,
         pagoTotal: parseFloat(parseFloat(totalPrecio).toFixed(2)),
         montoPendiente:
-        tipoPago === "POR ABONO" ? parseFloat(totalPendiente.toFixed(2)) : 0,
+          tipoPago === "POR ABONO" ? parseFloat(totalPendiente.toFixed(2)) : 0,
         fechaVenta: fecha.toISOString().slice(0, 10),
         estadoPago: tipoPago === "AL CONTADO" ? "PAGADO" : "PENDIENTE",
         tipoPago: tipoPago,
@@ -158,14 +158,6 @@ const ProcesarVenta = ({
         return;
       }
 
-      if(!primerAbono && tipoPago === 'POR ABONO'){
-        Alert.alert(
-          "Debe ingresar un primer Abono",
-          "Ingrese su Abono."
-        );
-        return;
-      }
-
       await procesarVenta(); // Supón que esta es tu función que procesa la venta
 
       // Mostrar la alerta de éxito
@@ -195,8 +187,13 @@ const ProcesarVenta = ({
           <Text>{nombre}</Text>
         </Text>
         <Text style={styles.cantidad}>Cantidad: {cantidad}</Text>
-        <Text style={styles.precio}>Unidad Precio: {precio} <Text style={{fontSize: 12}}>Dolares</Text></Text>
-        <Text style={styles.precio}>Total: {(precio * cantidad).toFixed(2)} <Text style={{fontSize: 12}}>Dolares</Text></Text>
+        <Text style={styles.precio}>
+          Unidad Precio: {precio} <Text style={{ fontSize: 12 }}>Dolares</Text>
+        </Text>
+        <Text style={styles.precio}>
+          Total: {(precio * cantidad).toFixed(2)}{" "}
+          <Text style={{ fontSize: 12 }}>Dolares</Text>
+        </Text>
       </View>
       <TouchableOpacity onPress={quitar} style={styles.BtnMenos}>
         <AntDesign name="minus" size={30} color="#FFF" />
@@ -300,9 +297,33 @@ const ProcesarVenta = ({
               />
             </View>
           </View>
+
           <View style={styles.contentTotal}>
-            <Text style={styles.textTotal}>MONTO TOTAL</Text>
+            <Text style={styles.textTotal}>Monto Total</Text>
             <Text style={styles.textTotal}>{totalPrecio.toFixed(2)} $</Text>
+          </View>
+          <View style={styles.contentTotal}>
+            <Text style={styles.textTotal}>En Bolivares</Text>
+            <Text style={styles.textTotal}>
+              {isNaN(TasaBolivares) || TasaBolivares === 0 ? (
+                <Text style={{fontSize: 12}}>No disponible</Text>
+              ) : (
+                (totalPrecio * TasaBolivares).toFixed(2)
+              )}
+              <Text style={{ fontSize: 12 }}>{isNaN(TasaBolivares) ? (<Text></Text>) : (<Text>Bs</Text>)} </Text>
+            </Text>
+          </View>
+
+          <View style={styles.contentTotal}>
+            <Text style={styles.textTotal}>En Pesos</Text>
+            <Text style={styles.textTotal}>
+              {isNaN(TasaPesos) || TasaPesos === 0 ? (
+                <Text style={{fontSize: 12}}>No disponible</Text>
+              ) : (
+                (totalPrecio * TasaPesos).toFixed(0)
+              )}
+              <Text style={{ fontSize: 12 }}>{isNaN(TasaPesos) ? (<Text></Text>) : (<Text>Pesos</Text>)} </Text>
+            </Text>
           </View>
           <View style={styles.contentTotal}>
             <Text style={styles.textTotal}>CANTIDAD</Text>
@@ -411,7 +432,7 @@ const styles = StyleSheet.create({
   nombre: {
     fontSize: 16,
     fontWeight: "900",
-    textTransform: 'capitalize',
+    textTransform: "capitalize",
   },
   cantidad: {
     fontSize: 14,

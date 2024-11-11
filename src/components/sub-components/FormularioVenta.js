@@ -188,13 +188,22 @@ const FormularioVenta = ({
         </Text>
         <Text style={styles.defecto}>
           <Text style={{ color: "#000", fontSize: 14 }}>
-            {(precio * TasaBolivares).toFixed(2)}
+            {isNaN(TasaBolivares) || TasaBolivares === 0 ? (
+              <Text>No disponible</Text>
+            ) : (
+              (precio * TasaBolivares).toFixed(2)
+            )}
           </Text>{" "}
           <Text style={{ fontSize: 12 }}>Bolivares</Text>
         </Text>
+
         <Text style={styles.defecto}>
           <Text style={{ color: "#000", fontSize: 14 }}>
-            {(precio * TasaPesos).toFixed(0)}
+            {isNaN(TasaPesos) || TasaPesos === 0 ? (
+              <Text>No disponible</Text>
+            ) : (
+              (precio * TasaPesos).toFixed(0)
+            )}
           </Text>{" "}
           <Text style={{ fontSize: 12 }}>Pesos</Text>
         </Text>

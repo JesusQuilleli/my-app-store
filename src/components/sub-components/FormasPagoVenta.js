@@ -22,7 +22,7 @@ const FormasPagoVenta = ({
   TasaBolivares,
   TasaPesos,
   closeForm,
-  cargarVentas
+  cargarVentas,
 }) => {
   const [esDeudaRestante, setEsDeudaRestante] = useState(true);
   const [esEfectivo, setEsEfectivo] = useState(true);
@@ -202,12 +202,25 @@ const FormasPagoVenta = ({
             Conversión
           </Text>
           <Text style={{ color: "#000", fontSize: 20, fontWeight: "900" }}>
-            {(ventasDetalladas.MONTO_PENDIENTE * TasaBolivares).toFixed(2)}{" "}
-            <Text style={{ fontSize: 12 }}>Bolivares</Text>
+            {isNaN(TasaBolivares) || TasaBolivares === 0 ? (
+              <Text>No disponible</Text>
+            ) : (
+              (ventasDetalladas.MONTO_PENDIENTE * TasaBolivares).toFixed(2)
+            )}
+            <Text style={{ fontSize: 12 }}>
+                  {isNaN(TasaPesos) ? <Text></Text> : <Text> Bolivares</Text>}{" "}
+                </Text>
           </Text>
+
           <Text style={{ color: "#000", fontSize: 20, fontWeight: "900" }}>
-            {(ventasDetalladas.MONTO_PENDIENTE * TasaPesos).toFixed(0)}{" "}
-            <Text style={{ fontSize: 12 }}>Pesos</Text>
+            {isNaN(TasaPesos) || TasaPesos === 0 ? (
+              <Text>No disponible</Text>
+            ) : (
+              (ventasDetalladas.MONTO_PENDIENTE * TasaPesos).toFixed(0)
+            )}
+            <Text style={{ fontSize: 12 }}>
+                  {isNaN(TasaPesos) ? <Text></Text> : <Text> Pesos</Text>}{" "}
+                </Text>
           </Text>
         </View>
 

@@ -7,7 +7,7 @@ import {
   Image,
   Modal,
   Alert,
-  ScrollView
+  ScrollView,
 } from "react-native";
 
 //STYLES
@@ -137,13 +137,35 @@ const InformacionProductos = ({
           <Text style={styles.valor}>{producto.PRECIO} $</Text>
         </View>
         <Text style={styles.label}>Otros Precios</Text>
-        <View style={[styles.campo, {flexDirection:'row', alignItems:'center', justifyContent:'space-around'}]}>
-          
+        <View
+          style={[
+            styles.campo,
+            {
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-around",
+            },
+          ]}
+        >
           <Text style={styles.valor}>
-            {(producto.PRECIO * TasaBolivares).toFixed(2)} <Text style={{fontSize: 12}}>Bolivares</Text>
+            {isNaN(TasaBolivares) || TasaBolivares === 0 ? (
+              <Text style={{ fontSize: 12 }}>No hay Tasas Cargadas</Text>
+            ) : (
+              (producto.PRECIO * TasaBolivares).toFixed(2)
+            )}
+            <Text style={{ fontSize: 12 }}>
+                  {isNaN(TasaPesos) ? <Text></Text> : <Text> Bolivares</Text>}{" "}
+                </Text>
           </Text>
           <Text style={styles.valor}>
-            {(producto.PRECIO * TasaPesos).toFixed(0)} <Text style={{fontSize: 12}}>Pesos</Text>
+            {isNaN(TasaPesos) || TasaPesos === 0 ? (
+              <Text style={{ fontSize: 12 }}>Cargue las Tasas</Text>
+            ) : (
+              (producto.PRECIO * TasaPesos).toFixed(0)
+            )}
+            <Text style={{ fontSize: 12 }}>
+                  {isNaN(TasaPesos) ? <Text></Text> : <Text> Pesos</Text>}{" "}
+                </Text>
           </Text>
         </View>
 

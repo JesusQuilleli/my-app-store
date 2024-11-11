@@ -21,9 +21,8 @@ const InformacionVenta = ({
   setVentasDetalladas,
   TasaBolivares,
   TasaPesos,
-  cargarVentas
+  cargarVentas,
 }) => {
-
   const ABONO = (
     parseFloat(ventasDetalladas.MONTO_TOTAL) -
     parseFloat(ventasDetalladas.MONTO_PENDIENTE)
@@ -78,6 +77,12 @@ const InformacionVenta = ({
         </View>
 
         <View style={styles.padreContent}>
+          {ventasDetalladas.TIPO_PAGO === "POR ABONO" && (
+            <TouchableOpacity style={styles.BtnPagos}>
+              <Text style={styles.BtnPagoText}>Historial de Pagos</Text>
+            </TouchableOpacity>
+          )}
+
           <View style={styles.content}>
             <Text style={styles.label}>Cliente</Text>
             <Text style={styles.valor}>{ventasDetalladas.CLIENTE}</Text>
@@ -91,6 +96,11 @@ const InformacionVenta = ({
           </View>
 
           <View style={styles.content}>
+            <Text style={styles.label}>Tipo de Pago</Text>
+            <Text style={styles.valor}>{ventasDetalladas.TIPO_PAGO}</Text>
+          </View>
+
+          <View style={styles.content}>
             <View style={styles.content}>
               <Text style={styles.label}>Monto Total</Text>
               <Text style={styles.valor}>
@@ -99,20 +109,40 @@ const InformacionVenta = ({
               </Text>
               <Text style={styles.label}>Otros Precios</Text>
               <Text style={styles.valor}>
-                {(ventasDetalladas.MONTO_TOTAL * TasaBolivares).toFixed(2)}{" "}
-                <Text style={{ fontSize: 12 }}>Bolivares</Text>
+                {isNaN(TasaBolivares) || TasaBolivares === 0 ? (
+                  <Text>No disponible</Text>
+                ) : (
+                  (ventasDetalladas.MONTO_TOTAL * TasaBolivares).toFixed(2)
+                )}
+                <Text style={{ fontSize: 12 }}>
+                  {isNaN(TasaPesos) ? <Text></Text> : <Text> Bolivares</Text>}{" "}
+                </Text>
               </Text>
               <Text style={styles.valor}>
-                {(ventasDetalladas.MONTO_TOTAL * TasaPesos).toFixed(0)}{" "}
-                <Text style={{ fontSize: 12 }}>Pesos</Text>
+                {isNaN(TasaPesos) || TasaPesos === 0 ? (
+                  <Text>No disponible</Text>
+                ) : (
+                  (ventasDetalladas.MONTO_TOTAL * TasaPesos).toFixed(0)
+                )}
+                <Text style={{ fontSize: 12 }}>
+                  {isNaN(TasaPesos) ? <Text></Text> : <Text> Pesos</Text>}{" "}
+                </Text>
               </Text>
             </View>
 
             {parseFloat(ventasDetalladas.MONTO_PENDIENTE) !== 0.0 && (
               <View style={styles.content}>
-                <Text style={styles.label}>Monto Abonado</Text>
+                <Text style={styles.label}>Abono Realizado</Text>
                 <Text style={styles.valor}>
-                  {ABONO} <Text style={{ fontSize: 12 }}>Dolares</Text>
+                  {parseFloat(ABONO) === 0.0 ? (
+                    <Text style={{ fontSize: 18 }}>
+                      No se realizó ningún abono inicial
+                    </Text>
+                  ) : (
+                    <Text>
+                      {ABONO} <Text style={{ fontSize: 12 }}>Dólares</Text>
+                    </Text>
+                  )}
                 </Text>
               </View>
             )}
@@ -134,19 +164,31 @@ const InformacionVenta = ({
                 <Text style={styles.label}>Otros Precios</Text>
                 <View style={styles.montoContainer}>
                   <Text style={styles.valor}>
-                    {parseFloat(
-                      ventasDetalladas.MONTO_PENDIENTE * TasaBolivares
-                    ).toFixed(2)}{" "}
-                    <Text style={{ fontSize: 12 }}>Bolivares</Text>
+                    {isNaN(TasaBolivares) || TasaBolivares === 0 ? (
+                      <Text>No disponible</Text>
+                    ) : (
+                      parseFloat(
+                        ventasDetalladas.MONTO_PENDIENTE * TasaBolivares
+                      ).toFixed(2)
+                    )}
+                    <Text style={{ fontSize: 12 }}>
+                  {isNaN(TasaPesos) ? <Text></Text> : <Text> Bolivares</Text>}{" "}
+                </Text>
                   </Text>
                 </View>
 
                 <View style={styles.montoContainer}>
                   <Text style={styles.valor}>
-                    {parseFloat(
-                      ventasDetalladas.MONTO_PENDIENTE * TasaPesos
-                    ).toFixed(0)}{" "}
-                    <Text style={{ fontSize: 12 }}>Pesos</Text>
+                    {isNaN(TasaPesos) || TasaPesos === 0 ? (
+                      <Text>No disponible</Text>
+                    ) : (
+                      parseFloat(
+                        ventasDetalladas.MONTO_PENDIENTE * TasaPesos
+                      ).toFixed(0)
+                    )}
+                    <Text style={{ fontSize: 12 }}>
+                  {isNaN(TasaPesos) ? <Text></Text> : <Text> Pesos</Text>}{" "}
+                </Text>
                   </Text>
                 </View>
               </>
@@ -181,9 +223,6 @@ const InformacionVenta = ({
                   style={styles.BtnPagar}
                 >
                   <Text style={styles.BtnPagarText}>Adjuntar Pago</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.BtnPagos}>
-                  <Text style={styles.BtnPagoText}>Historial de Pagos</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -257,6 +296,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+    alignItems: "center",
   },
   content: {
     marginBottom: 15,
@@ -289,9 +329,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   BtnPagos: {
-    backgroundColor: "gray",
+    backgroundColor: "#fee03e",
     padding: 7.5,
     borderRadius: 50,
+    marginBottom: 13.5,
+    width: "50%",
   },
   BtnPagoText: {
     color: "#FFF",
