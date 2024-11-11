@@ -76,15 +76,31 @@ CREATE TABLE VENTAS_PRODUCTOS (
     );
 
   ---------------------------------------------------------------------------------
-
-    -- Tabla PAGOS
+    --TABLA PAGOS
     CREATE TABLE PAGOS (
         ID_PAGO INT AUTO_INCREMENT PRIMARY KEY,
         VENTA_ID INT,
         MONTO_ABONADO DECIMAL(10, 2),
         FECHA_PAGO DATE,
+        MANERA_PAGO ENUM('EFECTIVO', 'PAGO_MOVIL/TRANSFERENCIA') NOT NULL DEFAULT 'EFECTIVO',
+        NUMERO_REFERENCIA VARCHAR(50),
         FOREIGN KEY (VENTA_ID) REFERENCES VENTAS(ID_VENTA) ON DELETE CASCADE
     );
+
+    --TRIIGER USADO
+        DELIMITER //
+
+        CREATE TRIGGER actualizar_monto_pendiente
+            AFTER INSERT ON PAGOS
+                FOR EACH ROW
+                    BEGIN
+                    UPDATE VENTAS
+                    SET MONTO_PENDIENTE = MONTO_PENDIENTE - NEW.MONTO_ABONADO
+                    WHERE ID_VENTA = NEW.VENTA_ID;
+            END //
+
+        DELIMITER ;
+
 
 
 -- Tabla intermedia VENTAS_PRODUCTOS (relación muchos a muchos)

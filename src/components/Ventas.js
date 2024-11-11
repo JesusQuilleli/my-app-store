@@ -441,6 +441,7 @@ const Ventas = () => {
           setVentasDetalladas={setVentasDetalladas}
           TasaBolivares={TasaBolivares}
           TasaPesos={TasaPesos}
+          cargarVentas={cargarVentas}
         />
       </Modal>
     </View>

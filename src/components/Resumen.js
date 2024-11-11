@@ -1,13 +1,20 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
-  Pressable,
-  TouchableOpacity
+  TouchableOpacity,
+  Modal
 } from "react-native";
+
+import Pagos from "./Pagos";
+import Deudores from "./Deudores";
+
 const Resumen = () => {
+
+  const [modalPagos, setModalPagos] = useState(false);
+  const [modalDeudores, setModalDeudores] = useState(false);
+
   //DATA DE EJEMPLO
   const DATA = [
     { id: "1", title: "Cliente 1", fecha: "00/00/2000", monto: "$100" },
@@ -29,9 +36,12 @@ const Resumen = () => {
 
   return (
     <View style={styles.container}>
+
       <TouchableOpacity 
       style={styles.btn}
-      onLongPress={()=> console.log('Abrir Modal Ventas')}
+      onPress={() => {
+        setModalPagos(true);
+      }}
       >
         <Text style={{color:'#000', fontSize: 24}}>Pagos{' '}</Text>
         <Text style={styles.nro}>5</Text>
@@ -39,26 +49,21 @@ const Resumen = () => {
 
       <TouchableOpacity 
       style={styles.btn}
-      onLongPress={()=> console.log('Abrir Modal Deudores')}
+      onPress={() => {
+        setModalDeudores(true);
+      }}
       >
         <Text style={{color:'#000', fontSize: 24}}>Deudores</Text>
         <Text style={styles.nro}>15</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity 
-      style={styles.btn}
-      onLongPress={()=> console.log('Abrir Modal Deudores')}
-      >
-        <Text style={{color:'#000', fontSize: 24}}>Hoy</Text>
-        <Text style={styles.nro}>15</Text>
-      </TouchableOpacity>
+      <Modal visible={modalPagos} animationType="fade">
+        <Pagos setModalPagos={setModalPagos}/>
+      </Modal>
 
-      <Text>Totales</Text>
-
-      <View style={styles.contentGroup}>
-        <Text style={{color:'#000', fontSize: 24}}>Productos</Text>
-        <Text style={styles.nro}>20</Text>
-      </View>
+      <Modal visible={modalDeudores} animationType="fade">
+        <Deudores/>
+      </Modal>
 
     </View>
   );

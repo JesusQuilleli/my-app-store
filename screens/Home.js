@@ -8,7 +8,6 @@ import Clientes from "../src/components/Clientes.js";
 import Productos from "../src/components/Productos.js";
 import Ventas from "../src/components/Ventas.js";
 import Resumen from "../src/components/Resumen.js";
-import Pedidos from "../src/components/Pedidos.js"
 
 const Tab = createBottomTabNavigator();
 
@@ -36,7 +35,7 @@ export default function Home() {
             iconName = focused ? "clipboard" : "clipboard-outline"; // Ionicons para Pedidos
           } else if(route.name === "Ventas") {
             iconName = focused ? "cash" : "cash-outline";
-          }
+          } 
 
           // Devolvemos el ícono con Ionicons para las otras rutas
           return <Ionicons name={iconName} size={size} color={color} />;

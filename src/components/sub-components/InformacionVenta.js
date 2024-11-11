@@ -7,12 +7,13 @@ import {
   TextInput,
   ActivityIndicator,
   ScrollView,
+  Modal,
 } from "react-native";
 
 import Entypo from "@expo/vector-icons/Entypo";
 import { formatearFecha } from "../../helpers/validaciones";
 
-import Checkbox from "expo-checkbox";
+import FormasPagoVenta from "./FormasPagoVenta";
 
 const InformacionVenta = ({
   setModalVentasDetalladas,
@@ -20,46 +21,28 @@ const InformacionVenta = ({
   setVentasDetalladas,
   TasaBolivares,
   TasaPesos,
+  cargarVentas
 }) => {
+
   const ABONO = (
     parseFloat(ventasDetalladas.MONTO_TOTAL) -
     parseFloat(ventasDetalladas.MONTO_PENDIENTE)
   ).toFixed(2);
 
-  const [montoAbonado, setMontoAbonado] = useState(0);
-  const [esDeudaRestante, setEsDeudaRestante] = useState(true);
-  const [loading, setLoading] = useState(true); // Estado de carga
-  const [opcionesPago, setOpcionesPago] = useState(false);
+  //CARGA
+  const [loading, setLoading] = useState(true);
+
+  //MODAL
+  const [modalProcesarPago, setModalProcesarPago] = useState(false);
 
   useEffect(() => {
-    // Simula la carga de datos
     if (
       ventasDetalladas.MONTO_TOTAL !== undefined ||
       ventasDetalladas.MONTO_PENDIENTE
     ) {
-      setLoading(false); // Cambia el estado a "cargado" cuando los datos están disponibles
+      setLoading(false);
     }
   }, [ventasDetalladas]);
-
-  // Función que se llama al seleccionar una opción
-  const manejarSeleccion = (opcion) => {
-    if (opcion === "deudaRestante") {
-      setEsDeudaRestante(true);
-      setMontoAbonado(0); // Limpiar el campo de abono
-    } else {
-      setEsDeudaRestante(false);
-      setMontoAbonado(""); // Permitir ingreso de nuevo monto de abono
-    }
-  };
-
-  // Función para procesar el abono
-  const procesarPago = () => {
-    if (!esDeudaRestante && montoAbonado > 0) {
-      const nuevoSaldo = (parseFloat(ABONO) - montoAbonado).toFixed(2); // Calcula el nuevo saldo
-      setMontoAbonado(0); // Limpiar el campo después de procesar el abono
-      setEsDeudaRestante(true); // Volver a seleccionar "Deuda Restante" después de procesar
-    }
-  };
 
   if (loading) {
     return (
@@ -69,180 +52,154 @@ const InformacionVenta = ({
     );
   }
 
+  const closeForm = () => {
+    setModalVentasDetalladas(false);
+  };
+
   return (
-
     <ScrollView
-  contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-start' }}
-  style={{ flex: 1 }}
->
-
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <TouchableOpacity
-            onPress={() => {
-              setVentasDetalladas([]);
-              setModalVentasDetalladas(false);
-            }}
-            style={styles.btnAtras}
-          >
-            <Entypo name="arrow-long-left" size={24} color="black" />
-          </TouchableOpacity>
-          <Text style={styles.titulo}>INFORMACIÓN - Venta</Text>
-        </View>
-      </View>
-
-
-      <View style={styles.padreContent}>
-        <View style={styles.content}>
-          <Text style={styles.label}>Cliente</Text>
-          <Text style={styles.valor}>{ventasDetalladas.CLIENTE}</Text>
+      contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-start" }}
+      style={{ flex: 1 }}
+    >
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <TouchableOpacity
+              onPress={() => {
+                setVentasDetalladas([]);
+                setModalVentasDetalladas(false);
+              }}
+              style={styles.btnAtras}
+            >
+              <Entypo name="arrow-long-left" size={24} color="black" />
+            </TouchableOpacity>
+            <Text style={styles.titulo}>INFORMACIÓN - Venta</Text>
+          </View>
         </View>
 
-        <View style={styles.content}>
-          <Text style={styles.label}>Fecha de Venta</Text>
-          <Text style={styles.valor}>
-            {formatearFecha(ventasDetalladas.FECHA)}
-          </Text>
-        </View>
-
-        <View style={styles.content}>
+        <View style={styles.padreContent}>
           <View style={styles.content}>
-            <Text style={styles.label}>Monto Total</Text>
+            <Text style={styles.label}>Cliente</Text>
+            <Text style={styles.valor}>{ventasDetalladas.CLIENTE}</Text>
+          </View>
+
+          <View style={styles.content}>
+            <Text style={styles.label}>Fecha de Venta</Text>
             <Text style={styles.valor}>
-              {ventasDetalladas.MONTO_TOTAL}{" "}
-              <Text style={{ fontSize: 12 }}>Dolares</Text>
-            </Text>
-            <Text style={styles.label}>Otros Precios</Text>
-            <Text style={styles.valor}>
-              {(ventasDetalladas.MONTO_TOTAL * TasaBolivares).toFixed(2)}{" "}
-              <Text style={{ fontSize: 12 }}>Bolivares</Text>
-            </Text>
-            <Text style={styles.valor}>
-              {(ventasDetalladas.MONTO_TOTAL * TasaPesos).toFixed(0)}{" "}
-              <Text style={{ fontSize: 12 }}>Pesos</Text>
+              {formatearFecha(ventasDetalladas.FECHA)}
             </Text>
           </View>
 
-          {parseFloat(ventasDetalladas.MONTO_PENDIENTE) !== 0.0 && (
+          <View style={styles.content}>
             <View style={styles.content}>
-              <Text style={styles.label}>Monto Abonado</Text>
+              <Text style={styles.label}>Monto Total</Text>
               <Text style={styles.valor}>
-                {ABONO} <Text style={{ fontSize: 12 }}>Dolares</Text>
+                {ventasDetalladas.MONTO_TOTAL}{" "}
+                <Text style={{ fontSize: 12 }}>Dolares</Text>
+              </Text>
+              <Text style={styles.label}>Otros Precios</Text>
+              <Text style={styles.valor}>
+                {(ventasDetalladas.MONTO_TOTAL * TasaBolivares).toFixed(2)}{" "}
+                <Text style={{ fontSize: 12 }}>Bolivares</Text>
+              </Text>
+              <Text style={styles.valor}>
+                {(ventasDetalladas.MONTO_TOTAL * TasaPesos).toFixed(0)}{" "}
+                <Text style={{ fontSize: 12 }}>Pesos</Text>
               </Text>
             </View>
-          )}
 
-          <Text style={styles.label}>Monto Pendiente</Text>
-
-          {parseFloat(ventasDetalladas.MONTO_PENDIENTE) === 0.0 ? (
-            <Text style={[styles.valor, { textTransform: "uppercase" }]}>
-              No hay Deuda
-            </Text>
-          ) : (
-            <>
-              <View style={styles.montoContainer}>
+            {parseFloat(ventasDetalladas.MONTO_PENDIENTE) !== 0.0 && (
+              <View style={styles.content}>
+                <Text style={styles.label}>Monto Abonado</Text>
                 <Text style={styles.valor}>
-                  {parseFloat((ventasDetalladas.MONTO_PENDIENTE)).toFixed(2)}{" "}
-                  <Text style={{ fontSize: 12 }}>Dolares</Text>
+                  {ABONO} <Text style={{ fontSize: 12 }}>Dolares</Text>
                 </Text>
-              </View>
-              <Text style={styles.label}>Otros Precios</Text>
-              <View style={styles.montoContainer}>
-                <Text style={styles.valor}>
-                  {parseFloat(ventasDetalladas.MONTO_PENDIENTE * TasaBolivares).toFixed(2)}{" "}
-                  <Text style={{ fontSize: 12 }}>Bolivares</Text>
-                </Text>
-              </View>
-
-              <View style={styles.montoContainer}>
-                <Text style={styles.valor}>
-                {parseFloat(ventasDetalladas.MONTO_PENDIENTE * TasaPesos).toFixed(0)}{" "}
-                  <Text style={{ fontSize: 12 }}>Pesos</Text>
-                </Text>
-              </View>
-            </>
-          )}
-        </View>
-
-        <View style={styles.content}>
-          <Text style={styles.label}>Estado de Pago</Text>
-          <Text
-            style={
-              ventasDetalladas.ESTADO_PAGO === "PAGADO"
-                ? styles.valorEstado
-                : styles.valorEstadoNo
-            }
-          >
-            {ventasDetalladas.ESTADO_PAGO}
-          </Text>
-        </View>
-
-        <View style={styles.content}>
-          <Text style={styles.label}>Lista de Productos</Text>
-          <Text style={styles.valor}>{ventasDetalladas.LISTA_PRODUCTOS}</Text>
-        </View>
-
-        {ventasDetalladas.ESTADO_PAGO === "PENDIENTE" && (
-          <View>
-            <View style={styles.ContanerBtn}>
-              <TouchableOpacity
-                onPress={() => {
-                  setOpcionesPago(!opcionesPago);
-                }}
-                style={styles.BtnPagar}
-              >
-                <Text style={styles.BtnPagarText}>Formas de Pago</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.BtnPagos}>
-                <Text style={styles.BtnPagoText}>Pagos Realizados</Text>
-              </TouchableOpacity>
-            </View>
-            {opcionesPago && (
-              <View>
-                <View style={styles.containerPago}>
-                  <View style={styles.ItemPago}>
-                    <Text style={styles.defecto}>Abono</Text>
-                    <Checkbox
-                      value={!esDeudaRestante}
-                      onValueChange={() => manejarSeleccion("abono")}
-                    />
-                  </View>
-                  <View style={styles.ItemPago}>
-                    <Text style={styles.defecto}>Deuda Restante</Text>
-                    <Checkbox
-                      value={esDeudaRestante}
-                      onValueChange={() => manejarSeleccion("deudaRestante")}
-                    />
-                  </View>
-                </View>
-                <View style={styles.inputContent}>
-                  <View style={styles.inputContentItem}>
-                    <TextInput
-                      placeholder="Aqui"
-                      style={styles.input}
-                      keyboardType="numeric"
-                      value={
-                        esDeudaRestante
-                          ? ventasDetalladas.MONTO_PENDIENTE
-                          : montoAbonado.toString()
-                      }
-                      editable={!esDeudaRestante}
-                      onChangeText={(valor) =>
-                        setMontoAbonado(parseFloat(valor) || 0)
-                      }
-                    />
-                    <TouchableOpacity style={styles.btnProcesar}>
-                      <Text style={styles.btnProcesarText}>Procesar</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
               </View>
             )}
+
+            <Text style={styles.label}>Monto Pendiente</Text>
+
+            {parseFloat(ventasDetalladas.MONTO_PENDIENTE) === 0.0 ? (
+              <Text style={[styles.valor, { textTransform: "uppercase" }]}>
+                No hay Deuda
+              </Text>
+            ) : (
+              <>
+                <View style={styles.montoContainer}>
+                  <Text style={styles.valor}>
+                    {parseFloat(ventasDetalladas.MONTO_PENDIENTE).toFixed(2)}{" "}
+                    <Text style={{ fontSize: 12 }}>Dolares</Text>
+                  </Text>
+                </View>
+                <Text style={styles.label}>Otros Precios</Text>
+                <View style={styles.montoContainer}>
+                  <Text style={styles.valor}>
+                    {parseFloat(
+                      ventasDetalladas.MONTO_PENDIENTE * TasaBolivares
+                    ).toFixed(2)}{" "}
+                    <Text style={{ fontSize: 12 }}>Bolivares</Text>
+                  </Text>
+                </View>
+
+                <View style={styles.montoContainer}>
+                  <Text style={styles.valor}>
+                    {parseFloat(
+                      ventasDetalladas.MONTO_PENDIENTE * TasaPesos
+                    ).toFixed(0)}{" "}
+                    <Text style={{ fontSize: 12 }}>Pesos</Text>
+                  </Text>
+                </View>
+              </>
+            )}
           </View>
-        )}
+
+          <View style={styles.content}>
+            <Text style={styles.label}>Estado de Pago</Text>
+            <Text
+              style={
+                ventasDetalladas.ESTADO_PAGO === "PAGADO"
+                  ? styles.valorEstado
+                  : styles.valorEstadoNo
+              }
+            >
+              {ventasDetalladas.ESTADO_PAGO}
+            </Text>
+          </View>
+
+          <View style={styles.content}>
+            <Text style={styles.label}>Lista de Productos</Text>
+            <Text style={styles.valor}>{ventasDetalladas.LISTA_PRODUCTOS}</Text>
+          </View>
+
+          {ventasDetalladas.ESTADO_PAGO === "PENDIENTE" && (
+            <View>
+              <View style={styles.ContanerBtn}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setModalProcesarPago(true);
+                  }}
+                  style={styles.BtnPagar}
+                >
+                  <Text style={styles.BtnPagarText}>Adjuntar Pago</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.BtnPagos}>
+                  <Text style={styles.BtnPagoText}>Historial de Pagos</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+        </View>
+        <Modal visible={modalProcesarPago} animationType="slide">
+          <FormasPagoVenta
+            setModalProcesarPago={setModalProcesarPago}
+            ventasDetalladas={ventasDetalladas}
+            TasaBolivares={TasaBolivares}
+            TasaPesos={TasaPesos}
+            closeForm={closeForm}
+            cargarVentas={cargarVentas}
+          />
+        </Modal>
       </View>
-    </View>
     </ScrollView>
   );
 };
@@ -286,7 +243,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   padreContent: {
-    width:'90%',
+    width: "90%",
     backgroundColor: "#fff",
     marginHorizontal: 30,
     marginTop: 20,

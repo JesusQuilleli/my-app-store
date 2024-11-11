@@ -846,17 +846,17 @@ const styles = StyleSheet.create({
     justifyContent: "space-evenly",
     marginHorizontal: 40,
     borderTopWidth: 0.2,
-    borderTopColor: '#000'
+    borderTopColor: "#000",
   },
   botonPDF: {
-    backgroundColor: "#f00", // Color verde característico de WhatsApp
+    backgroundColor: "#f00",
     padding: 15,
     margin: 10,
     borderRadius: 50,
     alignItems: "center",
   },
   botonCompartir: {
-    backgroundColor: "#25D366", // Color verde característico de WhatsApp
+    backgroundColor: "#25D366",
     padding: 15,
     margin: 10,
     borderRadius: 50,
