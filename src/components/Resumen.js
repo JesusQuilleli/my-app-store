@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,10 @@ import {
   TouchableOpacity,
   Modal
 } from "react-native";
+
+import axios from "axios";
+import { url } from "../helpers/url.js";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import Pagos from "./Pagos";
 import Deudores from "./Deudores";
@@ -15,24 +19,33 @@ const Resumen = () => {
   const [modalPagos, setModalPagos] = useState(false);
   const [modalDeudores, setModalDeudores] = useState(false);
 
-  //DATA DE EJEMPLO
-  const DATA = [
-    { id: "1", title: "Cliente 1", fecha: "00/00/2000", monto: "$100" },
-    { id: "2", title: "Cliente 2", fecha: "01/01/2001", monto: "$200" },
-    { id: "3", title: "Cliente 3", fecha: "02/02/2002", monto: "$300" },
-    { id: "4", title: "Cliente 4", fecha: "03/03/2003", monto: "$400" },
-    { id: "5", title: "Cliente 5", fecha: "04/04/2004", monto: "$500" },
-    { id: "6", title: "Cliente 6", fecha: "05/05/2005", monto: "$600" },
-    { id: "7", title: "Cliente 7", fecha: "06/06/2006", monto: "$700" },
-  ];
+  //ver Pagos
+  const [verPagos, setVerPagos] = useState([]);
 
-  const Item = ({ title, fecha, monto }) => (
-    <View style={styles.item}>
-      <Text style={styles.title}><Text style={{color: '#000', fontSize: 20}}>Nombre Cliente:</Text> {title}</Text>
-      <Text style={styles.fecha}>Fecha Venta: {fecha}</Text>
-      <Text style={styles.monto}>Monto Total: {monto}</Text>
-    </View>
-  );
+  useEffect(() => {
+    cargarPagos();
+  }, [])
+
+
+  const cargarPagos = async () => {
+    try {
+      const adminIdString = await AsyncStorage.getItem("adminId");
+      if (adminIdString === null) {
+        console.log("ID de administrador no encontrado.");
+        return;
+      }
+      const adminId = parseInt(adminIdString, 10);
+      if (isNaN(adminId)) {
+        console.log("ID de administrador no es un número válido.");
+        return;
+      }
+      const respuesta = await axios.get(`${url}/verPagos/${adminId}`);
+      const resultadoVerPagos = respuesta.data.data;
+      setVerPagos(resultadoVerPagos);
+    } catch (error) { 
+      console.log("Error al cargar Pagos", error);
+    }  
+  };    
 
   return (
     <View style={styles.container}>
@@ -44,7 +57,7 @@ const Resumen = () => {
       }}
       >
         <Text style={{color:'#000', fontSize: 24}}>Pagos{' '}</Text>
-        <Text style={styles.nro}>5</Text>
+        <Text style={styles.nro}>{verPagos.length}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity 
@@ -58,7 +71,10 @@ const Resumen = () => {
       </TouchableOpacity>
 
       <Modal visible={modalPagos} animationType="fade">
-        <Pagos setModalPagos={setModalPagos}/>
+        <Pagos 
+        setModalPagos={setModalPagos}
+        verPagos={verPagos}
+        />
       </Modal>
 
       <Modal visible={modalDeudores} animationType="fade">

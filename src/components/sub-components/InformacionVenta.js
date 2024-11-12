@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  TextInput,
   ActivityIndicator,
   ScrollView,
   Modal,
@@ -13,7 +12,12 @@ import {
 import Entypo from "@expo/vector-icons/Entypo";
 import { formatearFecha } from "../../helpers/validaciones";
 
+import { url } from "./../../helpers/url.js";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import FormasPagoVenta from "./FormasPagoVenta";
+import HistorialPagosVenta from "./HistorialPagosVenta";
 
 const InformacionVenta = ({
   setModalVentasDetalladas,
@@ -33,13 +37,17 @@ const InformacionVenta = ({
 
   //MODAL
   const [modalProcesarPago, setModalProcesarPago] = useState(false);
+  const [modalHistorialPagos, setModalHistorialPagos] = useState(false);
+
+  //ALMACENAR HISTORIAL DE PAGOS
+  const [historialPagos, setHistorialPagos] = useState([]);
 
   useEffect(() => {
     if (
       ventasDetalladas.MONTO_TOTAL !== undefined ||
       ventasDetalladas.MONTO_PENDIENTE
     ) {
-      setLoading(false);
+      setLoading(false);      
     }
   }, [ventasDetalladas]);
 
@@ -53,6 +61,31 @@ const InformacionVenta = ({
 
   const closeForm = () => {
     setModalVentasDetalladas(false);
+  };
+
+  const cargarHistorialPagos = async (Venta_ID) => {
+    try {
+      const adminIdString = await AsyncStorage.getItem("adminId");
+      if (adminIdString === null) {
+        console.log("ID de administrador no encontrado.");
+        return;
+      }
+      const adminId = parseInt(adminIdString, 10);
+      if (isNaN(adminId)) {
+        console.log("ID de administrador no es un número válido.");
+        return;
+      }
+
+      // Corregir concatenación en la URL: separar adminId y Venta_ID con '/'
+      const respuesta = await axios.get(
+        `${url}/verPagosVenta/${adminId}/${Venta_ID}`
+      );
+
+      const response = respuesta.data.data;
+      setHistorialPagos(response);
+    } catch (error) {
+      console.log("Error al cargar Ventas", error);
+    }
   };
 
   return (
@@ -78,7 +111,13 @@ const InformacionVenta = ({
 
         <View style={styles.padreContent}>
           {ventasDetalladas.TIPO_PAGO === "POR ABONO" && (
-            <TouchableOpacity style={styles.BtnPagos}>
+            <TouchableOpacity
+              onPress={async () => {
+                setModalHistorialPagos(true);
+                await cargarHistorialPagos(ventasDetalladas.ID_VENTA);
+              }}
+              style={styles.BtnPagos}
+            >
               <Text style={styles.BtnPagoText}>Historial de Pagos</Text>
             </TouchableOpacity>
           )}
@@ -172,8 +211,12 @@ const InformacionVenta = ({
                       ).toFixed(2)
                     )}
                     <Text style={{ fontSize: 12 }}>
-                  {isNaN(TasaPesos) ? <Text></Text> : <Text> Bolivares</Text>}{" "}
-                </Text>
+                      {isNaN(TasaPesos) ? (
+                        <Text></Text>
+                      ) : (
+                        <Text> Bolivares</Text>
+                      )}{" "}
+                    </Text>
                   </Text>
                 </View>
 
@@ -187,8 +230,8 @@ const InformacionVenta = ({
                       ).toFixed(0)
                     )}
                     <Text style={{ fontSize: 12 }}>
-                  {isNaN(TasaPesos) ? <Text></Text> : <Text> Pesos</Text>}{" "}
-                </Text>
+                      {isNaN(TasaPesos) ? <Text></Text> : <Text> Pesos</Text>}{" "}
+                    </Text>
                   </Text>
                 </View>
               </>
@@ -196,7 +239,7 @@ const InformacionVenta = ({
           </View>
 
           <View style={styles.content}>
-            <Text style={styles.label}>Estado de Pago</Text>
+            <Text style={styles.label}>Estado de Venta</Text>
             <Text
               style={
                 ventasDetalladas.ESTADO_PAGO === "PAGADO"
@@ -236,6 +279,13 @@ const InformacionVenta = ({
             TasaPesos={TasaPesos}
             closeForm={closeForm}
             cargarVentas={cargarVentas}
+          />
+        </Modal>
+
+        <Modal visible={modalHistorialPagos} animationType="fade">
+          <HistorialPagosVenta
+            setModalHistorialPagos={setModalHistorialPagos}
+            historialPagos={historialPagos}
           />
         </Modal>
       </View>
