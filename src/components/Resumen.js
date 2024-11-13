@@ -1,51 +1,27 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  Modal
+  Modal,
 } from "react-native";
 
 import axios from "axios";
 import { url } from "../helpers/url.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import { PagosContext } from "./Context/pagosContext.js";
+
 import Pagos from "./Pagos";
 import Deudores from "./Deudores";
 
 const Resumen = () => {
 
+  const {verPagos} = useContext(PagosContext);
+
   const [modalPagos, setModalPagos] = useState(false);
-  const [modalDeudores, setModalDeudores] = useState(false);
-
-  //ver Pagos
-  const [verPagos, setVerPagos] = useState([]);
-
-  useEffect(() => {
-    cargarPagos();
-  }, [])
-
-
-  const cargarPagos = async () => {
-    try {
-      const adminIdString = await AsyncStorage.getItem("adminId");
-      if (adminIdString === null) {
-        console.log("ID de administrador no encontrado.");
-        return;
-      }
-      const adminId = parseInt(adminIdString, 10);
-      if (isNaN(adminId)) {
-        console.log("ID de administrador no es un número válido.");
-        return;
-      }
-      const respuesta = await axios.get(`${url}/verPagos/${adminId}`);
-      const resultadoVerPagos = respuesta.data.data;
-      setVerPagos(resultadoVerPagos);
-    } catch (error) { 
-      console.log("Error al cargar Pagos", error);
-    }  
-  };    
+  const [modalDeudores, setModalDeudores] = useState(false);    
 
   return (
     <View style={styles.container}>

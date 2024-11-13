@@ -12,7 +12,6 @@ import Entypo from "@expo/vector-icons/Entypo";
 import { formatearFecha } from "../helpers/validaciones";
 
 const Pagos = ({ setModalPagos, verPagos }) => {
-
   const Item = ({
     CLIENTE,
     FECHA_PAGO,
@@ -72,6 +71,12 @@ const Pagos = ({ setModalPagos, verPagos }) => {
           <Text style={styles.titulo}>Pagos</Text>
         </View>
       </View>
+
+      {verPagos.length === 0 && (
+        <Text style={{ fontSize: 24, marginTop: 20, fontWeight: "900" }}>
+          Sin Historial de Pagos
+        </Text>
+      )}
 
       <FlatList
         data={verPagos}

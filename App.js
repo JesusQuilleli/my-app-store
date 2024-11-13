@@ -11,6 +11,7 @@ import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import MyStack from "./src/components/navigation/appNavigation";
 
+
  // TouchableWithoutFeedback -> USAR GESTOS EN LA APLICACION
   // KeyboardAvoidingView -> RENDERIZAR MEJOR EL TECLADO
 

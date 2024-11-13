@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   View,
   Text,
@@ -16,6 +16,8 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 
 import Checkbox from "expo-checkbox";
 
+import { PagosContext } from "../../Context/pagosContext.js";
+
 const FormasPagoVenta = ({
   ventasDetalladas,
   setModalProcesarPago,
@@ -24,6 +26,9 @@ const FormasPagoVenta = ({
   closeForm,
   cargarVentas,
 }) => {
+
+  const { cargarPagos } = useContext(PagosContext);
+
   const [esDeudaRestante, setEsDeudaRestante] = useState(true);
   const [esEfectivo, setEsEfectivo] = useState(true);
   const [montoAbonado, setMontoAbonado] = useState(0);
@@ -42,6 +47,7 @@ const FormasPagoVenta = ({
     closeForm();
 
     await cargarVentas();
+    await cargarPagos();
   };
 
   // Función que se llama al seleccionar una opción
@@ -140,7 +146,7 @@ const FormasPagoVenta = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }; 
 
   return (
     <View style={styles.modalOverlay}>

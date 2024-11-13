@@ -77,6 +77,12 @@ const HistorialPagosVenta = ({ setModalHistorialPagos, historialPagos }) => {
           </TouchableOpacity>
         </View>
 
+        {historialPagos.length === 0 && (
+        <Text style={{ fontSize: 24, marginTop: 20, fontWeight: "900", textAlign:'center' }}>
+          Aún no hay seguimiento de los pagos.
+        </Text>
+      )}
+
         <FlatList
           data={historialPagos}
           keyExtractor={(item) => item.ID_PAGO}

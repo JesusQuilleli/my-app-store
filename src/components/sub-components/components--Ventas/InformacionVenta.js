@@ -444,7 +444,7 @@ const styles = StyleSheet.create({
     marginBottom: 13.5,
   },
   BtnPagoText: {
-    color: "#FFF",
+    color: "#000",
     textAlign: "center",
     fontSize: 10,
     textTransform: "uppercase",

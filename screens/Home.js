@@ -3,6 +3,8 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
+import { PagosProvider } from "../src/components/Context/pagosContext.js";
+
 //COMPONENTES
 import Clientes from "../src/components/Clientes.js";
 import Productos from "../src/components/Productos.js";
@@ -13,6 +15,7 @@ const Tab = createBottomTabNavigator();
 
 export default function Home() {
   return (
+    <PagosProvider>
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
@@ -79,5 +82,6 @@ export default function Home() {
         options={{ headerShown: false }}
       />
     </Tab.Navigator>
+    </PagosProvider>  
   );
 }

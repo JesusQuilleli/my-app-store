@@ -192,7 +192,7 @@ export default function HomeDrawer() {
         name="TasaCambio"
         component={TasaCambio}
         options={{
-          title: "Tasa de Cambio",
+          title: "Tasas de Cambio",
           headerTitleAlign: "center", // Centra el título en el header
           drawerIcon: ({ focused }) => (
             <FontAwesome5
