@@ -51,7 +51,6 @@ const InformacionVenta = ({
       ventasDetalladas.MONTO_PENDIENTE
     ) {
       setLoading(false);
-      
     }
   }, [ventasDetalladas]);
 
@@ -61,7 +60,7 @@ const InformacionVenta = ({
         <ActivityIndicator size="large" color="#fee03e" />
       </View>
     );
-  };
+  }
 
   const closeForm = () => {
     setModalVentasDetalladas(false);
@@ -152,17 +151,48 @@ const InformacionVenta = ({
               </TouchableOpacity>
             )}
 
-            <TouchableOpacity onPress={async () => {
-              setModalProductosVendidos(true);
-              await cargarHistorialVentas(ventasDetalladas.ID_VENTA);
-            }} style={styles.BtnProductos}>
+            <TouchableOpacity
+              onPress={async () => {
+                setModalProductosVendidos(true);
+                await cargarHistorialVentas(ventasDetalladas.ID_VENTA);
+              }}
+              style={styles.BtnProductos}
+            >
               <Text style={styles.BtnProductosText}>Productos Vendidos</Text>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.content}>
-            <Text style={styles.label}>Cliente</Text>
-            <Text style={styles.valor}>{ventasDetalladas.CLIENTE}</Text>
+          <View
+            style={[
+              styles.content,
+              {
+                width: "100%",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-evenly",
+              },
+            ]}
+          >
+            <View
+              style={{
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text style={styles.label}>Codigo Venta</Text>
+              <Text style={styles.valor}>{ventasDetalladas.ID_VENTA}</Text>
+            </View>
+            <View
+              style={{
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text style={styles.label}>Cliente</Text>
+              <Text style={styles.valor}>{ventasDetalladas.CLIENTE}</Text>
+            </View>
           </View>
 
           <View style={styles.content}>
@@ -323,9 +353,9 @@ const InformacionVenta = ({
         </Modal>
 
         <Modal visible={modalProductosVendidos} animationType="fade">
-          <HistorialProductosVenta 
-          setModalProductosVendidos={setModalProductosVendidos}
-          historialVentas={historialVentas}
+          <HistorialProductosVenta
+            setModalProductosVendidos={setModalProductosVendidos}
+            historialVentas={historialVentas}
           />
         </Modal>
       </View>
@@ -418,11 +448,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-evenly",
     alignItems: "center",
   },
-  botonesContenedor:{
-    width: '100%',
-    flexDirection:'row',
-    alignItems:'center',
-    justifyContent: 'space-around'
+  botonesContenedor: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
   },
   BtnProductos: {
     backgroundColor: "green",

@@ -81,6 +81,10 @@ const Productos = () => {
       )
     : "No disponible";
 
+  //NOTIFICACIONES
+
+  
+
   //FUNCION CARGAR TASAS
   const cargarTasaUnica = async () => {
     const adminId = await AsyncStorage.getItem("adminId");
@@ -242,6 +246,7 @@ const Productos = () => {
     setTodosSeleccionados(!todosSeleccionados); // Invertir el estado de "todos seleccionados"
   };
 
+  //SELECCIONAR PRODUCTO DINAMICAMENTE
   const toggleSeleccionProducto = (productoID) => {
     if (productosSeleccionados.includes(productoID)) {
       // Si el producto ya está seleccionado, lo desmarcamos
@@ -254,6 +259,7 @@ const Productos = () => {
     }
   };
 
+  //COMPARTIR PRODUCTOS SELECCIONADOS WHATSAPP
   const compartirProductosSeleccionados = async () => {
     // Filtramos los productos seleccionados
     const productosParaCompartir = productos.filter((producto) =>
@@ -332,6 +338,7 @@ const Productos = () => {
     }
   };
 
+  //COMPARTIR PRODUCTOS SELECCIONADOS PDF
   const compartirProductosSeleccionadosPDF = async () => {
     // Filtramos los productos seleccionados
     const productosParaCompartir = productos.filter((producto) =>
@@ -415,6 +422,7 @@ const Productos = () => {
     }
   };
 
+
   // Item individual para cada producto
   const Item = ({
     categoria,
@@ -435,7 +443,7 @@ const Productos = () => {
       <View style={styles.textContainer}>
         <Text style={styles.categoriaText}>{categoria}</Text>
         <Text style={styles.nombreText}>{nombre}</Text>
-        <Text style={styles.defecto}>Disponible: {cantidad}</Text>
+        <Text style={styles.defecto}>Disponible: <Text style={cantidad <= 5 ? ({color: 'red'}) : ({color: 'green'})}>{cantidad}</Text></Text>
         <Text style={styles.defecto}>{precio} $</Text>
       </View>
       <View style={styles.boxImagen}>

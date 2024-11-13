@@ -27,7 +27,7 @@ const FormasPagoVenta = ({
   cargarVentas,
 }) => {
 
-  const { cargarPagos } = useContext(PagosContext);
+  const { cargarPagos } = useContext(PagosContext); //CONTEXTO PARA CARGAR LOS PAGOS EN EL HISTORIAL DE PAGOS, UNA VEZ REALIZADO UN NUEVO PAGO
 
   const [esDeudaRestante, setEsDeudaRestante] = useState(true);
   const [esEfectivo, setEsEfectivo] = useState(true);

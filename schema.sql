@@ -139,6 +139,16 @@ CREATE TABLE VENTAS_PRODUCTOS (
 
     DROP TRIGGER IF EXISTS actualizar_estado_y_monto_pendiente_pagos;
 
+    --TABLA TOKENS PARA LAS NOTIFICACIONES
+        CREATE TABLE tokens (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        administrador_id INT NOT NULL,
+        token VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (ADMINISTRADOR_ID) REFERENCES ADMINISTRADORES(ID_ADMINISTRADOR) ON DELETE CASCADE
+    );
+
+
     ---------------------------------------------------------------------
 
     SELECT 

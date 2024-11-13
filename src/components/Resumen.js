@@ -11,6 +11,9 @@ import axios from "axios";
 import { url } from "../helpers/url.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+//NOTIFICACIONES
+import * as Notifications from "expo-notifications";
+
 import { PagosContext } from "./Context/pagosContext.js";
 
 import Pagos from "./Pagos";
@@ -18,10 +21,62 @@ import Deudores from "./Deudores";
 
 const Resumen = () => {
 
+
   const {verPagos} = useContext(PagosContext);
 
   const [modalPagos, setModalPagos] = useState(false);
-  const [modalDeudores, setModalDeudores] = useState(false);    
+  const [modalDeudores, setModalDeudores] = useState(false); 
+  
+  //PUSHEAR NOTIFICACIONES
+  const registerForPushNotifications = async () => {
+    const { status } = await Notifications.requestPermissionsAsync();
+    if (status === "granted") {
+      const token = (await Notifications.getExpoPushTokenAsync()).data;
+  
+      // Obtén el id_admin desde AsyncStorage o como sea que lo estés gestionando
+      const adminIdString = await AsyncStorage.getItem("adminId");
+      const adminId = parseInt(adminIdString, 10);      
+  
+      // Enviar el token y el id_admin a tu backend
+      await axios.post(`${url}/guardarToken`, { administrador_id: adminId, token });
+    } else {
+      console.log("Permisos de notificación denegados");
+    }
+  };
+
+  //VERIFICAR EL INVENTARIO
+  const verificarInventario = async () => { 
+    try {
+      // Obtén el id_admin del AsyncStorage
+      const adminIdString = await AsyncStorage.getItem("adminId");
+      const adminId = parseInt(adminIdString, 10);
+  
+      // Asegúrate de que el id_admin está definido
+      if (!adminId) {
+        console.error("ID de administrador no encontrado");
+        return;
+      }
+  
+      // Hacer la solicitud al backend
+      const response = await axios.post(`${url}/verificarInventario`, { id_admin: adminId });
+
+      Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowAlert: true,
+          shouldPlaySound: true,
+          shouldSetBadge: false,
+        }),
+      });
+  
+    } catch (error) {
+      console.error("Error al verificar el inventario:", error);
+    }
+  };
+
+  useEffect(() => {
+    registerForPushNotifications();
+    verificarInventario();  
+  }, [])
 
   return (
     <View style={styles.container}>

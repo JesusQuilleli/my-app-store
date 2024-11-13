@@ -1,4 +1,3 @@
-// PagosContext.js
 import React, { createContext, useState, useEffect } from 'react';
 
 import {url} from './../../helpers/url.js'

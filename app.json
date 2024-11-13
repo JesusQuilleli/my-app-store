@@ -22,6 +22,9 @@
       "package": "com.jquilellicdev.InvMargarita",
       "permissions": ["INTERNET"]
     },
+    "notification": {
+      "icon": "./assets/icon.png"  // Aquí añades el ícono de las notificaciones
+    },
     "web": {
       "favicon": "./assets/favicon.png"
     },

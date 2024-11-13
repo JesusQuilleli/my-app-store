@@ -25,7 +25,6 @@ const TasaCambio = () => {
     const adminId = await AsyncStorage.getItem("adminId");
     try {
       const response = await axios.get(`${url}/verTasa/${adminId}`);
-      console.log("Tasa de cambio:", response.data.data);
       setVerTasas(response.data.data); // Guarda la tasa única en el estado
     } catch (error) {
       console.error("Error al cargar la tasa de cambio:", error);
@@ -40,7 +39,6 @@ const TasaCambio = () => {
         tasa,
         adminId,
       });
-      console.log("Tasa de cambio procesada:", response.data.message);
       await cargarTasaUnica(); // Carga la tasa para ver el cambio
     } catch (error) {
       console.error("Error al procesar la tasa de cambio:", error);
