@@ -27,9 +27,9 @@ import axios from "axios";
 import { url, urlBase } from "../helpers/url";
 
 //COMPONENTE MODAL
-import InformacionProductos from "./sub-components/InformacionProductos";
-import FormularioProductos from "./sub-components/FormularioProductos";
-import FormularioCategoria from "./sub-components/FormularioCategoria";
+import InformacionProductos from "./sub-components/components--Productos/InformacionProductos";
+import FormularioProductos from "./sub-components/components--Productos/FormularioProductos";
+import FormularioCategoria from "./sub-components/components--Productos/FormularioCategoria";
 
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";

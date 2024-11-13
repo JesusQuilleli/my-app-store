@@ -11,8 +11,8 @@ import {
 } from "react-native";
 
 import AntDesign from "@expo/vector-icons/AntDesign";
-import FormularioCliente from "./sub-components/FormularioCliente";
-import InformacionCliente from "./sub-components/InformacionCliente";
+import FormularioCliente from "./sub-components/components--Clientes/FormularioCliente";
+import InformacionCliente from "./sub-components/components--Clientes/InformacionCliente";
 
 //PETICIONES AL SERVIDOR
 import axios from "axios";
@@ -23,7 +23,7 @@ import {url} from './../helpers/url'
 //ALMACENAMIENTO LOCAL
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import SkeletonLoaderClientes from "./components--/skeletonAnimatedClientes";
+import SkeletonLoaderClientes from "./components--/skeletonAnimatedClientes.js";
 
 const Clientes = () => {
 

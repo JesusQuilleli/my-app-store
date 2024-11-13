@@ -14,10 +14,10 @@ import Checkbox from "expo-checkbox";
 
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { formatearFechaOtroFormato } from "../../helpers/validaciones";
+import { formatearFechaOtroFormato } from "./../../../helpers/validaciones.js";
 
 import axios from "axios";
-import { url } from "./../../helpers/url.js";
+import {url} from './../../../helpers/url.js'
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ProcesarVenta = ({
@@ -310,7 +310,7 @@ const ProcesarVenta = ({
               ) : (
                 (totalPrecio * TasaBolivares).toFixed(2)
               )}
-              <Text style={{ fontSize: 12 }}>{isNaN(TasaBolivares) ? (<Text></Text>) : (<Text>Bs</Text>)} </Text>
+              <Text style={{ fontSize: 12 }}>{isNaN(TasaBolivares) ? (<Text></Text>) : (<Text> Bs</Text>)} </Text>
             </Text>
           </View>
 
@@ -322,7 +322,7 @@ const ProcesarVenta = ({
               ) : (
                 (totalPrecio * TasaPesos).toFixed(0)
               )}
-              <Text style={{ fontSize: 12 }}>{isNaN(TasaPesos) ? (<Text></Text>) : (<Text>Pesos</Text>)} </Text>
+              <Text style={{ fontSize: 12 }}>{isNaN(TasaPesos) ? (<Text></Text>) : (<Text> Pesos</Text>)} </Text>
             </Text>
           </View>
           <View style={styles.contentTotal}>

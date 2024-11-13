@@ -159,7 +159,7 @@ WHERE
     v.ADMINISTRADOR_ID = ?  -- Filtra por el administrador específico
     AND p.VENTA_ID = ?;     -- Filtra por la venta específica
 
-    --CONSULTA VER PAGOS
+  ---------------------------------------------------------
 
             SELECT 
         p.ID_PAGO,
@@ -176,6 +176,27 @@ WHERE
     JOIN 
         CLIENTES c ON v.CLIENTE_ID = c.ID_CLIENTE
     WHERE v.ADMINISTRADOR_ID = ?
+
+
+---------------------------------------------------------
+
+   SELECT 
+    VENTAS.ID_VENTA, 
+    PRODUCTOS.NOMBRE, 
+    VENTAS_PRODUCTOS.CANTIDAD
+FROM 
+    VENTAS_PRODUCTOS
+JOIN 
+    VENTAS ON VENTAS_PRODUCTOS.VENTA_ID = VENTAS.ID_VENTA
+JOIN 
+    PRODUCTOS ON VENTAS_PRODUCTOS.PRODUCTO_ID = PRODUCTOS.ID_PRODUCTO
+WHERE 
+    VENTAS_PRODUCTOS.VENTA_ID = ?
+    AND VENTAS.ADMINISTRADOR_ID = ?
+ORDER BY 
+    PRODUCTOS.NOMBRE;
+
+    ---------------------------------------------------------
 
 --EJEMPLO DE LO QUE SE DEBE HACER PARA QUE CADA ADMINISTRADOR TENGA SU PROPIA INFORMACION
 ALTER TABLE CLIENTES ADD COLUMN ADMINISTRADOR_ID INT;

@@ -9,8 +9,8 @@ import {
   Alert,
 } from "react-native";
 
-import FormularioVenta from "./sub-components/FormularioVenta.js";
-import InformacionVenta from "./sub-components/InformacionVenta.js";
+import FormularioVenta from "./sub-components/components--Ventas/FormularioVenta.js";
+import InformacionVenta from "./sub-components/components--Ventas/InformacionVenta.js";
 
 import axios from "axios";
 import { url } from "../helpers/url.js";

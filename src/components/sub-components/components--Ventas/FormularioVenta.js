@@ -15,11 +15,11 @@ import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 
-import ProcesarVenta from "./ProcesarVenta";
-import VerClientes from "./VerClientes";
+import ProcesarVenta from "../components--Productos/ProcesarVenta.js";
+import VerClientes from "./VerClientes.js";
 
 import axios from "axios";
-import { url } from "../../helpers/url.js";
+import {url} from './../../../helpers/url.js'
 //import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";

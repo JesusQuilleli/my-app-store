@@ -19,7 +19,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 
 //IMPORTS BACKEND
 import axios from "axios";
-import { url } from "../../helpers/url";
+import { url } from "../../../helpers/url";
 
 //COMPONENTE FORMULARIO
 import FormularioProductos from "./FormularioProductos";

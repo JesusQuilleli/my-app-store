@@ -10,14 +10,15 @@ import {
 } from "react-native";
 
 import Entypo from "@expo/vector-icons/Entypo";
-import { formatearFecha } from "../../helpers/validaciones";
+import { formatearFecha } from "../../../helpers/validaciones.js";
 
-import { url } from "./../../helpers/url.js";
+import { url } from "../../../helpers/url.js";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import FormasPagoVenta from "./FormasPagoVenta";
-import HistorialPagosVenta from "./HistorialPagosVenta";
+import HistorialPagosVenta from "./HistorialPagosVenta.js";
+import HistorialProductosVenta from "./HistorialProductosVenta.js";
 
 const InformacionVenta = ({
   setModalVentasDetalladas,
@@ -38,16 +39,19 @@ const InformacionVenta = ({
   //MODAL
   const [modalProcesarPago, setModalProcesarPago] = useState(false);
   const [modalHistorialPagos, setModalHistorialPagos] = useState(false);
+  const [modalProductosVendidos, setModalProductosVendidos] = useState(false);
 
   //ALMACENAR HISTORIAL DE PAGOS
   const [historialPagos, setHistorialPagos] = useState([]);
+  const [historialVentas, setHistorialVentas] = useState([]);
 
   useEffect(() => {
     if (
       ventasDetalladas.MONTO_TOTAL !== undefined ||
       ventasDetalladas.MONTO_PENDIENTE
     ) {
-      setLoading(false);      
+      setLoading(false);
+      
     }
   }, [ventasDetalladas]);
 
@@ -57,7 +61,7 @@ const InformacionVenta = ({
         <ActivityIndicator size="large" color="#fee03e" />
       </View>
     );
-  }
+  };
 
   const closeForm = () => {
     setModalVentasDetalladas(false);
@@ -88,6 +92,31 @@ const InformacionVenta = ({
     }
   };
 
+  const cargarHistorialVentas = async (Venta_ID) => {
+    try {
+      const adminIdString = await AsyncStorage.getItem("adminId");
+      if (adminIdString === null) {
+        console.log("ID de administrador no encontrado.");
+        return;
+      }
+      const adminId = parseInt(adminIdString, 10);
+      if (isNaN(adminId)) {
+        console.log("ID de administrador no es un número válido.");
+        return;
+      }
+
+      // Corregir concatenación en la URL: separar adminId y Venta_ID con '/'
+      const respuesta = await axios.get(
+        `${url}/verProductosPorVenta/${adminId}/${Venta_ID}`
+      );
+
+      const response = respuesta.data.data;
+      setHistorialVentas(response);
+    } catch (error) {
+      console.log("Error al cargar Ventas", error);
+    }
+  };
+
   return (
     <ScrollView
       contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-start" }}
@@ -110,17 +139,26 @@ const InformacionVenta = ({
         </View>
 
         <View style={styles.padreContent}>
-          {ventasDetalladas.TIPO_PAGO === "POR ABONO" && (
-            <TouchableOpacity
-              onPress={async () => {
-                setModalHistorialPagos(true);
-                await cargarHistorialPagos(ventasDetalladas.ID_VENTA);
-              }}
-              style={styles.BtnPagos}
-            >
-              <Text style={styles.BtnPagoText}>Historial de Pagos</Text>
+          <View style={styles.botonesContenedor}>
+            {ventasDetalladas.TIPO_PAGO === "POR ABONO" && (
+              <TouchableOpacity
+                onPress={async () => {
+                  setModalHistorialPagos(true);
+                  await cargarHistorialPagos(ventasDetalladas.ID_VENTA);
+                }}
+                style={styles.BtnPagos}
+              >
+                <Text style={styles.BtnPagoText}>Historial de Pagos</Text>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity onPress={async () => {
+              setModalProductosVendidos(true);
+              await cargarHistorialVentas(ventasDetalladas.ID_VENTA);
+            }} style={styles.BtnProductos}>
+              <Text style={styles.BtnProductosText}>Productos Vendidos</Text>
             </TouchableOpacity>
-          )}
+          </View>
 
           <View style={styles.content}>
             <Text style={styles.label}>Cliente</Text>
@@ -171,7 +209,7 @@ const InformacionVenta = ({
 
             {parseFloat(ventasDetalladas.MONTO_PENDIENTE) !== 0.0 && (
               <View style={styles.content}>
-                <Text style={styles.label}>Abono Realizado</Text>
+                <Text style={styles.label}>MONTO PAGADO</Text>
                 <Text style={styles.valor}>
                   {parseFloat(ABONO) === 0.0 ? (
                     <Text style={{ fontSize: 18 }}>
@@ -251,11 +289,6 @@ const InformacionVenta = ({
             </Text>
           </View>
 
-          <View style={styles.content}>
-            <Text style={styles.label}>Lista de Productos</Text>
-            <Text style={styles.valor}>{ventasDetalladas.LISTA_PRODUCTOS}</Text>
-          </View>
-
           {ventasDetalladas.ESTADO_PAGO === "PENDIENTE" && (
             <View>
               <View style={styles.ContanerBtn}>
@@ -286,6 +319,13 @@ const InformacionVenta = ({
           <HistorialPagosVenta
             setModalHistorialPagos={setModalHistorialPagos}
             historialPagos={historialPagos}
+          />
+        </Modal>
+
+        <Modal visible={modalProductosVendidos} animationType="fade">
+          <HistorialProductosVenta 
+          setModalProductosVendidos={setModalProductosVendidos}
+          historialVentas={historialVentas}
           />
         </Modal>
       </View>
@@ -378,12 +418,30 @@ const styles = StyleSheet.create({
     justifyContent: "space-evenly",
     alignItems: "center",
   },
+  botonesContenedor:{
+    width: '100%',
+    flexDirection:'row',
+    alignItems:'center',
+    justifyContent: 'space-around'
+  },
+  BtnProductos: {
+    backgroundColor: "green",
+    padding: 7.5,
+    borderRadius: 50,
+    marginBottom: 13.5,
+  },
+  BtnProductosText: {
+    color: "#FFF",
+    textAlign: "center",
+    fontSize: 10,
+    textTransform: "uppercase",
+    fontWeight: "900",
+  },
   BtnPagos: {
     backgroundColor: "#fee03e",
     padding: 7.5,
     borderRadius: 50,
     marginBottom: 13.5,
-    width: "50%",
   },
   BtnPagoText: {
     color: "#FFF",

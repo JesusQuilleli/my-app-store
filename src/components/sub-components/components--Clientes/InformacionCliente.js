@@ -17,9 +17,9 @@ import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
-import { formatearFecha } from "../../helpers/validaciones";
+import { formatearFecha } from "../../../helpers/validaciones";
 
-import FormularioCliente from "./FormularioCliente";
+import FormularioCliente from "./FormularioCliente.js";
 
 import * as Clipboard from 'expo-clipboard';
 
@@ -27,7 +27,7 @@ import * as Clipboard from 'expo-clipboard';
 import axios from "axios";
 
 //URL
-import { url } from "./../../helpers/url";
+import { url } from "../../../helpers/url";
 
 const InformacionCliente = ({
   setModalInformacionCliente,
@@ -145,7 +145,7 @@ const InformacionCliente = ({
 
       <View style={styles.campoNombre}>
         <Image
-          source={require("../../../assets/resources/perfil.webp")}
+          source={require("./../../../../assets/resources/perfil.webp")}
           style={styles.boxImage}
         />
         <View style={styles.copyContent}>

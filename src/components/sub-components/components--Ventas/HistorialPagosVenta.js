@@ -9,9 +9,10 @@ import {
 
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 
-import { formatearFecha } from "../../helpers/validaciones";
+import { formatearFecha } from "../../../helpers/validaciones";
 
 const HistorialPagosVenta = ({ setModalHistorialPagos, historialPagos }) => {
+  
   const Item = ({
     CLIENTE,
     ESTADO_VENTA,
@@ -24,7 +25,7 @@ const HistorialPagosVenta = ({ setModalHistorialPagos, historialPagos }) => {
     <View style={styles.item}>
       <Text style={styles.nombreCliente}>{CLIENTE}</Text>
       <Text style={styles.defecto}>
-        Fecha de Pago:{" "}
+        Fecha del Pago:{" "}
         <Text style={{ color: "#000" }}>{formatearFecha(FECHA_PAGO)}</Text>
       </Text>
 
@@ -143,7 +144,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   defecto: {
-    fontSize: 10,
+    fontSize: 10.5,
     textTransform: "uppercase",
     fontWeight: "700",
     color: "#888",

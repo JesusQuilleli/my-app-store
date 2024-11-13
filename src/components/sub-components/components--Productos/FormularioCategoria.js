@@ -10,7 +10,7 @@ import {
 } from "react-native";
 
 import axios from "axios";
-import { url } from "./../../helpers/url.js";
+import { url } from "../../../helpers/url.js";
 
 //ALMACENAMIENTO LOCAL
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -23,6 +23,7 @@ const FormularioCategoria = ({
   setCategorias,
   cargarCategorias,
 }) => {
+
   const [nombreCategoria, setNombreCategoria] = useState("");
 
   const agregarCategoria = async () => {
@@ -61,6 +62,10 @@ const FormularioCategoria = ({
 
   const eliminarCategoria = async (ID_CATEGORIA) => {
     // Mostrar alerta de confirmación
+
+    console.log(ID_CATEGORIA);
+    
+
     Alert.alert(
       "Eliminar Categoria",
       "¿Estás seguro de que deseas eliminar esta categoria?",

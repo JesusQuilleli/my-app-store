@@ -12,7 +12,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 
 import axios from "axios";
-import {url} from './../../helpers/url.js'
+import {url} from './../../../helpers/url.js'
 
 const VerClientes = ({
   setModalSelectClient,

@@ -10,7 +10,7 @@ import {
 } from "react-native";
 
 import axios from "axios";
-import { url } from "./../../helpers/url.js";
+import {url} from './../../../helpers/url.js'
 
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -22,7 +22,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
 //URL
-import { url } from "./../../helpers/url";
+import { url } from "../../../helpers/url";
 
 const FormularioCliente = ({
   setFormClientes,
@@ -205,7 +205,7 @@ const FormularioCliente = ({
         </View>
         <View style={styles.containerImage}>
           <Image
-            source={require("../../../assets/resources/perfil.webp")}
+            source={require("./../../../../assets/resources/perfil.webp")}
             style={styles.boxImage}
           />
         </View>

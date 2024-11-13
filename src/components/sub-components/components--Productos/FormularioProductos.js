@@ -22,10 +22,10 @@ import { Picker } from "@react-native-picker/picker";
 import * as ImagePicker from "expo-image-picker";
 
 import axios from "axios";
-import { url } from "../../helpers/url";
+import { url } from "../../../helpers/url";
 
 //VALIDACIONES
-import { validateEntero } from "../../helpers/validaciones";
+import { validateEntero } from "../../../helpers/validaciones";
 
 //ALMACENAMIENTO LOCAL
 import AsyncStorage from "@react-native-async-storage/async-storage";
