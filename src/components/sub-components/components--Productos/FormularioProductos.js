@@ -50,6 +50,7 @@ const FormularioProductos = ({
   const [descripcion, setDescripcion] = useState(
     producto ? producto.DESCRIPCION : ""
   );
+  const [precioCompra, setPrecioCompra] = useState(producto ? producto.PRECIO_COMPRA : 0);
   const [precio, setPrecio] = useState(producto ? producto.PRECIO : 0);
   const [cantidad, setCantidad] = useState(producto ? producto.CANTIDAD : 0);
   const [image, setImage] = useState(null);
@@ -97,6 +98,7 @@ const FormularioProductos = ({
       formData.append("categoria", categoria);
       formData.append("nombre", nombre);
       formData.append("descripcion", descripcion);
+      formData.append("precioCompra", precioCompra);
       formData.append("precio", precio);
       formData.append("cantidad", cantidad);
       formData.append("adminId", adminId);
@@ -148,6 +150,7 @@ const FormularioProductos = ({
       formData.append("categoria", categoria);
       formData.append("nombre", nombre);
       formData.append("descripcion", descripcion);
+      formData.append("precioCompra", precioCompra);
       formData.append("precio", precio);
       formData.append("cantidad", cantidad);
 
@@ -199,6 +202,7 @@ const FormularioProductos = ({
     setCategoria(0);
     setNombre("");
     setDescripcion("");
+    setPrecioCompra(0);
     setPrecio(0);
     setCantidad(0);
     setImage(null);
@@ -255,11 +259,7 @@ const FormularioProductos = ({
       return;
     }
 
-    if (
-      precio.includes(",") ||
-      precio.includes(" ") ||
-      precio.includes("-")
-    ) {
+    if (precio.includes(",") || precio.includes(" ") || precio.includes("-")) {
       Alert.alert(
         "Obligatorio",
         "No puede dejar espacios ni colocar una [ , ] ni colocar valores -"
@@ -489,11 +489,33 @@ const FormularioProductos = ({
           </View>
           <View style={styles.campo}>
             <View style={styles.campoNumeric}>
-              <Text style={[styles.label, styles.labelNumeric]}>Precio</Text>
+              <Text style={[styles.label, styles.labelNumeric, {fontSize: 15}]}>Precios</Text>
 
               <TextInput
                 style={[styles.Input, styles.InputNumeric]}
-                placeholder=""
+                placeholder="COMPRA"
+                placeholderTextColor={"#ccc"}
+                keyboardType="numeric"
+                value={precioCompra}
+                onChangeText={(precio) => {
+                  if (
+                    precio.includes(",") ||
+                    precio.includes(" ") ||
+                    precio.includes("-")
+                  ) {
+                    Alert.alert(
+                      "Obligatorio",
+                      "No puede dejar espacios ni colocar una [ , ] ni colocar valores -"
+                    );
+                    return;
+                  }
+                  setPrecioCompra(precio);
+                }}
+              />
+
+              <TextInput
+                style={[styles.Input, styles.InputNumeric]}
+                placeholder="VENTA"
                 placeholderTextColor={"#ccc"}
                 keyboardType="numeric"
                 value={precio}
@@ -668,7 +690,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   labelNumeric: {
-    marginHorizontal: 10,
+    marginHorizontal: 1.5,
   },
   campoNumeric: {
     flexDirection: "row",
@@ -680,7 +702,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   InputNumeric: {
-    width: "25%",
+    width: 62,
+    marginHorizontal: 2.5,
   },
   btnCerrar: {
     position: "absolute",

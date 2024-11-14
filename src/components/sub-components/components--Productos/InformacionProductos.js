@@ -133,10 +133,48 @@ const InformacionProductos = ({
         </View>
 
         <View style={styles.campo}>
-          <Text style={styles.label}>Precio</Text>
+          <Text style={styles.label}>Precio Compra</Text>
+          <Text style={styles.valor}>{producto.PRECIO_COMPRA} $</Text>
+        </View>
+        <Text style={styles.label}>Conversión</Text>
+        <View
+          style={[
+            styles.campo,
+            {
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-around",
+            },
+          ]}
+        >
+          <Text style={styles.valor}>
+            {isNaN(TasaBolivares) || TasaBolivares === 0 ? (
+              <Text style={{ fontSize: 12 }}>No hay Tasas Cargadas</Text>
+            ) : (
+              (producto.PRECIO_COMPRA * TasaBolivares).toFixed(2)
+            )}
+            <Text style={{ fontSize: 12 }}>
+                  {isNaN(TasaPesos) ? <Text></Text> : <Text> Bolivares</Text>}{" "}
+                </Text>
+          </Text>
+          <Text style={styles.valor}>
+            {isNaN(TasaPesos) || TasaPesos === 0 ? (
+              <Text style={{ fontSize: 12 }}>Cargue las Tasas</Text>
+            ) : (
+              (producto.PRECIO_COMPRA * TasaPesos).toFixed(0)
+            )}
+            <Text style={{ fontSize: 12 }}>
+                  {isNaN(TasaPesos) ? <Text></Text> : <Text> Pesos</Text>}{" "}
+                </Text>
+          </Text>
+        </View>
+
+
+        <View style={styles.campo}>
+          <Text style={styles.label}>Precio Venta</Text>
           <Text style={styles.valor}>{producto.PRECIO} $</Text>
         </View>
-        <Text style={styles.label}>Otros Precios</Text>
+        <Text style={styles.label}>Conversión</Text>
         <View
           style={[
             styles.campo,

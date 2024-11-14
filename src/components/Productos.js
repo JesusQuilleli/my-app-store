@@ -198,6 +198,9 @@ const Productos = () => {
     cargarProductos();
     cargarCategorias();
     cargarTasaUnica();
+
+    console.log(productos);
+    
   }, []);
 
   //USE PARA COMPONENTE DE CARGA SKELETON
@@ -427,6 +430,7 @@ const Productos = () => {
   const Item = ({
     categoria,
     nombre,
+    precioCompra,
     precio,
     cantidad,
     imagen,
@@ -444,7 +448,8 @@ const Productos = () => {
         <Text style={styles.categoriaText}>{categoria}</Text>
         <Text style={styles.nombreText}>{nombre}</Text>
         <Text style={styles.defecto}>Disponible: <Text style={cantidad <= 5 ? ({color: 'red'}) : ({color: 'green'})}>{cantidad}</Text></Text>
-        <Text style={styles.defecto}>{precio} $</Text>
+        <Text style={styles.defecto}>Compra: {precioCompra} $</Text>
+        <Text style={styles.defecto}>Venta: {precio} $</Text>
       </View>
       <View style={styles.boxImagen}>
         {!imagen.includes("null") ? (
@@ -584,6 +589,7 @@ const Productos = () => {
                     <Item
                       categoria={item.CATEGORIA}
                       nombre={item.PRODUCTO}
+                      precioCompra={item.PRECIO_COMPRA}
                       precio={item.PRECIO}
                       cantidad={item.CANTIDAD}
                       imagen={`${urlBase}${item.IMAGEN}`}
