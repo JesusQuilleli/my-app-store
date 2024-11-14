@@ -6,7 +6,8 @@ import {
   TouchableOpacity,
   Image,
   Modal,
-  Alert
+  Alert,
+  ScrollView
 } from "react-native";
 
 //STYLES
@@ -16,6 +17,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import Entypo from "@expo/vector-icons/Entypo";
 
 import { formatearFecha } from "../../../helpers/validaciones";
 
@@ -142,6 +144,7 @@ const InformacionCliente = ({
           </TouchableOpacity>
         </View>
       </View>
+      <ScrollView>
 
       <View style={styles.campoNombre}>
         <Image
@@ -159,6 +162,11 @@ const InformacionCliente = ({
             />
           </TouchableOpacity>
         </View>
+      </View>
+
+      <View style={styles.campos}>
+      <Entypo name="v-card" size={24} color="#000" />
+        <Text style={styles.textCampos}>{cliente.CEDULA}</Text>
       </View>
 
       <View style={styles.campos}>
@@ -188,6 +196,8 @@ const InformacionCliente = ({
           {formatearFecha(cliente.FECHA_REGISTRO)}
         </Text>
       </View>
+
+      </ScrollView>
 
       <Modal animationType="fade" visible={formClientes}>
         <FormularioCliente

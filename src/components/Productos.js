@@ -81,10 +81,6 @@ const Productos = () => {
       )
     : "No disponible";
 
-  //NOTIFICACIONES
-
-  
-
   //FUNCION CARGAR TASAS
   const cargarTasaUnica = async () => {
     const adminId = await AsyncStorage.getItem("adminId");
@@ -198,9 +194,6 @@ const Productos = () => {
     cargarProductos();
     cargarCategorias();
     cargarTasaUnica();
-
-    console.log(productos);
-    
   }, []);
 
   //USE PARA COMPONENTE DE CARGA SKELETON
@@ -425,7 +418,6 @@ const Productos = () => {
     }
   };
 
-
   // Item individual para cada producto
   const Item = ({
     categoria,
@@ -447,7 +439,12 @@ const Productos = () => {
       <View style={styles.textContainer}>
         <Text style={styles.categoriaText}>{categoria}</Text>
         <Text style={styles.nombreText}>{nombre}</Text>
-        <Text style={styles.defecto}>Disponible: <Text style={cantidad <= 5 ? ({color: 'red'}) : ({color: 'green'})}>{cantidad}</Text></Text>
+        <Text style={styles.defecto}>
+          Disponible:{" "}
+          <Text style={cantidad <= 5 ? { color: "red" } : { color: "green" }}>
+            {cantidad}
+          </Text>
+        </Text>
         <Text style={styles.defecto}>Compra: {precioCompra} $</Text>
         <Text style={styles.defecto}>Venta: {precio} $</Text>
       </View>

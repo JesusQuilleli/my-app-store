@@ -180,8 +180,8 @@ const InformacionVenta = ({
                 justifyContent: "center",
               }}
             >
-              <Text style={styles.label}>Codigo Venta</Text>
-              <Text style={styles.valor}>{ventasDetalladas.ID_VENTA}</Text>
+              <Text style={styles.label}>Cliente</Text>
+              <Text style={styles.valor}>{ventasDetalladas.CLIENTE}</Text>
             </View>
             <View
               style={{
@@ -190,8 +190,9 @@ const InformacionVenta = ({
                 justifyContent: "center",
               }}
             >
-              <Text style={styles.label}>Cliente</Text>
-              <Text style={styles.valor}>{ventasDetalladas.CLIENTE}</Text>
+              
+              <Text style={styles.label}>Codigo</Text>
+              <Text style={styles.valor}>{ventasDetalladas.ID_VENTA}</Text>
             </View>
           </View>
 

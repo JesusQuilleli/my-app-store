@@ -16,6 +16,9 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Foundation from "@expo/vector-icons/Foundation";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import Entypo from "@expo/vector-icons/Entypo";
+
+import { Picker } from "@react-native-picker/picker";
 
 //ALMACENAMIENTO LOCAL
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -31,12 +34,20 @@ const FormularioCliente = ({
   closeFormCliente,
   cliente,
   closeInfoCliente,
-  setOptions
+  setOptions,
 }) => {
   //CARGA
   const [isLoading, setIsLoading] = useState(false);
 
   //ALMACEN DE DATOS CLIENTE
+  const [cedula, setCedula] = useState(cliente ? cliente.CEDULA : "");
+  const [prefijo, setPrefijo] = useState(cliente ? cliente.CEDULA[0] : "V");
+
+  // Función para obtener la cédula completa con prefijo
+  const obtenerCedulaCompleta = () => {
+    return `${prefijo}${cedula}`;
+  };
+
   const [nombre, setNombre] = useState(cliente ? cliente.NOMBRE : "");
   const [telefono, setTelefono] = useState(cliente ? cliente.TELEFONO : "");
   const [correo, setCorreo] = useState(cliente ? cliente.EMAIL : "");
@@ -50,7 +61,10 @@ const FormularioCliente = ({
       //FECHA EN FORMATO PARA SER ACEPTADA POR MYSQL DATE
       const formattedFecha = new Date().toISOString().split("T")[0];
 
+      const cedulaCliente = obtenerCedulaCompleta();
+
       const response = await axios.post(`${url}/insertarCliente`, {
+        cedulaCliente,
         nombre,
         telefono,
         correo,
@@ -111,7 +125,7 @@ const FormularioCliente = ({
         Alert.alert("Error", "No se pudo modificar el cliente");
       }
     } catch (err) {
-      console.log('Error al Modificar', err)
+      console.log("Error al Modificar", err);
     } finally {
       setIsLoading(false);
     }
@@ -122,6 +136,8 @@ const FormularioCliente = ({
     setTelefono("");
     setCorreo("");
     setDireccion("");
+    setCedula("");
+    setPrefijo("V");
   };
 
   const handleCliente = () => {
@@ -129,7 +145,7 @@ const FormularioCliente = ({
       Alert.alert("Error", "Los campos Son Obligatorios");
       return;
     }
-    if(!telefono) {
+    if (!telefono) {
       Alert.alert("Obligatorio", "El Telefono es Requerido.");
       return;
     }
@@ -139,12 +155,12 @@ const FormularioCliente = ({
       return;
     }
 
-    if(!correo) {
+    if (!correo) {
       Alert.alert("Obligatorio", "El Correo es Requerido.");
       return;
     }
 
-    if(!direccion) {
+    if (!direccion) {
       Alert.alert("Obligatorio", "La Dirección es Requerida.");
       return;
     }
@@ -155,8 +171,7 @@ const FormularioCliente = ({
 
   const handleEditarCliente = async () => {
     const clientInteger = parseInt(cliente.ID_CLIENTE);
-    
-      
+
     if (!nombre || !telefono || !correo || !direccion) {
       Alert.alert(
         "Error al Modificar",
@@ -208,6 +223,41 @@ const FormularioCliente = ({
             source={require("./../../../../assets/resources/perfil.webp")}
             style={styles.boxImage}
           />
+        </View>
+
+        <View style={[styles.campo, {marginBottom: 0}]}>
+          <Text style={styles.icon}>
+            <Entypo name="v-card" size={28} color="#888" />
+          </Text>
+
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              
+            }}
+          >
+            <Picker
+              selectedValue={prefijo}
+              style={{ height: 10, width: 91, padding: 0, margin: 0, textAlign:'center' }}
+              onValueChange={(itemValue) => setPrefijo(itemValue)}
+              enabled={!cliente ? (true) : (false)}
+            >
+              <Picker.Item label="V" value="V" />
+              <Picker.Item label="E" value="E" />
+            </Picker>
+
+            <TextInput
+              placeholder="Cedula"
+              style={[styles.input, {width:'45%'}]}
+              value={cedula}
+              onChangeText={(text) => setCedula(text)}
+              keyboardType="numeric"
+              maxLength={!cliente ? (prefijo === 'V' ? (8) : (10)) : (10)}
+              editable={cliente ? (false) : (true)}
+            />
+          </View>
         </View>
 
         <View style={styles.campo}>
@@ -365,7 +415,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-evenly",
     marginHorizontal: 20,
-    marginVertical: 25,
+    marginVertical: 20,
   },
   input: {
     width: "70%",

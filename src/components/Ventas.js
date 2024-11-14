@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Modal,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 
 import FormularioVenta from "./sub-components/components--Ventas/FormularioVenta.js";
@@ -47,6 +48,10 @@ const Ventas = () => {
   //VER VENTAS POR ESTADO
   const [filtroVentas, setFiltroVentas] = useState("todas"); // Estado inicial en "todas"
 
+  //PARA ELIMINAR VENTAS
+  const [ventasSeleccionadas, setVentasSeleccionadas] = useState([]);
+  const [modoSeleccion, setModoSeleccion] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   //TASAS
   const [verTasas, setVerTasas] = useState([]);
@@ -62,7 +67,6 @@ const Ventas = () => {
         0
       )
     : "No disponible";
-
 
   //FUNCION CARGAR TASAS
   const cargarTasaUnica = async () => {
@@ -155,11 +159,10 @@ const Ventas = () => {
       }
       // Pasamos estadoPago como parámetro de consulta
       const respuesta = await axios.get(`${url}/ventasEstadoPago/${adminId}`, {
-        params: { estadoPago }
+        params: { estadoPago },
       });
       const resultVentas = respuesta.data.response;
       setVentasResumidas(resultVentas);
-      
     } catch (error) {
       console.log("Error al cargar Ventas", error);
     }
@@ -276,9 +279,8 @@ const Ventas = () => {
   };
 
   const handleFiltroChange = async (value) => {
-    
     setFiltroVentas(value); // Actualizamos el filtro de ventas antes de hacer la carga
-    
+
     if (value === "PENDIENTE" || value === "PAGADO") {
       await cargarVentasEstadoPago(value); // Pasamos el estado de pago seleccionado
     } else {
@@ -286,13 +288,106 @@ const Ventas = () => {
     }
   };
 
+  const seleccionarVenta = (idVenta) => {
+    setModoSeleccion(true); // Activa el modo selección al seleccionar una venta
+
+    if (ventasSeleccionadas.includes(idVenta)) {
+      // Si la venta ya está seleccionada, la deselecciona
+      const nuevasVentasSeleccionadas = ventasSeleccionadas.filter(
+        (id) => id !== idVenta
+      );
+      setVentasSeleccionadas(nuevasVentasSeleccionadas);
+
+      // Si no quedan ventas seleccionadas, desactiva el modo selección
+      if (nuevasVentasSeleccionadas.length === 0) {
+        setModoSeleccion(false);
+      }
+    } else {
+      // Si la venta no está seleccionada, la agrega a las seleccionadas
+      setVentasSeleccionadas([...ventasSeleccionadas, idVenta]);
+    }
+  };
+
+  // Función para seleccionar o deseleccionar todas las ventas
+  const seleccionarTodas = () => {
+    if (ventasSeleccionadas.length === ventasResumidas.length) {
+      // Si ya están todas seleccionadas, deseleccionarlas
+      setVentasSeleccionadas([]);
+      setModoSeleccion(false);
+    } else {
+      // Seleccionar todas las ventas
+      const todosLosIds = ventasResumidas.map((venta) => venta.ID_VENTA);
+      setVentasSeleccionadas(todosLosIds);
+      console.log(todosLosIds);
+    }
+  };
+
+  // Función para eliminar las ventas seleccionadas
+  const eliminarVentasSeleccionadas = async () => {
+    setIsLoading(true);
+    try {
+      // Realiza la solicitud DELETE al endpoint enviando los IDs de las ventas seleccionadas
+      const response = await axios.delete(`${url}/eliminarVentas`, {
+        data: { ids: ventasSeleccionadas },
+      });
+
+      if (response.status === 200) {
+        // Filtra las ventas eliminadas de la lista en el frontend
+        setVentasResumidas((ventas) =>
+          ventas.filter(
+            (venta) => !ventasSeleccionadas.includes(venta.ID_VENTA)
+          )
+        );
+
+        // Limpia la selección y desactiva el modo selección
+        setVentasSeleccionadas([]);
+        setModoSeleccion(false);
+
+        await cargarVentas();
+
+        console.log("Ventas eliminadas con éxito");
+      } else {
+        console.log("Error: No se encontraron algunas ventas para eliminar");
+      }
+    } catch (error) {
+      console.log("Error al eliminar ventas en el Frontend", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlerEliminar = () => {
+    // Mostrar la advertencia de confirmación
+    Alert.alert(
+      "Confirmar eliminación", // Título del alert
+      "¿Estás seguro de eliminar todas las ventas seleccionadas?", // Mensaje
+      [
+        {
+          text: "No", // Botón "No"
+          onPress: () => {
+            setVentasSeleccionadas([]);
+            setModoSeleccion(false);
+          },
+          style: "cancel", // Estilo del botón "No"
+        },
+        {
+          text: "Sí", // Botón "Sí"
+          onPress: () => eliminarVentasSeleccionadas(), // Ejecuta la eliminación si elige "Sí"
+          style: "destructive", // Estilo del botón "Sí" para indicar acción destructiva
+        },
+      ],
+      { cancelable: false } // Hace que el alert no se cierre al tocar fuera de él
+    );
+  };
+
   useEffect(() => {
     cargarVentas();
     cargarTasaUnica();
   }, []);
 
-  const Item = ({ cliente, fecha, estado }) => (
-    <View style={styles.item}>
+  const Item = ({ venta, cliente, fecha, estado, seleccionado }) => (
+    <View style={[styles.item, seleccionado && styles.itemSeleccionado]}>
+      <Text style={styles.codigoVenta}>Codigo {venta}</Text>
       <Text style={styles.nombreCliente}>{cliente}</Text>
       <Text style={styles.fechaPedido}>{formatearFecha(fecha)}</Text>
       <Text
@@ -307,6 +402,27 @@ const Ventas = () => {
 
   return (
     <View style={styles.container}>
+      {isLoading && (
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(242, 243, 244, 0.8)",
+            zIndex: 1000,
+          }}
+        >
+          <ActivityIndicator
+            size="large"
+            color="#fee03e"
+            style={{ transform: [{ scale: 2 }] }}
+          />
+        </View>
+      )}
       <Text style={styles.ventasText}>
         Ventas <Text style={{ color: "#fcd53f" }}>Realizadas</Text>
       </Text>
@@ -391,32 +507,64 @@ const Ventas = () => {
           renderItem={({ item }) => (
             <TouchableOpacity
               onPress={() => {
-                setModalVentasDetalladas(true);
-                cargarVentasDetalladas(item.ID_VENTA);
-                
+                if (modoSeleccion) {
+                  seleccionarVenta(item.ID_VENTA);
+                } else {
+                  setModalVentasDetalladas(true);
+                  cargarVentasDetalladas(item.ID_VENTA);
+                }
               }}
+              onLongPress={() => seleccionarVenta(item.ID_VENTA)}
             >
               <Item
+                venta={item.ID_VENTA}
                 cliente={item.CLIENTE}
                 fecha={item.FECHA}
                 estado={item.ESTADO_PAGO}
+                seleccionado={ventasSeleccionadas.includes(item.ID_VENTA)}
               />
             </TouchableOpacity>
           )}
         />
       </View>
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.BtnVenta}
-          onPress={async () => {
-            setFormVentas(true);
-            await cargarTasaUnica();
-          }}
-        >
-          <Text style={styles.BtnVentaText}>Realizar Venta</Text>
-        </TouchableOpacity>
-      </View>
+      {!modoSeleccion && (
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.BtnVenta}
+            onPress={async () => {
+              setFormVentas(true);
+              await cargarTasaUnica();
+            }}
+          >
+            <Text style={styles.BtnVentaText}>Realizar Venta</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {modoSeleccion && (
+        <View style={styles.buttonContainerEliminar}>
+          <TouchableOpacity
+            style={styles.BtnEliminar}
+            onPress={() => handlerEliminar()}
+          >
+            <Text style={styles.BtnEliminarText}>Eliminar</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.BtnEliminar, { backgroundColor: "#888" }]}
+            onPress={() => seleccionarTodas()}
+          >
+            <Text style={styles.BtnEliminarText}>
+              {ventasSeleccionadas.length === ventasResumidas.length ? (
+                <Text>Cancelar</Text>
+              ) : (
+                <Text>Seleccionar Todas</Text>
+              )}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <Modal visible={formVentas} animationType="slide">
         <FormularioVenta
@@ -460,8 +608,28 @@ const styles = StyleSheet.create({
     padding: 10,
     alignItems: "center",
   },
+  buttonContainerEliminar: {
+    padding: 10,
+    alignItems: "center",
+  },
+  BtnEliminar: {
+    width: "80%",
+    backgroundColor: "red",
+    padding: 5,
+    borderRadius: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: 2.5,
+  },
+  BtnEliminarText: {
+    textAlign: "center",
+    fontSize: 18,
+    color: "#FFF",
+    fontWeight: "900",
+    textTransform: "uppercase",
+  },
   BtnVenta: {
-    backgroundColor:'green',
+    backgroundColor: "green",
     padding: 5,
     borderRadius: 5,
     alignItems: "center",
@@ -493,8 +661,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#f2f2f2",
     padding: 12,
   },
-  nombreCliente: {
+  itemSeleccionado: {
+    backgroundColor: "#dcdcdc", // Cambia el fondo para indicar selección
+  },
+  codigoVenta: {
     fontSize: 15,
+    fontWeight: "900",
+    textTransform: 'uppercase'
+  },
+  nombreCliente: {
+    fontSize: 14,
     fontWeight: "700",
   },
   fechaPedido: {
