@@ -159,6 +159,8 @@ const Resumen = () => {
   useEffect(() => {
     registerForPushNotifications();
     verificarInventario();
+    console.log(verPagos);
+     
   }, []);
 
   return (

@@ -8,7 +8,7 @@ import {
   Modal,
   Alert,
   ActivityIndicator,
-  TextInput
+  TextInput,
 } from "react-native";
 
 import FormularioVenta from "./sub-components/components--Ventas/FormularioVenta.js";
@@ -33,11 +33,11 @@ const Ventas = () => {
   //FORMULARIO VENTAS
   const [formVentas, setFormVentas] = useState(false);
 
-  const { cargarPagos, verPagos } = useContext(PagosContext);
+  const { cargarPagos, cargarProductos, productos, setProductos } =
+    useContext(PagosContext);
 
   //CLIENTES Y PRODUCTOS
   const [clientes, setClientes] = useState([]);
-  const [productos, setProductos] = useState([]);
 
   //VENTAS
   const [ventasResumidas, setVentasResumidas] = useState([]);
@@ -106,28 +106,6 @@ const Ventas = () => {
     }
   };
 
-  //FUNCION CARGAR PRODUCTOS EN VENTAS
-  const cargarProductos = async () => {
-    try {
-      const adminIdString = await AsyncStorage.getItem("adminId");
-      if (adminIdString === null) {
-        console.log("ID de administrador no encontrado.");
-        return;
-      }
-      const adminId = parseInt(adminIdString, 10);
-      if (isNaN(adminId)) {
-        console.log("ID de administrador no es un número válido.");
-        return;
-      }
-      const respuesta = await axios.get(`${url}/cargarProductos/${adminId}`);
-      const resultadoProductos = respuesta.data.resultado;
-      setProductos(resultadoProductos);
-      //setProductoNoEncontrado(false);
-    } catch (error) {
-      console.log("Error al cargar Productos", error);
-    }
-  };
-
   //FUNCION CARGAR VENTAS
   const cargarVentas = async () => {
     try {
@@ -164,7 +142,9 @@ const Ventas = () => {
       }
 
       // Realizar la petición GET con el adminId y la cédula
-      const respuesta = await axios.get(`${url}/infoResumCedula/${adminId}/${cedulaCliente}`);
+      const respuesta = await axios.get(
+        `${url}/infoResumCedula/${adminId}/${cedulaCliente}`
+      );
       const resultadoVentasResumidas = respuesta.data.response;
       setVentasResumidas(resultadoVentasResumidas); // Establecer las ventas en el estado
     } catch (error) {
@@ -346,7 +326,6 @@ const Ventas = () => {
       // Seleccionar todas las ventas
       const todosLosIds = ventasResumidas.map((venta) => venta.ID_VENTA);
       setVentasSeleccionadas(todosLosIds);
-      console.log(todosLosIds);
     }
   };
 
@@ -402,7 +381,7 @@ const Ventas = () => {
         {
           text: "Sí", // Botón "Sí"
           onPress: () => {
-            eliminarVentasSeleccionadas()
+            eliminarVentasSeleccionadas();
           }, // Ejecuta la eliminación si elige "Sí"
           style: "destructive", // Estilo del botón "Sí" para indicar acción destructiva
         },
@@ -414,7 +393,6 @@ const Ventas = () => {
   useEffect(() => {
     cargarVentas();
     cargarTasaUnica();
-    
   }, []);
 
   const Item = ({ venta, cliente, fecha, estado, seleccionado }) => (
@@ -649,7 +627,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f2f2f2",
-    alignItems:'center'
+    alignItems: "center",
   },
   header: {},
   buttonContainer: {
@@ -659,7 +637,7 @@ const styles = StyleSheet.create({
   buttonContainerEliminar: {
     padding: 10,
     alignItems: "center",
-    width:'100%'
+    width: "100%",
   },
   BtnEliminar: {
     width: "80%",
@@ -799,6 +777,5 @@ const styles = StyleSheet.create({
     padding: 8,
     marginVertical: 15,
     textTransform: "uppercase",
-
-  }
+  },
 });

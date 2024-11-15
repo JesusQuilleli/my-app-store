@@ -30,6 +30,7 @@ const ProcesarVenta = ({
   clienteSeleccionado, // SE USA PARA INSERTAR LA VENTA
   closeForm,
   cargarVentas,
+  cargarProductos,
   TasaBolivares,
   TasaPesos,
 }) => {
@@ -175,6 +176,7 @@ const ProcesarVenta = ({
             setProductosCarrito([]); // Limpia el carrito de productos
             setPrimerAbono(""); // Limpia el campo de abono
             cargarVentas();
+            cargarProductos();
             setModalVenta(false);
             closeForm();
           },

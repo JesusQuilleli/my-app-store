@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,21 +7,27 @@ import {
   FlatList,
   TextInput,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
 } from "react-native";
 
 import axios from "axios";
-import {url} from './../helpers/url.js'
+import { url } from "./../helpers/url.js";
 
 import Entypo from "@expo/vector-icons/Entypo";
 
 import { formatearFecha } from "../helpers/validaciones";
 
-const Pagos = ({ setModalPagos, verPagos, setVerPagos, cargarPagos, cargarPagosCodigo}) => {
+const Pagos = ({
+  setModalPagos,
+  verPagos,
+  setVerPagos,
+  cargarPagos,
+  cargarPagosCodigo,
+}) => {
   //PARA ELIMINAR PAGOS
   const [pagosSeleccionados, setPagosSeleccionados] = useState([]);
   const [modoSeleccion, setModoSeleccion] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); 
+  const [isLoading, setIsLoading] = useState(false);
 
   const seleccionarPago = (idPago) => {
     setModoSeleccion(true); // Activa el modo selección al seleccionar una venta
@@ -69,9 +75,7 @@ const Pagos = ({ setModalPagos, verPagos, setVerPagos, cargarPagos, cargarPagosC
       if (response.status === 200) {
         // Filtra las ventas eliminadas de la lista en el frontend
         setVerPagos((pagos) =>
-          pagos.filter(
-            (pagos) => !pagosSeleccionados.includes(pagos.ID_PAGO)
-          )
+          pagos.filter((pagos) => !pagosSeleccionados.includes(pagos.ID_PAGO))
         );
 
         // Limpia la selección y desactiva el modo selección
@@ -115,6 +119,7 @@ const Pagos = ({ setModalPagos, verPagos, setVerPagos, cargarPagos, cargarPagosC
     );
   };
 
+
   const Item = ({
     CLIENTE,
     FECHA_PAGO,
@@ -130,6 +135,10 @@ const Pagos = ({ setModalPagos, verPagos, setVerPagos, cargarPagos, cargarPagosC
         Fecha de Pago:{" "}
         <Text style={{ color: "#000" }}>{formatearFecha(FECHA_PAGO)}</Text>
       </Text>
+      <Text style={styles.defecto}>
+        Deuda Total: <Text style={{ color: "#000" }}>{MONTO_PENDIENTE}</Text>{" "}
+        <Text style={{ fontSize: 12 }}>Dolares</Text>
+      </Text>
 
       <Text style={styles.defecto}>
         Monto Abonado: <Text style={{ color: "#000" }}>{MONTO_ABONADO}</Text>{" "}
@@ -137,7 +146,7 @@ const Pagos = ({ setModalPagos, verPagos, setVerPagos, cargarPagos, cargarPagosC
       </Text>
       {ESTADO_VENTA === "PENDIENTE" && (
         <Text style={styles.defecto}>
-          Monto Restante:{" "}
+          Deuda Restante:{" "}
           <Text style={{ color: "#000" }}>
             {(MONTO_PENDIENTE - MONTO_ABONADO).toFixed(2)}
           </Text>{" "}
@@ -213,23 +222,23 @@ const Pagos = ({ setModalPagos, verPagos, setVerPagos, cargarPagos, cargarPagosC
       </View>
 
       {verPagos.length === 0 && (
-        <Text style={{ fontSize: 24, marginTop: 20, fontWeight: "900" }}>
+        <Text style={{ fontSize: 24, marginVertical: 20, fontWeight: "900" }}>
           Sin Historial de Pagos
         </Text>
       )}
 
-      <FlatList
+     {verPagos.length !== 0 && (<FlatList
         data={verPagos}
         keyExtractor={(item) => item.ID_PAGO}
         style={styles.tablePagos}
         renderItem={({ item }) => (
-          <TouchableOpacity 
-          onPress={() => {
-            if (modoSeleccion) {
-              seleccionarPago(item.ID_PAGO);
-            } 
-          }}
-          onLongPress={() => seleccionarPago(item.ID_PAGO)}
+          <TouchableOpacity
+            onPress={() => {
+              if (modoSeleccion) {
+                seleccionarPago(item.ID_PAGO);
+              }
+            }}
+            onLongPress={() => seleccionarPago(item.ID_PAGO)}
           >
             <Item
               CLIENTE={item.CLIENTE}
@@ -242,7 +251,7 @@ const Pagos = ({ setModalPagos, verPagos, setVerPagos, cargarPagos, cargarPagosC
             />
           </TouchableOpacity>
         )}
-      />
+      />)}
       {modoSeleccion && (
         <View style={styles.buttonContainerEliminar}>
           <TouchableOpacity
@@ -340,7 +349,7 @@ const styles = StyleSheet.create({
   buttonContainerEliminar: {
     padding: 10,
     alignItems: "center",
-    width:'100%'
+    width: "100%",
   },
   BtnEliminar: {
     width: "80%",

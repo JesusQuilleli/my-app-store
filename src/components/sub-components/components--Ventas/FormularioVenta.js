@@ -352,6 +352,7 @@ const FormularioVenta = ({
           clienteSeleccionado={clienteSeleccionado}
           closeForm={closeForm}
           cargarVentas={cargarVentas}
+          cargarProductos={cargarProductos}
           TasaBolivares={TasaBolivares}
           TasaPesos={TasaPesos}
         />

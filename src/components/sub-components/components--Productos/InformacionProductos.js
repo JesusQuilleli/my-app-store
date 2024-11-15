@@ -106,9 +106,24 @@ const InformacionProductos = ({
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.titulo}>
-        Informacion <Text style={styles.tituloBold}>Producto</Text>
-      </Text>
+      <View
+        style={{
+          width: "100%",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-around",
+          marginVertical: 25,
+        }}
+      >
+        <Text style={styles.titulo}>
+          Informacion <Text style={styles.tituloBold}>Producto</Text>
+        </Text>
+        <TouchableOpacity style={styles.btnCerrar} onPress={handleClose}>
+          <Text style={styles.btnCerrarTexto}>
+            <Ionicons name="return-down-back" size={24} color="#FFF" />
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.contenido}>
         <View style={styles.campo}>
@@ -133,46 +148,15 @@ const InformacionProductos = ({
         </View>
 
         <View style={styles.campo}>
-          <Text style={styles.label}>Precio Compra</Text>
+          <Text style={styles.label}>Precio Unidad Invertido </Text>
           <Text style={styles.valor}>{producto.PRECIO_COMPRA} $</Text>
         </View>
-        <Text style={styles.label}>Conversión</Text>
-        <View
-          style={[
-            styles.campo,
-            {
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-around",
-            },
-          ]}
-        >
-          <Text style={styles.valor}>
-            {isNaN(TasaBolivares) || TasaBolivares === 0 ? (
-              <Text style={{ fontSize: 12 }}>No hay Tasas Cargadas</Text>
-            ) : (
-              (producto.PRECIO_COMPRA * TasaBolivares).toFixed(2)
-            )}
-            <Text style={{ fontSize: 12 }}>
-                  {isNaN(TasaPesos) ? <Text></Text> : <Text> Bolivares</Text>}{" "}
-                </Text>
-          </Text>
-          <Text style={styles.valor}>
-            {isNaN(TasaPesos) || TasaPesos === 0 ? (
-              <Text style={{ fontSize: 12 }}>Cargue las Tasas</Text>
-            ) : (
-              (producto.PRECIO_COMPRA * TasaPesos).toFixed(0)
-            )}
-            <Text style={{ fontSize: 12 }}>
-                  {isNaN(TasaPesos) ? <Text></Text> : <Text> Pesos</Text>}{" "}
-                </Text>
-          </Text>
-        </View>
-
 
         <View style={styles.campo}>
-          <Text style={styles.label}>Precio Venta</Text>
-          <Text style={styles.valor}>{producto.PRECIO} $</Text>
+          <Text style={styles.label}>Invertido</Text>
+          <Text style={styles.valor}>
+            {(producto.PRECIO_COMPRA * producto.CANTIDAD).toFixed(2)} $
+          </Text>
         </View>
         <Text style={styles.label}>Conversión</Text>
         <View
@@ -189,27 +173,86 @@ const InformacionProductos = ({
             {isNaN(TasaBolivares) || TasaBolivares === 0 ? (
               <Text style={{ fontSize: 12 }}>No hay Tasas Cargadas</Text>
             ) : (
-              (producto.PRECIO * TasaBolivares).toFixed(2)
+              (
+                producto.PRECIO_COMPRA *
+                producto.CANTIDAD *
+                TasaBolivares
+              ).toFixed(2)
             )}
             <Text style={{ fontSize: 12 }}>
-                  {isNaN(TasaPesos) ? <Text></Text> : <Text> Bolivares</Text>}{" "}
-                </Text>
+              {isNaN(TasaPesos) ? <Text></Text> : <Text> Bolivares</Text>}{" "}
+            </Text>
           </Text>
           <Text style={styles.valor}>
             {isNaN(TasaPesos) || TasaPesos === 0 ? (
               <Text style={{ fontSize: 12 }}>Cargue las Tasas</Text>
             ) : (
-              (producto.PRECIO * TasaPesos).toFixed(0)
+              (producto.PRECIO_COMPRA * producto.CANTIDAD * TasaPesos).toFixed(
+                0
+              )
             )}
             <Text style={{ fontSize: 12 }}>
-                  {isNaN(TasaPesos) ? <Text></Text> : <Text> Pesos</Text>}{" "}
-                </Text>
+              {isNaN(TasaPesos) ? <Text></Text> : <Text> Pesos</Text>}{" "}
+            </Text>
+          </Text>
+        </View>
+
+        <View style={styles.campo}>
+          <Text style={styles.label}>Precio Unidad De Venta</Text>
+          <Text style={styles.valor}>{producto.PRECIO} $</Text>
+        </View>
+        <View style={styles.campo}>
+          <Text style={styles.label}>Total de Venta</Text>
+          <Text style={styles.valor}>
+            {(producto.PRECIO * producto.CANTIDAD).toFixed(2)} $
+          </Text>
+        </View>
+        <Text style={styles.label}>Conversión</Text>
+        <View
+          style={[
+            styles.campo,
+            {
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-around",
+            },
+          ]}
+        >
+          <Text style={styles.valor}>
+            {isNaN(TasaBolivares) || TasaBolivares === 0 ? (
+              <Text style={{ fontSize: 12 }}>No hay Tasas Cargadas</Text>
+            ) : (
+              (producto.PRECIO * producto.CANTIDAD * TasaBolivares).toFixed(2)
+            )}
+            <Text style={{ fontSize: 12 }}>
+              {isNaN(TasaPesos) ? <Text></Text> : <Text> Bolivares</Text>}{" "}
+            </Text>
+          </Text>
+          <Text style={styles.valor}>
+            {isNaN(TasaPesos) || TasaPesos === 0 ? (
+              <Text style={{ fontSize: 12 }}>Cargue las Tasas</Text>
+            ) : (
+              (producto.PRECIO * producto.CANTIDAD * TasaPesos).toFixed(0)
+            )}
+            <Text style={{ fontSize: 12 }}>
+              {isNaN(TasaPesos) ? <Text></Text> : <Text> Pesos</Text>}{" "}
+            </Text>
           </Text>
         </View>
 
         <View style={styles.campo}>
           <Text style={styles.label}>Cantidad</Text>
-          <Text style={styles.valor}>{producto.CANTIDAD}</Text>
+          <Text style={styles.valor}>
+            {producto.CANTIDAD === 0 ? (
+              <Text style={{ color: "red", textTransform: "uppercase" }}>
+                Agotado
+              </Text>
+            ) : producto.CANTIDAD <= 5 ? (
+              <Text style={{ color: "red" }}>{producto.CANTIDAD}</Text>
+            ) : (
+              <Text style={{ color: "green" }}>{producto.CANTIDAD}</Text>
+            )}
+          </Text>
         </View>
 
         <View style={styles.campo}>
@@ -291,14 +334,6 @@ const InformacionProductos = ({
           />
         </Modal>
       )}
-
-      <View>
-        <TouchableOpacity style={styles.btnCerrar} onPress={handleClose}>
-          <Text style={styles.btnCerrarTexto}>
-            <Ionicons name="return-down-back" size={24} color="#FFF" />
-          </Text>
-        </TouchableOpacity>
-      </View>
     </ScrollView>
   );
 };
@@ -311,15 +346,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#fee03e",
   },
   titulo: {
+    width: "80%",
     fontSize: 24,
     textAlign: "center",
     color: "#2e252a",
-    marginTop: 30,
     fontWeight: "600",
     backgroundColor: "#FFF",
     padding: 5,
-    borderRadius: 50,
-    marginHorizontal: 25,
+    borderRadius: 12,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -335,10 +369,9 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   btnCerrar: {
-    marginTop: 10,
+    width: "10%",
     backgroundColor: "#2e252a",
-    marginHorizontal: 60,
-    padding: 20,
+    padding: 8,
     borderRadius: 10,
   },
   btnCerrarTexto: {
@@ -351,7 +384,6 @@ const styles = StyleSheet.create({
   contenido: {
     backgroundColor: "#fff",
     marginHorizontal: 30,
-    marginTop: 25,
     borderRadius: 10,
     padding: 20,
     shadowColor: "#000",

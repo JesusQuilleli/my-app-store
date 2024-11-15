@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   View,
   Text,
@@ -19,6 +19,8 @@ import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+
+import { PagosContext } from "./Context/pagosContext";
 
 //PETICIONES AL SERVIDOR
 import axios from "axios";
@@ -46,14 +48,13 @@ const Productos = () => {
   const [modalCategoria, setModalCategoria] = useState(false);
 
   //PRODUCTOS
-  const [productos, setProductos] = useState([]);
+  const { cargarProductos, productos, setProductos, productoNoEncontrado, setProductoNoEncontrado } = useContext(PagosContext);
   const [producto, setProducto] = useState({});
   //PRODUCTOS SELECCIONADOS PARA COMPARTIR
   const [productosSeleccionados, setProductosSeleccionados] = useState([]);
   const [todosSeleccionados, setTodosSeleccionados] = useState(false);
 
   //ESTADO PARA CONOCER SI HAY PRODUCTOS
-  const [productoNoEncontrado, setProductoNoEncontrado] = useState(false);
   const [modoSeleccion, setModoSeleccion] = useState(false);
 
   //MODA DE INFO PRODUCTOS
@@ -80,6 +81,63 @@ const Productos = () => {
         0
       )
     : "No disponible";
+
+    const calcularTotalesYGanancia = (productos) => {
+      let totalCompra = 0;
+      let totalVenta = 0;
+      let totalGanancia = 0;
+      let totalPorcentajeGanancia = 0;
+    
+      // Filtrar solo los productos con cantidad mayor a 0 (productos disponibles)
+      const productosDisponibles = productos.filter((producto) => producto.CANTIDAD > 0);
+    
+      // Si no hay productos disponibles, no se hace el cálculo
+      if (productosDisponibles.length === 0) {
+        return {
+          totalCompra: 0,
+          totalVenta: 0,
+          totalGanancia: 0,
+          porcentajeGananciaPromedio: 0,
+        };
+      }
+    
+      // Iterar sobre los productos disponibles y calcular los totales de compra, venta y ganancia
+      productosDisponibles.forEach((producto) => {
+        const cantidad = producto.CANTIDAD;
+        const precioCompra = parseFloat(producto.PRECIO_COMPRA);
+        const precioVenta = parseFloat(producto.PRECIO);
+    
+        const totalProductoCompra = cantidad * precioCompra;
+        const totalProductoVenta = cantidad * precioVenta;
+    
+        // Ganancia del producto
+        const gananciaProducto = totalProductoVenta - totalProductoCompra;
+    
+        // Porcentaje de ganancia para este producto
+        const porcentajeGanancia = (gananciaProducto / totalProductoCompra) * 100;
+    
+        totalCompra += totalProductoCompra;
+        totalVenta += totalProductoVenta;
+        totalGanancia += gananciaProducto;
+    
+        // No ponderar el porcentaje de ganancia, solo sumarlo
+        totalPorcentajeGanancia += porcentajeGanancia;
+      });
+    
+      // Promedio del porcentaje de ganancia
+      const porcentajeGananciaPromedio =
+        totalPorcentajeGanancia / productosDisponibles.length;
+    
+      return {
+        totalCompra,
+        totalVenta,
+        totalGanancia,
+        porcentajeGananciaPromedio,
+      };
+    };
+
+  const { totalCompra, totalVenta, totalGanancia, porcentajeGananciaPromedio } =
+    calcularTotalesYGanancia(productos);
 
   //FUNCION CARGAR TASAS
   const cargarTasaUnica = async () => {
@@ -112,28 +170,6 @@ const Productos = () => {
       setCategorias(categoriasPlanas);
     } catch (error) {
       console.log("Error al cargar categorías", error);
-    }
-  };
-
-  //FUNCION CARGAR PRODUCTOS
-  const cargarProductos = async () => {
-    try {
-      const adminIdString = await AsyncStorage.getItem("adminId");
-      if (adminIdString === null) {
-        console.log("ID de administrador no encontrado.");
-        return;
-      }
-      const adminId = parseInt(adminIdString, 10);
-      if (isNaN(adminId)) {
-        console.log("ID de administrador no es un número válido.");
-        return;
-      }
-      const respuesta = await axios.get(`${url}/cargarProductos/${adminId}`);
-      const resultadoProductos = respuesta.data.resultado;
-      setProductos(resultadoProductos);
-      setProductoNoEncontrado(false);
-    } catch (error) {
-      console.log("Error al cargar Productos", error);
     }
   };
 
@@ -194,6 +230,7 @@ const Productos = () => {
     cargarProductos();
     cargarCategorias();
     cargarTasaUnica();
+    (console.log(productos))  
   }, []);
 
   //USE PARA COMPONENTE DE CARGA SKELETON
@@ -439,14 +476,22 @@ const Productos = () => {
       <View style={styles.textContainer}>
         <Text style={styles.categoriaText}>{categoria}</Text>
         <Text style={styles.nombreText}>{nombre}</Text>
-        <Text style={styles.defecto}>
-          Disponible:{" "}
-          <Text style={cantidad <= 5 ? { color: "red" } : { color: "green" }}>
-            {cantidad}
-          </Text>
-        </Text>
         <Text style={styles.defecto}>Compra: {precioCompra} $</Text>
         <Text style={styles.defecto}>Venta: {precio} $</Text>
+        <Text style={styles.defecto}>
+          {cantidad === 0 ? (
+            <Text style={{ color: "red", textTransform: "uppercase" }}>
+              Agotado
+            </Text>
+          ) : (
+            <Text>
+              Disponible:{" "}
+              <Text style={{ color: cantidad <= 5 ? "red" : "green" }}>
+                {cantidad}
+              </Text>
+            </Text>
+          )}
+        </Text>
       </View>
       <View style={styles.boxImagen}>
         {!imagen.includes("null") ? (
@@ -530,6 +575,47 @@ const Productos = () => {
             </TouchableOpacity>
           )}
         </View>
+
+        {!renderBusqueda && (
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-around",
+              width: "100%",
+              marginTop: 5,
+            }}
+          >
+            <View
+              style={{ alignItems: "center", justifyContent: "flex-start" }}
+            >
+              <Text style={styles.labelTotal}>TOTAL INVERTIDO</Text>
+              <Text style={styles.valorTotal}>{totalCompra === 0 ? (<Text style={{fontSize: 10}}>Aún no hay Inversión</Text>):(<Text>{totalCompra} $</Text>)}</Text>
+            </View>
+            <View
+              style={{ alignItems: "center", justifyContent: "flex-start" }}
+            >
+              <Text style={styles.labelTotal}>TOTAL DE VENTA</Text>
+              <Text style={styles.valorTotal}>{totalVenta === 0 ? (<Text style={{fontSize: 10}}>Aún no hay Inversión</Text>):(<Text>{totalVenta} $</Text>)}</Text>
+            </View>
+            <View style={{ alignItems: "center", justifyContent: "center" }}>
+              <Text style={styles.labelTotal}>GANANCIA ESTIMADA</Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-around",
+                  width: 90,
+                }}
+              >
+                <Text style={styles.valorTotal}>{totalGanancia === 0 ? (<Text style={{fontSize: 10, textAlign:'center'}}>Sin ganacia</Text>): (<Text>{totalGanancia.toFixed(2)} $</Text>)}  </Text>
+                {totalGanancia !== 0 && productos.CANTIDAD !== 0 && (<Text style={styles.valorTotal}>
+                  {porcentajeGananciaPromedio.toFixed(0)} %
+                </Text>)}
+              </View>
+            </View>
+          </View>
+        )}
 
         {productos && renderBusqueda && (
           <View style={styles.boxInput}>
@@ -723,9 +809,10 @@ const styles = StyleSheet.create({
   boxCategoria: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 20,
-    borderColor: "#ccc",
+    padding: 15,
     borderRadius: 25,
+    borderBottomColor: "#ccc",
+    borderBottomWidth: 1,
   },
   categoriasText: {
     fontSize: 18,
@@ -740,7 +827,7 @@ const styles = StyleSheet.create({
   },
   boxInput: {
     backgroundColor: "#efefef",
-    marginBottom: 25,
+    marginVertical: 5,
     width: "90%",
     borderColor: "#fcd53f",
     borderWidth: 0.5,
@@ -764,6 +851,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     overflow: "hidden",
     flex: 1,
+    marginTop: 5,
   },
   cNoProductos: {
     justifyContent: "center",
@@ -890,6 +978,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "bold",
     textDecorationLine: "underline",
+  },
+  labelTotal: {
+    fontWeight: "800",
+    fontSize: 12,
+  },
+  valorTotal: {
+    fontWeight: "900",
+    fontSize: 15,
   },
 });
 
