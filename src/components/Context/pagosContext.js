@@ -22,21 +22,64 @@ export const PagosProvider = ({ children }) => {
         console.log("ID de administrador no es un número válido.");
         return;
       }
+  
       const respuesta = await axios.get(`${url}/verPagos/${adminId}`);
+   
       const resultadoVerPagos = respuesta.data.data;
       setVerPagos(resultadoVerPagos);
-    } catch (error) { 
-      console.log("Error al cargar Pagos", error);
-    }  
+    } catch (error) {
+      if (error.response) {
+        // Error de respuesta de la API (404, 500, etc.)
+        console.log('Error de la API:', error.response.status, error.response.data);
+      } else if (error.request) {
+        // Error de la solicitud (por ejemplo, no se pudo conectar al servidor)
+        console.log('Error en la solicitud:', error.request);
+      } else {
+        // Otro tipo de error
+        console.log('Error desconocido:', error.message);
+      }
+    }
+  };
+
+  // Función para cargar los pagos desde el servidor
+  const cargarPagosCodigo = async (codigo) => {
+    try {
+      const adminIdString = await AsyncStorage.getItem("adminId");
+      if (adminIdString === null) {
+        console.log("ID de administrador no encontrado.");
+        return;
+      }
+      const adminId = parseInt(adminIdString, 10);
+      if (isNaN(adminId)) {
+        console.log("ID de administrador no es un número válido.");
+        return;
+      }
+  
+      const respuesta = await axios.get(`${url}/verPagosCodigoVenta/${adminId}/${codigo}`);
+   
+      const resultadoVerPagos = respuesta.data.data;
+      setVerPagos(resultadoVerPagos);
+    } catch (error) {
+      if (error.response) {
+        // Error de respuesta de la API (404, 500, etc.)
+        console.log('Error de la API:', error.response.status, error.response.data);
+      } else if (error.request) {
+        // Error de la solicitud (por ejemplo, no se pudo conectar al servidor)
+        console.log('Error en la solicitud:', error.request);
+      } else {
+        // Otro tipo de error
+        console.log('Error desconocido:', error.message);
+      }
+    }
   };
 
   // Efecto para cargar los pagos al iniciar el contexto
   useEffect(() => {
     cargarPagos();
-  }, []);
+  }, []); 
 
   return (
-    <PagosContext.Provider value={{ verPagos, cargarPagos, setVerPagos }}>
+    <PagosContext.Provider value={{ verPagos, cargarPagos, setVerPagos, cargarPagosCodigo}}>
       {children}
     </PagosContext.Provider>
   );

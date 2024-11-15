@@ -17,11 +17,11 @@ import Entypo from "@expo/vector-icons/Entypo";
 
 import { formatearFecha } from "../helpers/validaciones";
 
-const Pagos = ({ setModalPagos, verPagos, setVerPagos, cargarPagos}) => {
+const Pagos = ({ setModalPagos, verPagos, setVerPagos, cargarPagos, cargarPagosCodigo}) => {
   //PARA ELIMINAR PAGOS
   const [pagosSeleccionados, setPagosSeleccionados] = useState([]);
   const [modoSeleccion, setModoSeleccion] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); 
 
   const seleccionarPago = (idPago) => {
     setModoSeleccion(true); // Activa el modo selección al seleccionar una venta
@@ -204,7 +204,9 @@ const Pagos = ({ setModalPagos, verPagos, setVerPagos, cargarPagos}) => {
           style={{ textAlign: "center" }}
           onChangeText={(value) => {
             if (value.length > 0) {
+              cargarPagosCodigo(value);
             } else {
+              cargarPagos();
             }
           }}
         />

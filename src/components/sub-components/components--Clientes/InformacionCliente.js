@@ -7,7 +7,7 @@ import {
   Image,
   Modal,
   Alert,
-  ScrollView
+  ScrollView,
 } from "react-native";
 
 //STYLES
@@ -23,7 +23,7 @@ import { formatearFecha } from "../../../helpers/validaciones";
 
 import FormularioCliente from "./FormularioCliente.js";
 
-import * as Clipboard from 'expo-clipboard';
+import * as Clipboard from "expo-clipboard";
 
 //AXIOS
 import axios from "axios";
@@ -43,7 +43,7 @@ const InformacionCliente = ({
   cargarClientes,
 }) => {
   const [options, setOptions] = useState(false);
-  const [copiedText, setCopiedText] = useState('');
+  const [copiedText, setCopiedText] = useState("");
 
   //FUNCIONES ELIMINAR CLIENTES
   const eliminarCliente = async (id_cliente) => {
@@ -56,9 +56,7 @@ const InformacionCliente = ({
       } else {
         console.log("No se pudo eliminar el cliente");
       }
-    } catch (error) {
-      
-    }
+    } catch (error) {}
   };
 
   const handleEliminar = async () => {
@@ -81,9 +79,7 @@ const InformacionCliente = ({
               await eliminarCliente(clienteID); // Eliminar el producto
               cargarClientes();
               setModalInformacionCliente(false);
-            } catch (error) {
-              
-            }
+            } catch (error) {}
           },
           style: "destructive", // Cambia el estilo para dar un aspecto más serio
         },
@@ -95,7 +91,7 @@ const InformacionCliente = ({
   // FUNCION PARA COPIAR TEXTO A PORTAPAPELES
   const copyToClipboard = async (text) => {
     await Clipboard.setStringAsync(text);
-    setCopiedText(text); 
+    setCopiedText(text);
   };
 
   return (
@@ -123,9 +119,10 @@ const InformacionCliente = ({
           )}
 
           {options && (
-            <TouchableOpacity 
-            onPress={handleEliminar}
-            style={[styles.Btn, styles.delete]}>
+            <TouchableOpacity
+              onPress={handleEliminar}
+              style={[styles.Btn, styles.delete]}
+            >
               <MaterialCommunityIcons
                 name="delete-forever"
                 size={30}
@@ -145,15 +142,21 @@ const InformacionCliente = ({
         </View>
       </View>
       <ScrollView>
+        <View style={styles.campoNombre}>
+          <Image
+            source={require("./../../../../assets/resources/perfil.webp")}
+            style={styles.boxImage}
+          />
+          <View style={styles.copyContent}>
+            <Text style={styles.nombreCliente}>{cliente.NOMBRE}</Text>
+          </View>
+        </View>
 
-      <View style={styles.campoNombre}>
-        <Image
-          source={require("./../../../../assets/resources/perfil.webp")}
-          style={styles.boxImage}
-        />
-        <View style={styles.copyContent}>
-          <Text style={styles.nombreCliente}>{cliente.NOMBRE}</Text>
-          <TouchableOpacity onPress={() => copyToClipboard(cliente.NOMBRE)}>
+        <View style={styles.campos}>
+          <Entypo name="v-card" size={24} color="#000" />
+          <Text style={styles.textCampos}>{cliente.CEDULA}</Text>
+
+          <TouchableOpacity onPress={() => copyToClipboard(cliente.CEDULA)}>
             <MaterialIcons
               name="content-copy"
               size={20}
@@ -162,41 +165,34 @@ const InformacionCliente = ({
             />
           </TouchableOpacity>
         </View>
-      </View>
 
-      <View style={styles.campos}>
-      <Entypo name="v-card" size={24} color="#000" />
-        <Text style={styles.textCampos}>{cliente.CEDULA}</Text>
-      </View>
+        <View style={styles.campos}>
+          <FontAwesome5 name="phone-alt" size={24} color="black" />
+          <Text style={styles.textCampos}>{cliente.TELEFONO}</Text>
+          <TouchableOpacity onPress={() => copyToClipboard(cliente.TELEFONO)}>
+            <MaterialIcons name="content-copy" size={20} color="black" />
+          </TouchableOpacity>
+        </View>
 
-      <View style={styles.campos}>
-        <FontAwesome5 name="phone-alt" size={24} color="black" />
-        <Text style={styles.textCampos}>{cliente.TELEFONO}</Text>
-        <TouchableOpacity onPress={() => copyToClipboard(cliente.TELEFONO)}>
-          <MaterialIcons name="content-copy" size={20} color="black" />
-        </TouchableOpacity>
-      </View>
+        <View style={styles.campos}>
+          <MaterialCommunityIcons name="email" size={26} color="black" />
+          <Text style={styles.textCampos}>{cliente.EMAIL}</Text>
+          <TouchableOpacity onPress={() => copyToClipboard(cliente.EMAIL)}>
+            <MaterialIcons name="content-copy" size={20} color="black" />
+          </TouchableOpacity>
+        </View>
 
-      <View style={styles.campos}>
-        <MaterialCommunityIcons name="email" size={26} color="black" />
-        <Text style={styles.textCampos}>{cliente.EMAIL}</Text>
-        <TouchableOpacity onPress={() => copyToClipboard(cliente.EMAIL)}>
-          <MaterialIcons name="content-copy" size={20} color="black" />
-        </TouchableOpacity>
-      </View>
+        <View style={styles.campos}>
+          <FontAwesome5 name="directions" size={24} color="black" />
+          <Text style={styles.textCampos}>{cliente.DIRECCION}</Text>
+        </View>
 
-      <View style={styles.campos}>
-        <FontAwesome5 name="directions" size={24} color="black" />
-        <Text style={styles.textCampos}>{cliente.DIRECCION}</Text>
-      </View>
-
-      <View style={styles.campos}>
-        <MaterialIcons name="date-range" size={24} color="black" />
-        <Text style={styles.textCampos}>
-          {formatearFecha(cliente.FECHA_REGISTRO)}
-        </Text>
-      </View>
-
+        <View style={styles.campos}>
+          <MaterialIcons name="date-range" size={24} color="black" />
+          <Text style={styles.textCampos}>
+            {formatearFecha(cliente.FECHA_REGISTRO)}
+          </Text>
+        </View>
       </ScrollView>
 
       <Modal animationType="fade" visible={formClientes}>
@@ -253,8 +249,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#e71b03",
     padding: 5,
   },
-  option:{
-    padding: 5
+  option: {
+    padding: 5,
   },
   boxImage: {
     width: 120,
@@ -286,7 +282,7 @@ const styles = StyleSheet.create({
   textCampos: {
     fontSize: 18,
   },
-  copiedText:{
+  copiedText: {
     //AGREGAR ESTILOS
-  }
+  },
 });

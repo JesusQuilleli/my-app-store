@@ -33,7 +33,7 @@ const Ventas = () => {
   //FORMULARIO VENTAS
   const [formVentas, setFormVentas] = useState(false);
 
-  const { cargarPagos } = useContext(PagosContext);
+  const { cargarPagos, verPagos } = useContext(PagosContext);
 
   //CLIENTES Y PRODUCTOS
   const [clientes, setClientes] = useState([]);
@@ -146,6 +146,29 @@ const Ventas = () => {
       setVentasResumidas(resultadoVentasResumidas);
     } catch (error) {
       console.log("Error al cargar Ventas", error);
+    }
+  };
+
+  //FUNCION CARGAR VENTAS POR CEDULA CLIENTE
+  const cargarVentasPorCedula = async (cedulaCliente) => {
+    try {
+      const adminIdString = await AsyncStorage.getItem("adminId");
+      if (adminIdString === null) {
+        console.log("ID de administrador no encontrado.");
+        return;
+      }
+      const adminId = parseInt(adminIdString, 10);
+      if (isNaN(adminId)) {
+        console.log("ID de administrador no es un número válido.");
+        return;
+      }
+
+      // Realizar la petición GET con el adminId y la cédula
+      const respuesta = await axios.get(`${url}/infoResumCedula/${adminId}/${cedulaCliente}`);
+      const resultadoVentasResumidas = respuesta.data.response;
+      setVentasResumidas(resultadoVentasResumidas); // Establecer las ventas en el estado
+    } catch (error) {
+      console.log("Error al cargar Ventas filtradas por cédula", error);
     }
   };
 
@@ -378,7 +401,9 @@ const Ventas = () => {
         },
         {
           text: "Sí", // Botón "Sí"
-          onPress: () => eliminarVentasSeleccionadas(), // Ejecuta la eliminación si elige "Sí"
+          onPress: () => {
+            eliminarVentasSeleccionadas()
+          }, // Ejecuta la eliminación si elige "Sí"
           style: "destructive", // Estilo del botón "Sí" para indicar acción destructiva
         },
       ],
@@ -389,6 +414,7 @@ const Ventas = () => {
   useEffect(() => {
     cargarVentas();
     cargarTasaUnica();
+    
   }, []);
 
   const Item = ({ venta, cliente, fecha, estado, seleccionado }) => (
@@ -505,9 +531,9 @@ const Ventas = () => {
           style={{ textAlign: "center" }}
           onChangeText={(value) => {
             if (value.length > 0) {
-              
+              cargarVentasPorCedula(value);
             } else {
-              
+              cargarVentas();
             }
           }}
         />
@@ -633,6 +659,7 @@ const styles = StyleSheet.create({
   buttonContainerEliminar: {
     padding: 10,
     alignItems: "center",
+    width:'100%'
   },
   BtnEliminar: {
     width: "80%",
@@ -656,6 +683,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: "center",
     justifyContent: "center",
+    marginVertical: 2.5,
   },
   BtnVentaText: {
     textAlign: "center",
