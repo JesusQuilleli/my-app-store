@@ -296,8 +296,8 @@ const FormasPagoVenta = ({
           >
             <View style={styles.inputContentItem}>
               <TextInput
-                placeholder="Aqui"
-                style={styles.input}
+                placeholder="Monto"
+                style={esDeudaRestante ? ([styles.input, {textAlign:'center'}]) : (styles.input)}
                 keyboardType="numeric"
                 value={
                   esDeudaRestante

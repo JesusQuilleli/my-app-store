@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   View,
   Text,
@@ -8,10 +8,13 @@ import {
   Modal,
   Alert,
   ActivityIndicator,
+  TextInput
 } from "react-native";
 
 import FormularioVenta from "./sub-components/components--Ventas/FormularioVenta.js";
 import InformacionVenta from "./sub-components/components--Ventas/InformacionVenta.js";
+
+import { PagosContext } from "./Context/pagosContext.js";
 
 import axios from "axios";
 import { url } from "../helpers/url.js";
@@ -29,6 +32,8 @@ import { Picker } from "@react-native-picker/picker";
 const Ventas = () => {
   //FORMULARIO VENTAS
   const [formVentas, setFormVentas] = useState(false);
+
+  const { cargarPagos } = useContext(PagosContext);
 
   //CLIENTES Y PRODUCTOS
   const [clientes, setClientes] = useState([]);
@@ -344,6 +349,7 @@ const Ventas = () => {
         setModoSeleccion(false);
 
         await cargarVentas();
+        await cargarPagos();
 
         console.log("Ventas eliminadas con éxito");
       } else {
@@ -492,6 +498,21 @@ const Ventas = () => {
         </View>
       )}
 
+      <View style={styles.boxInput}>
+        <TextInput
+          placeholder="Buscar por Cedula"
+          placeholderTextColor="#888"
+          style={{ textAlign: "center" }}
+          onChangeText={(value) => {
+            if (value.length > 0) {
+              
+            } else {
+              
+            }
+          }}
+        />
+      </View>
+
       {ventasResumidas.length === 0 && (
         <View style={{ alignItems: "center", marginTop: 15 }}>
           <Text style={{ fontSize: 24, fontWeight: "900" }}>
@@ -602,6 +623,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f2f2f2",
+    alignItems:'center'
   },
   header: {},
   buttonContainer: {
@@ -667,7 +689,7 @@ const styles = StyleSheet.create({
   codigoVenta: {
     fontSize: 15,
     fontWeight: "900",
-    textTransform: 'uppercase'
+    textTransform: "uppercase",
   },
   nombreCliente: {
     fontSize: 14,
@@ -740,4 +762,15 @@ const styles = StyleSheet.create({
     height: 50,
     width: 160,
   },
+  boxInput: {
+    backgroundColor: "#efefef",
+    width: "75%",
+    borderBottomColor: "#fcd53f",
+    borderBottomWidth: 2,
+    borderRadius: 10,
+    padding: 8,
+    marginVertical: 15,
+    textTransform: "uppercase",
+
+  }
 });

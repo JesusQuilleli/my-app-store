@@ -329,7 +329,7 @@ const InformacionVenta = ({
                   }}
                   style={styles.BtnPagar}
                 >
-                  <Text style={styles.BtnPagarText}>Adjuntar Pago</Text>
+                  <Text style={styles.BtnPagarText}>{parseFloat(ABONO) === 0.0 ? (<Text>Adjuntar primer pago</Text>) : (<Text>Adjuntar Pago</Text>)}</Text>
                 </TouchableOpacity>
               </View>
             </View>

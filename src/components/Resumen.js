@@ -22,7 +22,7 @@ import Deudores from "./Deudores";
 const Resumen = () => {
 
 
-  const {verPagos} = useContext(PagosContext);
+  const {verPagos, setVerPagos, cargarPagos} = useContext(PagosContext);
 
   const [modalPagos, setModalPagos] = useState(false);
   const [modalDeudores, setModalDeudores] = useState(false); 
@@ -105,6 +105,8 @@ const Resumen = () => {
         <Pagos 
         setModalPagos={setModalPagos}
         verPagos={verPagos}
+        setVerPagos={setVerPagos}
+        cargarPagos={cargarPagos}
         />
       </Modal>
 

@@ -36,7 +36,7 @@ export const PagosProvider = ({ children }) => {
   }, []);
 
   return (
-    <PagosContext.Provider value={{ verPagos, cargarPagos }}>
+    <PagosContext.Provider value={{ verPagos, cargarPagos, setVerPagos }}>
       {children}
     </PagosContext.Provider>
   );

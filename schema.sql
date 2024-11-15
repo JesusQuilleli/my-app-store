@@ -139,8 +139,6 @@ CREATE TABLE VENTAS_PRODUCTOS (
 
         DELIMITER ;
 
-    DROP TRIGGER IF EXISTS actualizar_estado_y_monto_pendiente_pagos;
-
     --TABLA TOKENS PARA LAS NOTIFICACIONES
         CREATE TABLE tokens (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -149,6 +147,8 @@ CREATE TABLE VENTAS_PRODUCTOS (
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (ADMINISTRADOR_ID) REFERENCES ADMINISTRADORES(ID_ADMINISTRADOR) ON DELETE CASCADE
     );
+
+      DROP TRIGGER IF EXISTS after_venta_insert;
 
 
     ---------------------------------------------------------------------

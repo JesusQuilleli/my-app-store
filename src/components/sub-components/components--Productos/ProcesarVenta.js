@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -17,7 +17,7 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import { formatearFechaOtroFormato } from "./../../../helpers/validaciones.js";
 
 import axios from "axios";
-import {url} from './../../../helpers/url.js'
+import { url } from "./../../../helpers/url.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ProcesarVenta = ({
@@ -37,6 +37,7 @@ const ProcesarVenta = ({
   const [tipoPago, setTipoPago] = useState("AL CONTADO");
   const [estadoPago, setEstadoPago] = useState("PAGADO");
   const [primerAbono, setPrimerAbono] = useState(0);
+  const [opciones, setOpciones] = useState("NO");
 
   //CARGA
   const [isLoading, setIsLoading] = useState(false);
@@ -57,6 +58,11 @@ const ProcesarVenta = ({
   const handleTipoPago = (tipo) => {
     setTipoPago(tipo);
     setEstadoPago(tipo === "AL CONTADO" ? "PAGADO" : "PENDIENTE");
+  };
+
+  // FUNCION PARA MANEJAR EL TIPO DE PAGO
+  const handleOpciones = (tipo) => {
+    setOpciones(tipo);
   };
 
   const quitarProductoDelCarrito = async (producto) => {
@@ -298,6 +304,29 @@ const ProcesarVenta = ({
             </View>
           </View>
 
+          {tipoPago === "POR ABONO" && (
+            <View style={{ marginTop: 5 }}>
+              <Text style={styles.tituloPago}>
+                ¿Desea agregar un abono Inicial?
+              </Text>
+
+              <View style={styles.contentOpcionesPago}>
+                <View style={styles.hijoOpcionesPago}>
+                  <Text style={styles.hijoOpcionesPagoText}>SI</Text>
+                  <Checkbox
+                    value={opciones === "SI"}
+                    onValueChange={() => handleOpciones("SI")}
+                  />
+                  <Text style={styles.hijoOpcionesPagoText}>NO</Text>
+                  <Checkbox
+                    value={opciones === "NO"}
+                    onValueChange={() => handleOpciones("NO")}
+                  />
+                </View>
+              </View>
+            </View>
+          )}
+
           <View style={styles.contentTotal}>
             <Text style={styles.textTotal}>Monto Total</Text>
             <Text style={styles.textTotal}>{totalPrecio.toFixed(2)} $</Text>
@@ -306,11 +335,13 @@ const ProcesarVenta = ({
             <Text style={styles.textTotal}>En Bolivares</Text>
             <Text style={styles.textTotal}>
               {isNaN(TasaBolivares) || TasaBolivares === 0 ? (
-                <Text style={{fontSize: 12}}>No disponible</Text>
+                <Text style={{ fontSize: 12 }}>No disponible</Text>
               ) : (
                 (totalPrecio * TasaBolivares).toFixed(2)
               )}
-              <Text style={{ fontSize: 12 }}>{isNaN(TasaBolivares) ? (<Text></Text>) : (<Text> Bs</Text>)} </Text>
+              <Text style={{ fontSize: 12 }}>
+                {isNaN(TasaBolivares) ? <Text></Text> : <Text> Bs</Text>}{" "}
+              </Text>
             </Text>
           </View>
 
@@ -318,20 +349,24 @@ const ProcesarVenta = ({
             <Text style={styles.textTotal}>En Pesos</Text>
             <Text style={styles.textTotal}>
               {isNaN(TasaPesos) || TasaPesos === 0 ? (
-                <Text style={{fontSize: 12}}>No disponible</Text>
+                <Text style={{ fontSize: 12 }}>No disponible</Text>
               ) : (
                 (totalPrecio * TasaPesos).toFixed(0)
               )}
-              <Text style={{ fontSize: 12 }}>{isNaN(TasaPesos) ? (<Text></Text>) : (<Text> Pesos</Text>)} </Text>
+              <Text style={{ fontSize: 12 }}>
+                {isNaN(TasaPesos) ? <Text></Text> : <Text> Pesos</Text>}{" "}
+              </Text>
             </Text>
           </View>
           <View style={styles.contentTotal}>
-            <Text style={styles.textTotal}>CANTIDAD</Text>
+            <Text style={styles.textTotal}>Cantidad</Text>
             <Text style={styles.textTotal}>{totalCantidadProductos}</Text>
           </View>
-          {tipoPago === "POR ABONO" && (
+          {tipoPago === "POR ABONO" && opciones === "SI" && (
             <View style={styles.primerAbono}>
-              <Text style={styles.textAbono}>PRIMER ABONO</Text>
+              <Text style={[styles.textAbono, { fontSize: 16 }]}>
+                PRIMER ABONO
+              </Text>
               <TextInput
                 placeholder="500"
                 keyboardAppearance="default"
@@ -472,8 +507,9 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   textTotal: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: "800",
+    textTransform: "uppercase",
   },
   tituloPago: {
     textAlign: "center",
