@@ -7,9 +7,11 @@ import {
   ActivityIndicator,
   ScrollView,
   Modal,
+  Linking,
 } from "react-native";
 
 import Entypo from "@expo/vector-icons/Entypo";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { formatearFecha } from "../../../helpers/validaciones.js";
 
 import { url } from "../../../helpers/url.js";
@@ -45,27 +47,6 @@ const InformacionVenta = ({
   const [historialPagos, setHistorialPagos] = useState([]);
   const [historialVentas, setHistorialVentas] = useState([]);
 
-  useEffect(() => {
-    if (
-      ventasDetalladas.MONTO_TOTAL !== undefined ||
-      ventasDetalladas.MONTO_PENDIENTE
-    ) {
-      setLoading(false);
-    }
-  }, [ventasDetalladas]);
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#fee03e" />
-      </View>
-    );
-  }
-
-  const closeForm = () => {
-    setModalVentasDetalladas(false);
-  };
-
   const cargarHistorialPagos = async (Venta_ID) => {
     try {
       const adminIdString = await AsyncStorage.getItem("adminId");
@@ -89,6 +70,29 @@ const InformacionVenta = ({
     } catch (error) {
       console.log("Error al cargar Ventas", error);
     }
+  };
+
+  useEffect(() => {
+    if (
+      ventasDetalladas.MONTO_TOTAL !== undefined ||
+      ventasDetalladas.MONTO_PENDIENTE
+    ) {
+      setLoading(false);
+      console.log(ventasDetalladas);
+      
+    }
+  }, [ventasDetalladas]);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#fee03e" />
+      </View>
+    );
+  }
+
+  const closeForm = () => {
+    setModalVentasDetalladas(false);
   };
 
   const cargarHistorialVentas = async (Venta_ID) => {
@@ -116,6 +120,53 @@ const InformacionVenta = ({
     }
   };
 
+  const enviarMensajeWhatsApp = async (
+    telefono,
+    cliente,
+    montoPendiente,
+    montoPagado,
+    cedula,
+    banco,
+    telefonoPago
+  ) => {
+    try {
+      // Recuperar el nombre del administrador desde AsyncStorage
+      const nombre = await AsyncStorage.getItem("adminNombre");
+
+      // Si se encuentra el nombre, incluirlo en el saludo
+      const saludo = nombre ? `¡Soy ${nombre}! 👋` : "¡Hola! 👋";
+
+      // Convertir el monto pendiente a bolívares y pesos
+      const montoPendienteBolivares =
+        (parseFloat(montoPendiente) * TasaBolivares).toFixed(2) ||
+        "No disponible";
+      const montoPendientePesos =
+        (parseFloat(montoPendiente) * TasaPesos).toFixed(2) || "No disponible";
+
+      // El mensaje que se enviará
+      const mensaje = `Hola Querid@ *${cliente}*, ${saludo} \n\n`;
+
+      const montoPagadoTexto =
+        montoPagado > 0
+          ? `💸 Tu ultimo abono realizado fue de *${montoPagado} $*.\n\n`
+          : "Aún no has realizado ningún abono. 😕\n\n";
+
+      const mensajeFinal =
+        mensaje +
+        `${montoPagadoTexto}💰 Tienes un monto pendiente de *${montoPendiente} $*\n\n📈 Este monto es equivalente a:\n\n💵 *${montoPendienteBolivares} Bs* \n💸 *${montoPendientePesos} Cop* \n\n💳 Para realizar tu pago, utiliza los siguientes datos:\n\n🛂 Cédula: ${cedula}\n🏦 Banco: ${banco}\n📱 Teléfono: ${telefonoPago}\n\n📲 ¡Realiza el pago o el abono deseado y confirma tu transacción! \n¡Gracias! 😊`;
+
+      // Construcción de la URL con el mensaje
+      const url = `whatsapp://send?phone=+580${telefono}&text=${encodeURIComponent(
+        mensajeFinal
+      )}`;
+
+      // Intentar abrir WhatsApp con el mensaje formateado
+      await Linking.openURL(url);
+    } catch (err) {
+      console.error("No se pudo abrir WhatsApp", err);
+    }
+  };
+
   return (
     <ScrollView
       contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-start" }}
@@ -140,15 +191,45 @@ const InformacionVenta = ({
         <View style={styles.padreContent}>
           <View style={styles.botonesContenedor}>
             {ventasDetalladas.TIPO_PAGO === "POR ABONO" && (
-              <TouchableOpacity
-                onPress={async () => {
-                  setModalHistorialPagos(true);
-                  await cargarHistorialPagos(ventasDetalladas.ID_VENTA);
+              <View
+                style={{
+                  width: "50%",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-evenly",
                 }}
-                style={styles.BtnPagos}
               >
-                <Text style={styles.BtnPagoText}>Historial de Pagos</Text>
-              </TouchableOpacity>
+                {ventasDetalladas.ESTADO_PAGO === 'PENDIENTE' && (<TouchableOpacity
+                  onPress={() => {
+                    enviarMensajeWhatsApp(
+                      ventasDetalladas.TELEFONO,
+                      ventasDetalladas.CLIENTE,
+                      ventasDetalladas.MONTO_PENDIENTE,
+                      ABONO,
+                      "30492547",
+                      "0102 - Venezuela",
+                      "0412-474-2535"
+                    );
+                  }}
+                  style={styles.BtnNotificar}
+                >
+                  <MaterialIcons
+                    name="notifications-active"
+                    size={24}
+                    color="#FFF"
+                  />
+                </TouchableOpacity>)}
+
+                <TouchableOpacity
+                  onPress={async () => {
+                    setModalHistorialPagos(true);
+                    await cargarHistorialPagos(ventasDetalladas.ID_VENTA);
+                  }}
+                  style={styles.BtnPagos}
+                >
+                  <Text style={styles.BtnPagoText}>Historial de Pagos</Text>
+                </TouchableOpacity>
+              </View>
             )}
 
             <TouchableOpacity
@@ -170,6 +251,7 @@ const InformacionVenta = ({
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "space-evenly",
+                marginTop: 10
               },
             ]}
           >
@@ -190,7 +272,6 @@ const InformacionVenta = ({
                 justifyContent: "center",
               }}
             >
-              
               <Text style={styles.label}>Codigo</Text>
               <Text style={styles.valor}>{ventasDetalladas.ID_VENTA}</Text>
             </View>
@@ -329,7 +410,13 @@ const InformacionVenta = ({
                   }}
                   style={styles.BtnPagar}
                 >
-                  <Text style={styles.BtnPagarText}>{parseFloat(ABONO) === 0.0 ? (<Text>Adjuntar primer pago</Text>) : (<Text>Adjuntar Pago</Text>)}</Text>
+                  <Text style={styles.BtnPagarText}>
+                    {parseFloat(ABONO) === 0.0 ? (
+                      <Text>Adjuntar primer pago</Text>
+                    ) : (
+                      <Text>Adjuntar Pago</Text>
+                    )}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -350,6 +437,8 @@ const InformacionVenta = ({
           <HistorialPagosVenta
             setModalHistorialPagos={setModalHistorialPagos}
             historialPagos={historialPagos}
+            TasaBolivares={TasaBolivares}
+            TasaPesos={TasaPesos}
           />
         </Modal>
 
@@ -445,21 +534,22 @@ const styles = StyleSheet.create({
     color: "#f00",
   },
   ContanerBtn: {
+    width: "100%",
     flexDirection: "row",
-    justifyContent: "space-evenly",
     alignItems: "center",
   },
   botonesContenedor: {
     width: "100%",
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-around",
+    justifyContent: "space-evenly",
   },
   BtnProductos: {
     backgroundColor: "green",
     padding: 7.5,
     borderRadius: 50,
-    marginBottom: 13.5,
+    marginBottom: 5,
+    marginRight: 20
   },
   BtnProductosText: {
     color: "#FFF",
@@ -472,7 +562,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fee03e",
     padding: 7.5,
     borderRadius: 50,
-    marginBottom: 13.5,
+    marginBottom: 5,
+    marginLeft: 20
   },
   BtnPagoText: {
     color: "#000",
@@ -485,6 +576,14 @@ const styles = StyleSheet.create({
     backgroundColor: "green",
     padding: 7.5,
     borderRadius: 50,
+  },
+  BtnNotificar: {
+    backgroundColor: "maroon",
+    padding: 4,
+    borderRadius: 50,
+    position:'absolute',
+    top: -15,
+    left: -15
   },
   BtnPagarText: {
     color: "#FFF",

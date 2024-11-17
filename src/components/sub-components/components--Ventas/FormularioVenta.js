@@ -160,16 +160,21 @@ const FormularioVenta = ({
     DateTimePickerAndroid.open({
       value: fecha,
       onChange: (event, selectedDate) => {
-        const currentDate = selectedDate || fecha;
-        setFecha(currentDate); // Actualiza la fecha seleccionada
+        if (event.type === "set") {
+          // Asegura que selectedDate esté en tu zona horaria local
+          const localDate = new Date(selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000);
+  
+          setFecha(localDate); // Actualiza la fecha ajustada
+        }
       },
       mode: "date",
       is24Hour: true,
-    });
+    });  
   };
 
   useEffect(() => {
     cargarProductos();
+    console.log(fecha)  
   }, []);
 
   const Item = ({ nombre, cantidad, precio, agregar }) => (

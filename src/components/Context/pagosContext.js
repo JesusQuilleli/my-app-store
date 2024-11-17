@@ -11,6 +11,9 @@ export const PagosProvider = ({ children }) => {
   const [productos, setProductos] = useState([]);
   const [productoNoEncontrado, setProductoNoEncontrado] = useState(false);
 
+  //VENTAS
+  const [ventasResumidas, setVentasResumidas] = useState([]);
+
   // Función para cargar los pagos desde el servidor
   const cargarPagos = async () => {
     try {
@@ -109,10 +112,34 @@ export const PagosProvider = ({ children }) => {
     }
   };
 
+  //VENTAS
+
+  //FUNCION CARGAR VENTAS
+  const cargarVentas = async () => {
+    try {
+      const adminIdString = await AsyncStorage.getItem("adminId");
+      if (adminIdString === null) {
+        console.log("ID de administrador no encontrado.");
+        return;
+      }
+      const adminId = parseInt(adminIdString, 10);
+      if (isNaN(adminId)) {
+        console.log("ID de administrador no es un número válido.");
+        return;
+      }
+      const respuesta = await axios.get(`${url}/infoResum/${adminId}`);
+      const resultadoVentasResumidas = respuesta.data.response;
+      setVentasResumidas(resultadoVentasResumidas);
+    } catch (error) {
+      console.log("Error al cargar Ventas", error);
+    }
+  };
+
   // Efecto para cargar los pagos al iniciar el contexto
   useEffect(() => {
     cargarPagos();
     cargarProductos();
+    cargarVentas();
   }, []);
 
   return (
@@ -126,7 +153,10 @@ export const PagosProvider = ({ children }) => {
         setProductos,
         cargarProductos,
         productoNoEncontrado,
-        setProductoNoEncontrado
+        setProductoNoEncontrado,
+        ventasResumidas,
+        setVentasResumidas,
+        cargarVentas
       }}
     >
       {children}

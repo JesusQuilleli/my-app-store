@@ -20,13 +20,11 @@ import * as Network from "expo-network";
 import { PagosContext } from "./Context/pagosContext.js";
 
 import Pagos from "./Pagos";
-import Deudores from "./Deudores";
 
 const Resumen = () => {
   const { verPagos, setVerPagos, cargarPagos, cargarPagosCodigo } = useContext(PagosContext);
 
   const [modalPagos, setModalPagos] = useState(false);
-  const [modalDeudores, setModalDeudores] = useState(false);
 
   const [isConnected, setIsConnected] = useState(true);
   const [connectionType, setConnectionType] = useState("WIFI");
@@ -159,8 +157,7 @@ const Resumen = () => {
   useEffect(() => {
     registerForPushNotifications();
     verificarInventario();
-    console.log(verPagos);
-     
+   
   }, []);
 
   return (
@@ -198,7 +195,7 @@ const Resumen = () => {
           </Text>
         </Animated.View>
       ) : (
-        <Text style={{ fontSize: 36, fontWeight: "900", marginTop: 15,  }}>Dashboard</Text>
+        <Text style={{ fontSize: 36, fontWeight: "900", marginTop: 15, textTransform: 'uppercase'  }}>Dashboard</Text>
       )}
 
       <TouchableOpacity
@@ -211,16 +208,6 @@ const Resumen = () => {
         <Text style={styles.nro}>{verPagos.length}</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.btn}
-        onPress={() => {
-          setModalDeudores(true);
-        }}
-      >
-        <Text style={{ color: "#000", fontSize: 24, fontWeight: 'bold' }}>Deudores</Text>
-        <Text style={styles.nro}>15</Text>
-      </TouchableOpacity>
-
       <Modal visible={modalPagos} animationType="fade">
         <Pagos
           setModalPagos={setModalPagos}
@@ -229,10 +216,6 @@ const Resumen = () => {
           cargarPagos={cargarPagos}
           cargarPagosCodigo={cargarPagosCodigo}
         />
-      </Modal>
-
-      <Modal visible={modalDeudores} animationType="fade">
-        <Deudores />
       </Modal>
     </View>
   );

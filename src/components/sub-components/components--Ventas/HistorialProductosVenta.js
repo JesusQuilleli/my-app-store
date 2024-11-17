@@ -1,10 +1,11 @@
-import React from "react";
+import React,{useState, useEffect}from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   FlatList,
+  ActivityIndicator
 } from "react-native";
 
 import FontAwesome from "@expo/vector-icons/FontAwesome";
@@ -13,6 +14,26 @@ const HistorialProductosVenta = ({
   setModalProductosVendidos,
   historialVentas,
 }) => {
+
+ //CARGA
+ const [loading, setLoading] = useState(true);
+
+ useEffect(() => {
+  if (
+    historialVentas
+  ) {
+    setLoading(false);
+  }
+}, [historialVentas]);
+
+if (loading) {
+  return (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color="#fee03e" />
+    </View>
+  );
+}
+
   const Item = ({ PRODUCTO, CANTIDAD }) => (
     <View style={styles.item}>
       <Text style={styles.nombreProducto}>{PRODUCTO}</Text>
@@ -105,5 +126,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderBottomColor: "#cccccc",
     borderBottomWidth: 0.5,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

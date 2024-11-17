@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   View,
   Text,
@@ -145,8 +145,13 @@ const FormasPagoVenta = ({
       );
     } finally {
       setIsLoading(false);
-    }
+    } 
   }; 
+
+  useEffect(() => {
+    console.log(montoAbonado);
+    
+  }, [])   
 
   return (
     <View style={styles.modalOverlay}>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -25,10 +25,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import SkeletonLoaderClientes from "./components--/skeletonAnimatedClientes.js";
 
+//CONTEXTO
+import { PagosContext } from "./Context/pagosContext.js";
+
 const Clientes = () => {
 
   const [clientes, setClientes] = useState([]);
   const [cliente, setCliente] = useState({});
+
+  const {cargarVentas, cargarPagos} = useContext(PagosContext);
 
   const [formClientes, setFormClientes] = useState(false);
   const [modalInformacionCliente, setModalInformacionCliente] = useState(false);
@@ -188,6 +193,8 @@ const Clientes = () => {
           closeFormCliente={closeFormCliente}
           closeInfoCliente={closeInfoCliente}
           cargarClientes={cargarClientes}
+          cargarVentas={cargarVentas}
+          cargarPagos={cargarPagos}
           />
       </Modal>
     </View>
@@ -208,6 +215,7 @@ const styles = StyleSheet.create({
     fontSize: 40,
     fontWeight: "900",
     color: "#000",
+    textTransform:'uppercase'
   },
   boxInput: {
     backgroundColor: "#efefef",

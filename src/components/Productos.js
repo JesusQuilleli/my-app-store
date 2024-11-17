@@ -230,7 +230,6 @@ const Productos = () => {
     cargarProductos();
     cargarCategorias();
     cargarTasaUnica();
-    (console.log(productos))  
   }, []);
 
   //USE PARA COMPONENTE DE CARGA SKELETON
@@ -590,13 +589,13 @@ const Productos = () => {
               style={{ alignItems: "center", justifyContent: "flex-start" }}
             >
               <Text style={styles.labelTotal}>TOTAL INVERTIDO</Text>
-              <Text style={styles.valorTotal}>{totalCompra === 0 ? (<Text style={{fontSize: 10}}>Aún no hay Inversión</Text>):(<Text>{totalCompra} $</Text>)}</Text>
+              <Text style={styles.valorTotal}>{totalCompra === 0 ? (<Text style={{fontSize: 10}}>Aún no hay Inversión</Text>):(<Text>{totalCompra.toFixed(2)} $</Text>)}</Text>
             </View>
             <View
               style={{ alignItems: "center", justifyContent: "flex-start" }}
             >
               <Text style={styles.labelTotal}>TOTAL DE VENTA</Text>
-              <Text style={styles.valorTotal}>{totalVenta === 0 ? (<Text style={{fontSize: 10}}>Aún no hay Inversión</Text>):(<Text>{totalVenta} $</Text>)}</Text>
+              <Text style={styles.valorTotal}>{totalVenta === 0 ? (<Text style={{fontSize: 10}}>Aún no hay Inversión</Text>):(<Text>{totalVenta.toFixed(2)} $</Text>)}</Text>
             </View>
             <View style={{ alignItems: "center", justifyContent: "center" }}>
               <Text style={styles.labelTotal}>GANANCIA ESTIMADA</Text>
@@ -610,7 +609,7 @@ const Productos = () => {
               >
                 <Text style={styles.valorTotal}>{totalGanancia === 0 ? (<Text style={{fontSize: 10, textAlign:'center'}}>Sin ganacia</Text>): (<Text>{totalGanancia.toFixed(2)} $</Text>)}  </Text>
                 {totalGanancia !== 0 && productos.CANTIDAD !== 0 && (<Text style={styles.valorTotal}>
-                  {porcentajeGananciaPromedio.toFixed(0)} %
+                  / {porcentajeGananciaPromedio.toFixed(0)} %
                 </Text>)}
               </View>
             </View>
@@ -790,8 +789,9 @@ const styles = StyleSheet.create({
   },
   titulo: {
     marginTop: 20,
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "900",
+    textTransform:'uppercase'
   },
   tituloBold: {
     color: "#fcd53f",

@@ -9,10 +9,14 @@ import {
 
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 
-import { formatearFecha } from "../../../helpers/validaciones";
+import { formatearFechaOtroFormato } from "../../../helpers/validaciones";
 
-const HistorialPagosVenta = ({ setModalHistorialPagos, historialPagos }) => {
-  
+const HistorialPagosVenta = ({
+  setModalHistorialPagos,
+  historialPagos,
+  TasaBolivares,
+  TasaPesos,
+}) => {
   const Item = ({
     CLIENTE,
     ESTADO_VENTA,
@@ -25,25 +29,80 @@ const HistorialPagosVenta = ({ setModalHistorialPagos, historialPagos }) => {
     <View style={styles.item}>
       <Text style={styles.nombreCliente}>{CLIENTE}</Text>
       <Text style={styles.defecto}>
-        Fecha del Pago:{" "}
-        <Text style={{ color: "#000" }}>{formatearFecha(FECHA_PAGO)}</Text>
+        Fecha del Pago{" "}
+        <Text style={{ color: "#000" }}>{formatearFechaOtroFormato(FECHA_PAGO)}</Text>
       </Text>
 
-      <Text style={styles.defecto}>
-        Monto Abonado: <Text style={{ color: "#000" }}>{MONTO_ABONADO}</Text>{" "}
-        <Text style={{ fontSize: 8 }}>Dolares</Text>
-      </Text>
-      {ESTADO_VENTA === "PENDIENTE" && (
+      <View
+        style={{
+          width: "100%",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-evenly",
+        }}
+      >
         <Text style={styles.defecto}>
-          Monto Restante:{" "}
-          <Text style={{ color: "#000" }}>
-            {(MONTO_PENDIENTE - MONTO_ABONADO).toFixed(2)}
-          </Text>{" "}
-          <Text style={{ fontSize: 8 }}>Dolares</Text>
+          ABONO DE {" "}<Text style={{ color: "#000" }}>{MONTO_ABONADO}</Text>
+          <Text style={{ fontSize: 10 }}>$</Text>
         </Text>
-      )}
+        <Text style={[styles.defecto, { color: "#000" }]}>
+          {isNaN(TasaBolivares) || TasaBolivares === 0 ? (
+            <Text>No disponible</Text>
+          ) : (
+            (MONTO_ABONADO * TasaBolivares).toFixed(2)
+          )}
+          <Text style={[styles.defecto, { fontSize: 10 }]}>
+            {isNaN(TasaPesos) ? <Text></Text> : <Text>Bs</Text>}{" "}
+          </Text>
+        </Text>
+        <Text style={[styles.defecto, { color: "#000" }]}>
+          {isNaN(TasaPesos) || TasaPesos === 0 ? (
+            <Text>No disponible</Text>
+          ) : (
+            (MONTO_ABONADO * TasaPesos).toFixed(0)
+          )}
+          <Text style={[styles.defecto, { fontSize: 10 }]}>
+            {isNaN(TasaPesos) ? <Text></Text> : <Text>Cop</Text>}{" "}
+          </Text>
+        </Text>
+      </View>
+
+      {ESTADO_VENTA === "PENDIENTE" && (<View
+        style={{
+          width: "100%",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-evenly",
+        }}
+      >
+        <Text style={styles.defecto}>
+          RESTANTE DE {" "}<Text style={{ color: "#000" }}>{(MONTO_PENDIENTE - MONTO_ABONADO).toFixed(2)}</Text>
+          <Text style={{ fontSize: 10 }}>$</Text>
+        </Text>
+        <Text style={[styles.defecto, { color: "#000" }]}>
+          {isNaN(TasaBolivares) || TasaBolivares === 0 ? (
+            <Text>No disponible</Text>
+          ) : (
+            ((MONTO_PENDIENTE - MONTO_ABONADO) * TasaBolivares).toFixed(2)
+          )}
+          <Text style={[styles.defecto, { fontSize: 10 }]}>
+            {isNaN(TasaPesos) ? <Text></Text> : <Text>Bs</Text>}{" "}
+          </Text>
+        </Text>
+        <Text style={[styles.defecto, { color: "#000" }]}>
+          {isNaN(TasaPesos) || TasaPesos === 0 ? (
+            <Text>No disponible</Text>
+          ) : (
+            ((MONTO_PENDIENTE - MONTO_ABONADO) * TasaPesos).toFixed(0)
+          )}
+          <Text style={[styles.defecto, { fontSize: 10 }]}>
+            {isNaN(TasaPesos) ? <Text></Text> : <Text>Cop</Text>}{" "}
+          </Text>
+        </Text>
+      </View>)}
+
       <Text style={styles.defecto}>
-        Estado de Venta:{" "}
+        Estado de Venta{" "}
         <Text
           style={
             ESTADO_VENTA === "PENDIENTE" ? { color: "red" } : { color: "green" }
@@ -53,11 +112,16 @@ const HistorialPagosVenta = ({ setModalHistorialPagos, historialPagos }) => {
         </Text>{" "}
       </Text>
       <Text style={styles.defecto}>
-        Tipo de pago: <Text style={{ color: "#000" }}>{MANERA_PAGO === 'PAGO_MOVIL/TRANSFERENCIA' ? ('PAGO MOVIL O TRANSFERENCIA') : (MANERA_PAGO)}</Text>{" "}
+        Tipo de pago{" "}
+        <Text style={{ color: "#000" }}>
+          {MANERA_PAGO === "PAGO_MOVIL/TRANSFERENCIA"
+            ? "TRANSFERENCIA"
+            : MANERA_PAGO}
+        </Text>{" "}
       </Text>
       {MANERA_PAGO !== "EFECTIVO" && (
         <Text style={styles.defecto}>
-          Nro Operación:{" "}
+          Nro Operación{" "}
           <Text style={{ color: "#000" }}>{NUMERO_REFERENCIA}</Text>{" "}
         </Text>
       )}
@@ -78,10 +142,17 @@ const HistorialPagosVenta = ({ setModalHistorialPagos, historialPagos }) => {
         </View>
 
         {historialPagos.length === 0 && (
-        <Text style={{ fontSize: 24, marginTop: 20, fontWeight: "900", textAlign:'center' }}>
-          Aún no hay seguimiento de los pagos.
-        </Text>
-      )}
+          <Text
+            style={{
+              fontSize: 24,
+              marginTop: 20,
+              fontWeight: "900",
+              textAlign: "center",
+            }}
+          >
+            Aún no hay seguimiento de los pagos.
+          </Text>
+        )}
 
         <FlatList
           data={historialPagos}
@@ -114,7 +185,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
-    width: "80%",
+    width: "90%",
     padding: 20,
     backgroundColor: "white",
     borderRadius: 10,
@@ -146,18 +217,18 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   nombreCliente: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "800",
   },
   defecto: {
-    fontSize: 10.5,
+    fontSize: 12,
     textTransform: "uppercase",
     fontWeight: "700",
     color: "#888",
   },
   item: {
     backgroundColor: "#fff",
-    padding: 10,
+    padding: 15,
     alignItems: "center",
     borderBottomColor: "#cccccc",
     borderBottomWidth: 0.5,

@@ -8,6 +8,7 @@ import {
   Modal,
   Alert,
   ScrollView,
+  ActivityIndicator
 } from "react-native";
 
 //STYLES
@@ -41,12 +42,17 @@ const InformacionCliente = ({
   closeFormCliente,
   closeInfoCliente,
   cargarClientes,
+  cargarVentas,
+  cargarPagos
 }) => {
   const [options, setOptions] = useState(false);
   const [copiedText, setCopiedText] = useState("");
 
+  const [isLoading, setIsLoading] = useState(false);
+
   //FUNCIONES ELIMINAR CLIENTES
   const eliminarCliente = async (id_cliente) => {
+    
     try {
       const response = await axios.delete(
         `${url}/eliminarCliente/${id_cliente}`
@@ -75,11 +81,17 @@ const InformacionCliente = ({
         {
           text: "Eliminar", // Opción para confirmar la eliminación
           onPress: async () => {
+            setIsLoading(true);
             try {
               await eliminarCliente(clienteID); // Eliminar el producto
-              cargarClientes();
+              await cargarClientes();
+              await cargarVentas();
+              await cargarPagos();
               setModalInformacionCliente(false);
             } catch (error) {}
+            finally{
+              setIsLoading(false);
+            }
           },
           style: "destructive", // Cambia el estilo para dar un aspecto más serio
         },
@@ -96,6 +108,27 @@ const InformacionCliente = ({
 
   return (
     <View style={styles.container}>
+      {isLoading && (
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(242, 243, 244, 0.8)",
+            zIndex: 1000,
+          }}
+        >
+          <ActivityIndicator
+            size="large"
+            color="#fee03e"
+            style={{ transform: [{ scale: 2 }] }}
+          />
+        </View>
+      )}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => {

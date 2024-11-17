@@ -77,7 +77,6 @@ CREATE TABLE VENTAS_PRODUCTOS (
         FOREIGN KEY (ADMINISTRADOR_ID) REFERENCES ADMINISTRADORES(ID_ADMINISTRADOR) ON DELETE CASCADE
     );
 
-  ---------------------------------------------------------------------------------
     --TABLA PAGOS
     CREATE TABLE PAGOS (
         ID_PAGO INT AUTO_INCREMENT PRIMARY KEY,
@@ -90,6 +89,18 @@ CREATE TABLE VENTAS_PRODUCTOS (
         MONTO_PENDIENTE_AL_MOMENTO DECIMAL(10, 2),
         FOREIGN KEY (VENTA_ID) REFERENCES VENTAS(ID_VENTA) ON DELETE CASCADE
     );
+
+    --TABLA DEUDORES
+    CREATE TABLE DEUDORES (
+    ID_DEUDOR INT AUTO_INCREMENT PRIMARY KEY,
+    CLIENTE_ID INT,
+    VENTA_ID INT,  -- Nueva columna para referenciar la venta asociada
+    MONTO_PENDIENTE DECIMAL(10, 2),
+    ESTADO_MOROSO ENUM('SI', 'NO'),
+    FECHA_ULTIMO_PAGO DATE,
+    FOREIGN KEY (CLIENTE_ID) REFERENCES CLIENTES(ID_CLIENTE) ON DELETE CASCADE,
+    FOREIGN KEY (VENTA_ID) REFERENCES VENTAS(ID_VENTA) ON DELETE CASCADE  -- Cambiado a VENTA_ID
+);
 
     --TABLA TOKENS PARA LAS NOTIFICACIONES
         CREATE TABLE tokens (
@@ -107,24 +118,30 @@ CREATE TABLE VENTAS_PRODUCTOS (
         AFTER INSERT ON PAGOS
         FOR EACH ROW
         BEGIN
+            -- Obtener el monto pendiente actual de la venta
+            DECLARE monto_pendiente_actual DECIMAL(10, 2);
+            SELECT MONTO_PENDIENTE INTO monto_pendiente_actual
+            FROM VENTAS
+            WHERE ID_VENTA = NEW.VENTA_ID;
+            
             -- Actualizar el monto pendiente en la tabla VENTAS
             UPDATE VENTAS
-            SET MONTO_PENDIENTE = MONTO_PENDIENTE - NEW.MONTO_ABONADO
+            SET MONTO_PENDIENTE = monto_pendiente_actual - NEW.MONTO_ABONADO
             WHERE ID_VENTA = NEW.VENTA_ID;
 
             -- Verificar si el monto pendiente es 0 y actualizar el estado de pago a "PAGADO"
-            IF (SELECT MONTO_PENDIENTE FROM VENTAS WHERE ID_VENTA = NEW.VENTA_ID) = 0 THEN
+            IF (monto_pendiente_actual - NEW.MONTO_ABONADO) <= 0 THEN
                 UPDATE VENTAS
-                SET ESTADO_PAGO = 'PAGADO'
+                SET ESTADO_PAGO = 'PAGADO', MONTO_PENDIENTE = 0
                 WHERE ID_VENTA = NEW.VENTA_ID;
             END IF;
         END //
 
         DELIMITER ;
 
-        --TRIGEER PAGOS
 
-       DELIMITER //
+    --TRIGER PAGOS
+    DELIMITER //
 
         CREATE TRIGGER actualizar_estado_y_monto_pendiente_pagos
         BEFORE INSERT ON PAGOS
@@ -142,193 +159,35 @@ CREATE TABLE VENTAS_PRODUCTOS (
             SET NEW.ESTADO_VENTA = estado_actual;
             SET NEW.MONTO_PENDIENTE_AL_MOMENTO = monto_pendiente_actual;
 
-            -- Verificar si el monto pendiente después del pago será cero
+            -- Verificar si el monto pendiente después del abono es 0
             IF (monto_pendiente_actual - NEW.MONTO_ABONADO) <= 0 THEN
+                -- Si el monto pendiente es 0 o menos, actualizar el estado de pago a 'PAGADO'
                 SET NEW.ESTADO_VENTA = 'PAGADO';
             END IF;
+
+            -- No realizamos actualizaciones en la tabla VENTAS aquí, solo actualizamos la tabla PAGOS
         END //
 
-        DELIMITER ;
+    DELIMITER ;
 
+    
 
-      DROP TRIGGER IF EXISTS after_venta_insert;
+    DROP TRIGGER IF EXISTS actualizar_estado_y_monto_pendiente_pagos;
+
+    DROP TRIGGER IF EXISTS actualizar_monto_pendiente;
+
+    DROP TRIGGER IF EXISTS insertar_deudores;
+
+    DROP TRIGGER IF EXISTS insertar_deudores_tras_venta;
+
 
 
     ---------------------------------------------------------------------
 
-    SELECT 
-    p.ID_PAGO,
-    p.VENTA_ID,
-    p.MONTO_ABONADO,
-    p.FECHA_PAGO,
-    p.MANERA_PAGO,
-    p.NUMERO_REFERENCIA,
-    c.NOMBRE AS CLIENTE
-FROM 
-    PAGOS p
-JOIN 
-    VENTAS v ON p.VENTA_ID = v.ID_VENTA
-JOIN 
-    CLIENTES c ON v.CLIENTE_ID = c.ID_CLIENTE
-WHERE 
-    v.ADMINISTRADOR_ID = ?  -- Filtra por el administrador específico
-    AND p.VENTA_ID = ?;     -- Filtra por la venta específica
-
-  ---------------------------------------------------------
-
-            SELECT 
-        p.ID_PAGO,
-        p.VENTA_ID,
-        p.MONTO_ABONADO,
-        p.FECHA_PAGO,
-        p.MANERA_PAGO,
-        p.NUMERO_REFERENCIA,
-        c.NOMBRE AS CLIENTE
-    FROM 
-        PAGOS p
-    JOIN 
-        VENTAS v ON p.VENTA_ID = v.ID_VENTA
-    JOIN 
-        CLIENTES c ON v.CLIENTE_ID = c.ID_CLIENTE
-    WHERE v.ADMINISTRADOR_ID = ?
+    --PRUEBA
 
 
----------------------------------------------------------
 
-   SELECT 
-    VENTAS.ID_VENTA, 
-    PRODUCTOS.NOMBRE, 
-    VENTAS_PRODUCTOS.CANTIDAD
-FROM 
-    VENTAS_PRODUCTOS
-JOIN 
-    VENTAS ON VENTAS_PRODUCTOS.VENTA_ID = VENTAS.ID_VENTA
-JOIN 
-    PRODUCTOS ON VENTAS_PRODUCTOS.PRODUCTO_ID = PRODUCTOS.ID_PRODUCTO
-WHERE 
-    VENTAS_PRODUCTOS.VENTA_ID = ?
-    AND VENTAS.ADMINISTRADOR_ID = ?
-ORDER BY 
-    PRODUCTOS.NOMBRE;
+    ----------------------------------------------------------------------
 
-    ---------------------------------------------------------
-
---EJEMPLO DE LO QUE SE DEBE HACER PARA QUE CADA ADMINISTRADOR TENGA SU PROPIA INFORMACION
-ALTER TABLE CLIENTES ADD COLUMN ADMINISTRADOR_ID INT;
-ALTER TABLE CLIENTES ADD FOREIGN KEY (ADMINISTRADOR_ID) REFERENCES ADMINISTRADORES(ID_ADMINISTRADOR) ON DELETE CASCADE;
-
---INSERCIONES CATEGORIAS EJEMPLO
-INSERT INTO CATEGORIAS (NOMBRE, DESCRIPCION, ADMINISTRADOR_ID) VALUES ('Zapatos', 'Variedad de Zapatos', 1);
-INSERT INTO CATEGORIAS (NOMBRE, DESCRIPCION, ADMINISTRADOR_ID) VALUES ('Zapatos', 'Talla 40', 26);
-
---INSERCIONES PRODUCTOS EJEMPLO
-INSERT INTO PRODUCTOS (CATEGORIA_ID, NOMBRE, DESCRIPCION, PRECIO, CANTIDAD, IMAGEN) VALUES (1, 'Campus', 'CASUALES', 49.99, 15, 'IMAGEN_CAMPUS');
-INSERT INTO PRODUCTOS (CATEGORIA_ID, NOMBRE, DESCRIPCION, PRECIO, CANTIDAD, IMAGEN) VALUES (1, 'Nike Jordan', 'DEPORTIVOS', 59.99, 20, 'IMAGEN_NIKE');
-INSERT INTO PRODUCTOS (CATEGORIA_ID, NOMBRE, DESCRIPCION, PRECIO, CANTIDAD, IMAGEN) VALUES (2, 'Argollas', 'PARA SALIR A EVENTOS', 29.99, 20, 'IMAGEN_ARGOLLAS');
-
---EJEMPLO PARA VER LAS PRODUCTOS POR CATEGORIAS
-SELECT 
-    P.ID_PRODUCTO,
-    C.NOMBRE AS CATEGORIA,
-    P.NOMBRE AS PRODUCTO,
-    P.DESCRIPCION,
-    P.PRECIO,
-    P.CANTIDAD,
-    P.IMAGEN AS FOTO
-FROM 
-    PRODUCTOS P
-JOIN 
-    CATEGORIAS C
-ON 
-    P.CATEGORIA_ID = C.ID_CATEGORIA
-WHERE 
-    P.CATEGORIA_ID = 1;
-
---EJEMPLO PARA VER TODOS LOS PRODUCTOS DE TODAS LAS CATEGORIAS
-SELECT 
-    P.ID_PRODUCTO,
-    C.NOMBRE AS CATEGORIA,
-    P.NOMBRE AS PRODUCTO,
-    P.DESCRIPCION,
-    P.PRECIO,
-    P.CANTIDAD,
-    P.IMAGEN AS FOTO
-FROM 
-    PRODUCTOS P
-JOIN 
-    CATEGORIAS C
-ON 
-    P.CATEGORIA_ID = C.ID_CATEGORIA
-
---CAMPOS SELECCIONADOS DE VENTAS
---CLIENTE
---FECHA
---ESTADO DE PAGO
-
---PARA LA INFORMACION DETALLADA
---CLIENTE
---FECHA
---ESTADO DE PAGO
---MONTO TOTAL
---MONTO PENDIENTE
---LISTA DE LOS PRODUCTOS VENDIDOS
-
---Y EL ID_ADMINISTRADOR DE LA TABLA VENTAS PARA MOSTRARLE LA INFORMACION AL ADMINISTRADOR QUE ESTE EN LA APLICACION
-
---Consulta para la Información Resumida
---Esta consulta te da los campos CLIENTE, FECHA, y ESTADO_PAGO:
-SELECT 
-    c.NOMBRE AS CLIENTE,
-    v.FECHA_VENTA AS FECHA,
-    v.ESTADO_PAGO
-FROM 
-    VENTAS v
-JOIN 
-    CLIENTES c ON v.CLIENTE_ID = c.ID_CLIENTE
-WHERE 
-    v.ADMINISTRADOR_ID = 26; 
-
---INFORMACION DETALLADA
-SELECT 
-    c.NOMBRE AS CLIENTE,
-    v.FECHA_VENTA AS FECHA,
-    v.ESTADO_PAGO,
-    v.MONTO_TOTAL,
-    v.MONTO_PENDIENTE,
-    GROUP_CONCAT(p.NOMBRE SEPARATOR ', ') AS LISTA_PRODUCTOS,
-    v.ADMINISTRADOR_ID
-FROM 
-    VENTAS v
-JOIN 
-    CLIENTES c ON v.CLIENTE_ID = c.ID_CLIENTE
-LEFT JOIN 
-    VENTAS_PRODUCTOS vp ON v.ID_VENTA = vp.VENTA_ID
-LEFT JOIN 
-    PRODUCTOS p ON vp.PRODUCTO_ID = p.ID_PRODUCTO
-WHERE 
-    v.ADMINISTRADOR_ID = 26
-GROUP BY 
-    v.ID_VENTA;
-------------------------------------------------------
-SELECT 
-    c.NOMBRE AS CLIENTE,
-    v.FECHA_VENTA AS FECHA,
-    v.ESTADO_PAGO,
-    v.MONTO_TOTAL,
-    v.MONTO_PENDIENTE,
-    GROUP_CONCAT(p.NOMBRE SEPARATOR ', ') AS LISTA_PRODUCTOS,
-    v.ADMINISTRADOR_ID
-FROM 
-    VENTAS v
-JOIN 
-    CLIENTES c ON v.CLIENTE_ID = c.ID_CLIENTE
-LEFT JOIN 
-    VENTAS_PRODUCTOS vp ON v.ID_VENTA = vp.VENTA_ID
-LEFT JOIN 
-    PRODUCTOS p ON vp.PRODUCTO_ID = p.ID_PRODUCTO
-WHERE 
-    v.ADMINISTRADOR_ID = 26
-    AND v.ID_VENTA = 7
-GROUP BY 
-    v.ID_VENTA;
 

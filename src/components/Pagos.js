@@ -8,12 +8,14 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  Modal,
 } from "react-native";
 
 import axios from "axios";
 import { url } from "./../helpers/url.js";
 
 import Entypo from "@expo/vector-icons/Entypo";
+import InformacionPagos from "./sub-components/components--Pagos/InformacionPagos.js";
 
 import { formatearFecha } from "../helpers/validaciones";
 
@@ -28,6 +30,10 @@ const Pagos = ({
   const [pagosSeleccionados, setPagosSeleccionados] = useState([]);
   const [modoSeleccion, setModoSeleccion] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const [Infopagos, setInfoPagos] = useState(false);
+
+  const [pagoSeleccionado, setPagoSeleccionado] = useState([]);
 
   const seleccionarPago = (idPago) => {
     setModoSeleccion(true); // Activa el modo selección al seleccionar una venta
@@ -119,40 +125,23 @@ const Pagos = ({
     );
   };
 
+  // Función para mostrar detalles del pago en el modal
+  const mostrarDetallesPago = (idPago) => {
+    const pago = verPagos.find((p) => p.ID_PAGO === idPago);
+    if (pago) {
+      setPagoSeleccionado([pago]);
+      setInfoPagos(true);
+    }
+  };
 
-  const Item = ({
-    CLIENTE,
-    FECHA_PAGO,
-    MONTO_ABONADO,
-    MONTO_PENDIENTE,
-    ESTADO_VENTA,
-    VENTA_ID,
-    SELECCIONADO,
-  }) => (
+  const Item = ({ CLIENTE, FECHA_PAGO, ESTADO_VENTA, SELECCIONADO }) => (
     <View style={[styles.item, SELECCIONADO && styles.itemSeleccionado]}>
       <Text style={styles.nombreCliente}>{CLIENTE}</Text>
       <Text style={styles.defecto}>
         Fecha de Pago:{" "}
         <Text style={{ color: "#000" }}>{formatearFecha(FECHA_PAGO)}</Text>
       </Text>
-      <Text style={styles.defecto}>
-        Deuda Total: <Text style={{ color: "#000" }}>{MONTO_PENDIENTE}</Text>{" "}
-        <Text style={{ fontSize: 12 }}>Dolares</Text>
-      </Text>
 
-      <Text style={styles.defecto}>
-        Monto Abonado: <Text style={{ color: "#000" }}>{MONTO_ABONADO}</Text>{" "}
-        <Text style={{ fontSize: 12 }}>Dolares</Text>
-      </Text>
-      {ESTADO_VENTA === "PENDIENTE" && (
-        <Text style={styles.defecto}>
-          Deuda Restante:{" "}
-          <Text style={{ color: "#000" }}>
-            {(MONTO_PENDIENTE - MONTO_ABONADO).toFixed(2)}
-          </Text>{" "}
-          <Text style={{ fontSize: 12 }}>Dolares</Text>
-        </Text>
-      )}
       <Text style={styles.defecto}>
         Estado de Venta:{" "}
         <Text
@@ -163,11 +152,12 @@ const Pagos = ({
           {ESTADO_VENTA}
         </Text>{" "}
       </Text>
-      <Text style={styles.defecto}>
-        Codigo Venta: <Text style={{ color: "#000" }}>{VENTA_ID}</Text>{" "}
-      </Text>
     </View>
   );
+
+  useEffect(() => {
+    console.log(pagoSeleccionado);
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -227,31 +217,32 @@ const Pagos = ({
         </Text>
       )}
 
-     {verPagos.length !== 0 && (<FlatList
-        data={verPagos}
-        keyExtractor={(item) => item.ID_PAGO}
-        style={styles.tablePagos}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            onPress={() => {
-              if (modoSeleccion) {
-                seleccionarPago(item.ID_PAGO);
-              }
-            }}
-            onLongPress={() => seleccionarPago(item.ID_PAGO)}
-          >
-            <Item
-              CLIENTE={item.CLIENTE}
-              FECHA_PAGO={item.FECHA_PAGO}
-              MONTO_ABONADO={item.MONTO_ABONADO}
-              MONTO_PENDIENTE={item.MONTO_PENDIENTE}
-              ESTADO_VENTA={item.ESTADO_VENTA}
-              VENTA_ID={item.VENTA_ID}
-              SELECCIONADO={pagosSeleccionados.includes(item.ID_PAGO)}
-            />
-          </TouchableOpacity>
-        )}
-      />)}
+      {verPagos.length !== 0 && (
+        <FlatList
+          data={verPagos}
+          keyExtractor={(item) => item.ID_PAGO}
+          style={styles.tablePagos}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              onPress={() => {
+                if (modoSeleccion) {
+                  seleccionarPago(item.ID_PAGO);
+                } else {
+                  mostrarDetallesPago(item.ID_PAGO);
+                }
+              }}
+              onLongPress={() => seleccionarPago(item.ID_PAGO)}
+            >
+              <Item
+                CLIENTE={item.CLIENTE}
+                FECHA_PAGO={item.FECHA_PAGO}
+                ESTADO_VENTA={item.ESTADO_VENTA}
+                SELECCIONADO={pagosSeleccionados.includes(item.ID_PAGO)}
+              />
+            </TouchableOpacity>
+          )}
+        />
+      )}
       {modoSeleccion && (
         <View style={styles.buttonContainerEliminar}>
           <TouchableOpacity
@@ -275,6 +266,13 @@ const Pagos = ({
           </TouchableOpacity>
         </View>
       )}
+
+      <Modal visible={Infopagos} animationType="fade">
+        <InformacionPagos
+          setInfoPagos={setInfoPagos}
+          pagoSeleccionado={pagoSeleccionado}
+        />
+      </Modal>
     </View>
   );
 };

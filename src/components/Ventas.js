@@ -9,6 +9,7 @@ import {
   Alert,
   ActivityIndicator,
   TextInput,
+  Linking,
 } from "react-native";
 
 import FormularioVenta from "./sub-components/components--Ventas/FormularioVenta.js";
@@ -33,14 +34,20 @@ const Ventas = () => {
   //FORMULARIO VENTAS
   const [formVentas, setFormVentas] = useState(false);
 
-  const { cargarPagos, cargarProductos, productos, setProductos } =
-    useContext(PagosContext);
+  const {
+    cargarPagos,
+    cargarProductos,
+    productos,
+    setProductos,
+    ventasResumidas,
+    setVentasResumidas,
+    cargarVentas,
+  } = useContext(PagosContext);
 
   //CLIENTES Y PRODUCTOS
   const [clientes, setClientes] = useState([]);
 
   //VENTAS
-  const [ventasResumidas, setVentasResumidas] = useState([]);
   const [ventasDetalladas, setVentasDetalladas] = useState([]);
   const [modalVentasDetalladas, setModalVentasDetalladas] = useState(false);
 
@@ -103,27 +110,6 @@ const Ventas = () => {
       setClientes(resultadoClientes);
     } catch (error) {
       console.error("Ha ocurrido un error al cargar Clientes", error);
-    }
-  };
-
-  //FUNCION CARGAR VENTAS
-  const cargarVentas = async () => {
-    try {
-      const adminIdString = await AsyncStorage.getItem("adminId");
-      if (adminIdString === null) {
-        console.log("ID de administrador no encontrado.");
-        return;
-      }
-      const adminId = parseInt(adminIdString, 10);
-      if (isNaN(adminId)) {
-        console.log("ID de administrador no es un número válido.");
-        return;
-      }
-      const respuesta = await axios.get(`${url}/infoResum/${adminId}`);
-      const resultadoVentasResumidas = respuesta.data.response;
-      setVentasResumidas(resultadoVentasResumidas);
-    } catch (error) {
-      console.log("Error al cargar Ventas", error);
     }
   };
 
@@ -212,8 +198,14 @@ const Ventas = () => {
     DateTimePickerAndroid.open({
       value: fechaInicial,
       onChange: (event, selectedDate) => {
-        const currentDate = selectedDate || fechaInicial;
-        setFechaIncial(currentDate); // Actualiza la fecha seleccionada
+        if (event.type === "set") {
+          // Asegura que selectedDate esté en tu zona horaria local
+          const localDate = new Date(
+            selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000
+          );
+
+          setFechaIncial(localDate); // Actualiza la fecha ajustada
+        }
       },
       mode: "date",
       is24Hour: true,
@@ -225,8 +217,14 @@ const Ventas = () => {
     DateTimePickerAndroid.open({
       value: fechaFinal,
       onChange: (event, selectedDate) => {
-        const currentDate = selectedDate || fechaFinal;
-        setFechaFinal(currentDate); // Actualiza la fecha seleccionada
+        if (event.type === "set") {
+          // Asegura que selectedDate esté en tu zona horaria local
+          const localDate = new Date(
+            selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000
+          );
+
+          setFechaFinal(localDate); // Actualiza la fecha ajustada
+        }
       },
       mode: "date",
       is24Hour: true,
@@ -364,6 +362,7 @@ const Ventas = () => {
     }
   };
 
+  //ELIMINAR VENTAS
   const handlerEliminar = () => {
     // Mostrar la advertencia de confirmación
     Alert.alert(
@@ -503,18 +502,22 @@ const Ventas = () => {
       )}
 
       <View style={styles.boxInput}>
-        <TextInput
-          placeholder="Buscar por Cedula"
-          placeholderTextColor="#888"
-          style={{ textAlign: "center" }}
-          onChangeText={(value) => {
-            if (value.length > 0) {
-              cargarVentasPorCedula(value);
-            } else {
-              cargarVentas();
-            }
-          }}
-        />
+        <View style={styles.contentButtonAndInput}>
+          <View style={styles.input}>
+            <TextInput
+              placeholder="Buscar por Cedula"
+              placeholderTextColor="#888"
+              style={{ textAlign: "center" }}
+              onChangeText={(value) => {
+                if (value.length > 0) {
+                  cargarVentasPorCedula(value);
+                } else {
+                  cargarVentas();
+                }
+              }}
+            />
+          </View>
+        </View>
       </View>
 
       {ventasResumidas.length === 0 && (
@@ -769,13 +772,29 @@ const styles = StyleSheet.create({
     width: 160,
   },
   boxInput: {
+    width: "100%",
+    marginVertical: 15,
+    textTransform: "uppercase",
+  },
+  input: {
+    width: "60%",
     backgroundColor: "#efefef",
-    width: "75%",
-    borderBottomColor: "#fcd53f",
+    borderBottomColor: "#fee03e",
     borderBottomWidth: 2,
     borderRadius: 10,
     padding: 8,
-    marginVertical: 15,
-    textTransform: "uppercase",
+  },
+  contentButtonAndInput: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
+  },
+  botonAvisar: {
+    backgroundColor: "#25D366",
+    padding: 15,
+    margin: 10,
+    borderRadius: 50,
+    alignItems: "center",
   },
 });
