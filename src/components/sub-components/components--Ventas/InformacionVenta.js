@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   ScrollView,
   Modal,
+  Alert,
   Linking,
 } from "react-native";
 
@@ -47,6 +48,32 @@ const InformacionVenta = ({
   const [historialPagos, setHistorialPagos] = useState([]);
   const [historialVentas, setHistorialVentas] = useState([]);
 
+  //PAGO MOVIL
+  const [cedula, setCedula] = useState("");
+  const [banco, setBanco] = useState("");
+  const [telefonoPago, setTelefonoPago] = useState("");
+
+  const cargarPagoMovil = async () => {
+    try {
+      // Recuperar el ID del administrador
+      const adminIdString = await AsyncStorage.getItem("adminId");
+      if (adminIdString) {
+        // Recuperar los datos del Pago Móvil
+        const pagoMovil = await AsyncStorage.getItem(
+          `adminPagoMovil_${adminIdString}`
+        );
+        if (pagoMovil) {
+          const { cedula, banco, telefonoPago } = JSON.parse(pagoMovil);
+          setCedula(cedula);
+          setBanco(banco);
+          setTelefonoPago(telefonoPago);
+        }
+      }
+    } catch (error) {
+      console.error("Error al cargar datos del Pago Móvil:", error);
+    }
+  };
+
   const cargarHistorialPagos = async (Venta_ID) => {
     try {
       const adminIdString = await AsyncStorage.getItem("adminId");
@@ -78,10 +105,13 @@ const InformacionVenta = ({
       ventasDetalladas.MONTO_PENDIENTE
     ) {
       setLoading(false);
-      console.log(ventasDetalladas);
-      
+      cargarPagoMovil();
     }
   }, [ventasDetalladas]);
+
+  useEffect(() => {
+    cargarPagoMovil();
+  }, []);
 
   if (loading) {
     return (
@@ -120,21 +150,61 @@ const InformacionVenta = ({
     }
   };
 
+  const enviarSMS = async (telefono, cliente, montoPendiente, montoPagado) => {
+    try {
+      if (!cedula || !banco || !telefonoPago) {
+        Alert.alert("Error", "Los datos del Pago Móvil no están configurados.");
+        return;
+      }
+
+      // Recuperar el nombre del administrador desde AsyncStorage
+      const nombre = await AsyncStorage.getItem("adminNombre");
+
+      // Saludo con el nombre del administrador
+      const saludo = nombre ? `¡Soy ${nombre}! De Shop-Mg 👋` : "¡Hola! 👋";
+
+      // Convertir el monto pendiente a bolívares y pesos
+      const montoPendienteBolivares =
+        (parseFloat(montoPendiente) * TasaBolivares).toFixed(2) || "N/D";
+      const montoPendientePesos =
+        (parseFloat(montoPendiente) * TasaPesos).toFixed(0) || "N/D";
+
+      // Crear el texto del abono
+      const montoPagadoTexto =
+        montoPagado > 0
+          ? `Último abono realizado: ${montoPagado} $.\n`
+          : "Aún no has realizado ningún abono.\n";
+
+      // Construir el mensaje para SMS
+      const mensajeSMS = `${saludo}\nEstimad@ ${cliente}\n\n${montoPagadoTexto}Monto Pendiente de: ${montoPendiente} $.\n\nEquivalente a:\n- ${montoPendienteBolivares} Bs\n- ${montoPendientePesos} COP\n\nDatos del Pago Movil:\nCédula: ${cedula}\nBanco: ${banco}\nTeléfono: ${telefonoPago}\n\nGracias por tu atención. 😊`;
+
+      // Construcción de la URL SMS
+      const url = `sms:${telefono}?body=${encodeURIComponent(mensajeSMS)}`;
+
+      // Abrir la aplicación de mensajes
+      await Linking.openURL(url);
+    } catch (error) {
+      console.error("No se pudo abrir la aplicación de mensajes:", error);
+    }
+  };
+
   const enviarMensajeWhatsApp = async (
     telefono,
     cliente,
     montoPendiente,
-    montoPagado,
-    cedula,
-    banco,
-    telefonoPago
+    montoPagado
   ) => {
     try {
+      if (!cedula || !banco || !telefonoPago) {
+        Alert.alert("Error", "Los datos del Pago Móvil no están configurados.");
+        return;
+      }
+
       // Recuperar el nombre del administrador desde AsyncStorage
       const nombre = await AsyncStorage.getItem("adminNombre");
 
       // Si se encuentra el nombre, incluirlo en el saludo
-      const saludo = nombre ? `¡Soy ${nombre}! 👋` : "¡Hola! 👋";
+      const saludo = nombre ? `¡Soy ${nombre}!👋` : "¡Hola! 👋";
 
       // Convertir el monto pendiente a bolívares y pesos
       const montoPendienteBolivares =
@@ -156,7 +226,7 @@ const InformacionVenta = ({
         `${montoPagadoTexto}💰 Tienes un monto pendiente de *${montoPendiente} $*\n\n📈 Este monto es equivalente a:\n\n💵 *${montoPendienteBolivares} Bs* \n💸 *${montoPendientePesos} Cop* \n\n💳 Para realizar tu pago, utiliza los siguientes datos:\n\n🛂 Cédula: ${cedula}\n🏦 Banco: ${banco}\n📱 Teléfono: ${telefonoPago}\n\n📲 ¡Realiza el pago o el abono deseado y confirma tu transacción! \n¡Gracias! 😊`;
 
       // Construcción de la URL con el mensaje
-      const url = `whatsapp://send?phone=+580${telefono}&text=${encodeURIComponent(
+      const url = `whatsapp://send?phone=${telefono}&text=${encodeURIComponent(
         mensajeFinal
       )}`;
 
@@ -165,6 +235,41 @@ const InformacionVenta = ({
     } catch (err) {
       console.error("No se pudo abrir WhatsApp", err);
     }
+  };
+
+  const handleNotificar = (ventasDetalladas) => {
+    Alert.alert(
+      "Selecciona una opción",
+      "¿Cómo deseas enviar el recordatorio?",
+      [
+        {
+          text: "WhatsApp",
+          onPress: () => {
+            enviarMensajeWhatsApp(
+              ventasDetalladas.TELEFONO,
+              ventasDetalladas.CLIENTE,
+              ventasDetalladas.MONTO_PENDIENTE,
+              ventasDetalladas.ABONO
+            );
+          },
+        },
+        {
+          text: "Mensaje SMS",
+          onPress: () => {
+            enviarSMS(
+              ventasDetalladas.TELEFONO,
+              ventasDetalladas.CLIENTE,
+              ventasDetalladas.MONTO_PENDIENTE,
+              ventasDetalladas.ABONO
+            );
+          },
+        },
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+      ]
+    );
   };
 
   return (
@@ -199,26 +304,18 @@ const InformacionVenta = ({
                   justifyContent: "space-evenly",
                 }}
               >
-                {ventasDetalladas.ESTADO_PAGO === 'PENDIENTE' && (<TouchableOpacity
-                  onPress={() => {
-                    enviarMensajeWhatsApp(
-                      ventasDetalladas.TELEFONO,
-                      ventasDetalladas.CLIENTE,
-                      ventasDetalladas.MONTO_PENDIENTE,
-                      ABONO,
-                      "30492547",
-                      "0102 - Venezuela",
-                      "0412-474-2535"
-                    );
-                  }}
-                  style={styles.BtnNotificar}
-                >
-                  <MaterialIcons
-                    name="notifications-active"
-                    size={24}
-                    color="#FFF"
-                  />
-                </TouchableOpacity>)}
+                {ventasDetalladas.ESTADO_PAGO === "PENDIENTE" && (
+                  <TouchableOpacity
+                    onPress={() => handleNotificar(ventasDetalladas)}
+                    style={styles.BtnNotificar}
+                  >
+                    <MaterialIcons
+                      name="notifications-active"
+                      size={24}
+                      color="#FFF"
+                    />
+                  </TouchableOpacity>
+                )}
 
                 <TouchableOpacity
                   onPress={async () => {
@@ -251,7 +348,7 @@ const InformacionVenta = ({
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "space-evenly",
-                marginTop: 10
+                marginTop: 10,
               },
             ]}
           >
@@ -549,7 +646,7 @@ const styles = StyleSheet.create({
     padding: 7.5,
     borderRadius: 50,
     marginBottom: 5,
-    marginRight: 20
+    marginRight: 20,
   },
   BtnProductosText: {
     color: "#FFF",
@@ -563,7 +660,7 @@ const styles = StyleSheet.create({
     padding: 7.5,
     borderRadius: 50,
     marginBottom: 5,
-    marginLeft: 20
+    marginLeft: 20,
   },
   BtnPagoText: {
     color: "#000",
@@ -581,9 +678,9 @@ const styles = StyleSheet.create({
     backgroundColor: "maroon",
     padding: 4,
     borderRadius: 50,
-    position:'absolute',
+    position: "absolute",
     top: -15,
-    left: -15
+    left: -15,
   },
   BtnPagarText: {
     color: "#FFF",

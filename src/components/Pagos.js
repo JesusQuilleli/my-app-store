@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -155,10 +155,6 @@ const Pagos = ({
     </View>
   );
 
-  useEffect(() => {
-    console.log(pagoSeleccionado);
-  }, []);
-
   return (
     <View style={styles.container}>
       {isLoading && (
@@ -198,7 +194,7 @@ const Pagos = ({
 
       <View style={styles.boxInput}>
         <TextInput
-          placeholder="Buscar por Codigo"
+          placeholder="Buscar por Codigo de Venta"
           placeholderTextColor="#888"
           style={{ textAlign: "center" }}
           onChangeText={(value) => {
@@ -304,6 +300,7 @@ const styles = StyleSheet.create({
   },
   btnAtras: {
     padding: 5,
+    
   },
   tablePagos: {
     borderRadius: 15,
@@ -327,8 +324,6 @@ const styles = StyleSheet.create({
   item: {
     backgroundColor: "#f2f2f2",
     padding: 10,
-    borderBottomColor: "#000",
-    borderBottomWidth: 0.2,
     alignItems: "center",
   },
   itemSeleccionado: {

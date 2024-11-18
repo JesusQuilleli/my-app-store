@@ -27,30 +27,30 @@
   }
  }
 
-
- //FORMATEAR FECHA MOSTRAR
- export const formatearFecha = fecha => {
+ // Ajustar la fecha para que refleje el huso horario local
+export const formatearFecha = (fecha) => {
   const nuevaFecha = new Date(fecha);
+  nuevaFecha.setMinutes(nuevaFecha.getMinutes() + nuevaFecha.getTimezoneOffset()); // Ajusta al huso horario local
+
   const opciones = {
-     weeday: 'long',
-     year: 'numeric',
-     month: 'long',
-     day: 'numeric'
-  }
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  };
 
-  return nuevaFecha.toLocaleDateString('es-Es', opciones)
-}
+  return nuevaFecha.toLocaleDateString('es-ES', opciones);
+};
 
-//FORMATO DD/MM/YYYY
-export const formatearFechaOtroFormato = fecha => {
+export const formatearFechaOtroFormato = (fecha) => {
   const nuevaFecha = new Date(fecha);
-  const dia = nuevaFecha.getDate().toString().padStart(2, '0'); // Asegura que tenga 2 dígitos
+  nuevaFecha.setMinutes(nuevaFecha.getMinutes() + nuevaFecha.getTimezoneOffset()); // Ajusta al huso horario local
+
+  const dia = nuevaFecha.getDate().toString().padStart(2, '0'); // Asegura 2 dígitos
   const mes = (nuevaFecha.getMonth() + 1).toString().padStart(2, '0'); // Mes en 2 dígitos
   const año = nuevaFecha.getFullYear();
 
   return `${dia}/${mes}/${año}`;
 };
-
 
 //HORA ACTUAL
 export const formatearHora = () => {

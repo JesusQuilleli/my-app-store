@@ -43,15 +43,34 @@ const FormularioCliente = ({
   const [cedula, setCedula] = useState(cliente ? cliente.CEDULA : "");
   const [prefijo, setPrefijo] = useState(cliente ? cliente.CEDULA[0] : "V");
 
+  const [prefijoTelefono, setPrefijoTelefono] = useState(
+    cliente ? cliente.TELEFONO[0] + cliente.TELEFONO[1] + cliente.TELEFONO[2]: "+58"
+  );
+
   // Función para obtener la cédula completa con prefijo
   const obtenerCedulaCompleta = () => {
     return `${prefijo}${cedula}`;
   };
 
+  const obtenerTelefonoCompleto = () => {
+    return `${prefijoTelefono}${telefono}`;
+  };
+
   const [nombre, setNombre] = useState(cliente ? cliente.NOMBRE : "");
-  const [telefono, setTelefono] = useState(cliente ? cliente.TELEFONO : "");
+
+  const [telefono, setTelefono] = useState(() => {
+    if (cliente && cliente.TELEFONO && prefijoTelefono) {
+      const telefono = cliente.TELEFONO;
+      // Remover el prefijo almacenado en `prefijoTelefono` del teléfono
+      return telefono.startsWith(prefijoTelefono)
+        ? telefono.replace(prefijoTelefono, "")
+        : telefono;
+    }
+    return "";
+  });
+
   const [correo, setCorreo] = useState(cliente ? cliente.EMAIL : "");
-  const [direccion, setDireccion] = useState(cliente ? cliente.DIRECCION : "");
+  const [direccion, setDireccion] = useState(cliente ? cliente.DIRECCION : ""); 
 
   const sendClient = async () => {
     const adminId = await AsyncStorage.getItem("adminId");
@@ -62,6 +81,10 @@ const FormularioCliente = ({
       const formattedFecha = new Date().toISOString().split("T")[0];
 
       const cedulaCliente = obtenerCedulaCompleta();
+
+      const TelefonoCompleto = obtenerTelefonoCompleto();
+      
+      const telefono = TelefonoCompleto
 
       const response = await axios.post(`${url}/insertarCliente`, {
         cedulaCliente,
@@ -102,12 +125,14 @@ const FormularioCliente = ({
     try {
       setIsLoading(true);
 
+      const telefono = obtenerTelefonoCompleto();
+
       const response = await axios.put(`${url}/updateCliente/${id_cliente}`, {
         nombre,
         telefono,
         correo,
         direccion,
-      });
+      }); 
 
       if (response.status === 200) {
         await cargarClientes();
@@ -186,7 +211,7 @@ const FormularioCliente = ({
       console.error("Error al modificar el cliente:", error);
     }
   };
-
+ 
   return (
     <ScrollView>
       <View style={styles.container}>
@@ -225,7 +250,7 @@ const FormularioCliente = ({
           />
         </View>
 
-        <View style={[styles.campo, {marginBottom: 0}]}>
+        <View style={[styles.campo, { marginBottom: 0 }]}>
           <Text style={styles.icon}>
             <Entypo name="v-card" size={28} color="#888" />
           </Text>
@@ -235,14 +260,19 @@ const FormularioCliente = ({
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "center",
-              
             }}
           >
             <Picker
               selectedValue={prefijo}
-              style={{ height: 10, width: 91, padding: 0, margin: 0, textAlign:'center' }}
+              style={{
+                height: 10,
+                width: 91,
+                padding: 0,
+                margin: 0,
+                textAlign: "center",
+              }}
               onValueChange={(itemValue) => setPrefijo(itemValue)}
-              enabled={!cliente ? (true) : (false)}
+              enabled={!cliente ? true : false}
             >
               <Picker.Item label="V" value="V" />
               <Picker.Item label="E" value="E" />
@@ -250,12 +280,12 @@ const FormularioCliente = ({
 
             <TextInput
               placeholder="Cedula"
-              style={[styles.input, {width:'45%'}]}
+              style={[styles.input, { width: "45%" }]}
               value={cedula}
               onChangeText={(text) => setCedula(text)}
               keyboardType="numeric"
-              maxLength={!cliente ? (prefijo === 'V' ? (8) : (10)) : (10)}
-              editable={cliente ? (false) : (true)}
+              maxLength={!cliente ? (prefijo === "V" ? 8 : 10) : 10}
+              editable={cliente ? false : true}
             />
           </View>
         </View>
@@ -280,19 +310,49 @@ const FormularioCliente = ({
         </View>
 
         <View style={styles.campo}>
-          <Text style={styles.icon}>
-            <Foundation name="telephone" size={28} color="#888" />
-          </Text>
-          <TextInput
-            placeholder="Telefono"
-            maxLength={11}
-            style={styles.input}
-            value={telefono}
-            onChangeText={(telefono) => {
-              setTelefono(telefono);
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
             }}
-            keyboardType="numeric"
-          />
+          >
+            <Text style={styles.icon}>
+              <Foundation name="telephone" size={28} color="#888" />
+            </Text>
+
+            <Picker
+              selectedValue={prefijoTelefono}
+              style={{
+                height: 10,
+                width: 50,
+                padding: 0,
+                margin: 0,
+                textAlign: "center",
+              }}
+              onValueChange={(itemValue) => setPrefijoTelefono(itemValue)}
+            >
+              <Picker.Item label="+58 - Venezuela" value="+58"/>
+              <Picker.Item label="+57 - Colombia" value="+57"/>
+              <Picker.Item label="+56 - Chile" value="+56"/>
+              <Picker.Item label="+55 - Brasil" value="+55"/>
+              <Picker.Item label="+51 - Peru" value="+51"/>
+
+            </Picker>
+
+            <Text style={{fontSize: 16, fontWeight: '500', marginRight: 10, color:'#888'}}>{prefijoTelefono}</Text>
+
+            <TextInput
+              placeholder="Telefono"
+              maxLength={11}
+              style={[styles.input, {width:'60%'}]}
+              value={telefono}
+              onChangeText={(telefono) => {
+                setTelefono(telefono);
+              }}
+              keyboardType="numeric"
+            />
+          </View>
         </View>
 
         <View style={styles.campo}>

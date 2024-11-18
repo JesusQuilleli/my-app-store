@@ -20,7 +20,12 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.jquilellicdev.InvMargarita",
-      "permissions": ["INTERNET"]
+      "permissions": ["INTERNET"],
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDOZHEP7O0I4hHKkrxJCKHB9V_JAmLtatY"
+        }
+      }
     },
     "notification": {
       "icon": "./assets/icon.png"  // Aquí añades el ícono de las notificaciones

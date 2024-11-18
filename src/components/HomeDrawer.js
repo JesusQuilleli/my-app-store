@@ -9,6 +9,7 @@ import {
 
 import Home from "../../screens/Home";
 import TasaCambio from "./sub-components/TasaCambio";
+import PagoMovil from "./sub-components/PagoMovil";
 
 import { formatearFecha } from "../helpers/validaciones";
 
@@ -16,11 +17,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import Foundation from "@expo/vector-icons/Foundation";
 
 const Drawer = createDrawerNavigator();
 
 function CustomDrawerContent(props) {
-
   const { navigation } = props;
   const fechaActual = Date();
   const [nombreAdmin, setNombreAdmin] = useState("");
@@ -88,7 +89,18 @@ function CustomDrawerContent(props) {
           <Text style={{ color: "#fee03e" }}>Bienvenid@ </Text>
           {nombreAdmin}
         </Text>
-        <Text style={{marginTop: 10, fontWeight: "bold", fontSize: 18, textAlign:'center'}}><Text style={{fontSize: 16, textAlign:'center'}}>{formatearFecha(fechaActual)}</Text></Text>
+        <Text
+          style={{
+            marginTop: 10,
+            fontWeight: "bold",
+            fontSize: 18,
+            textAlign: "center",
+          }}
+        >
+          <Text style={{ fontSize: 16, textAlign: "center" }}>
+            {formatearFecha(fechaActual)}
+          </Text>
+        </Text>
       </View>
 
       {/* Renderiza los elementos predeterminados del Drawer */}
@@ -103,9 +115,7 @@ function CustomDrawerContent(props) {
           letterSpacing: 2,
           fontSize: 15,
         }}
-        icon={() => (
-          <Entypo name="log-out" size={26} color="#888" />
-        )}
+        icon={() => <Entypo name="log-out" size={26} color="#888" />}
         onPress={() => {
           props.navigation.closeDrawer();
           Alert.alert(
@@ -121,7 +131,7 @@ function CustomDrawerContent(props) {
                 onPress: async () => {
                   try {
                     // Elimina solo el id_administrador
-                    await AsyncStorage.removeItem('adminId'); // Asegúrate de que esta sea la clave correcta
+                    await AsyncStorage.removeItem("adminId"); // Asegúrate de que esta sea la clave correcta
                     // Navega a la pantalla de Login
                     props.navigation.navigate("Login");
                   } catch (error) {
@@ -197,6 +207,28 @@ export default function HomeDrawer() {
           drawerIcon: ({ focused }) => (
             <FontAwesome5
               name="money-bill"
+              size={24}
+              color={focused ? "#fee03e" : "#888"}
+            />
+          ),
+          drawerLabelStyle: {
+            marginLeft: -10, // Ajusta la distancia entre el ícono y el título
+            fontSize: 16,
+            color: "#333",
+            fontWeight: "bold",
+          },
+          headerTitle: "", // Si no quieres texto en el header
+        }}
+      />
+      <Drawer.Screen
+        name="PagoMovil"
+        component={PagoMovil}
+        options={{
+          title: "Pago Movil",
+          headerTitleAlign: "center", // Centra el título en el header
+          drawerIcon: ({ focused }) => (
+            <Foundation
+              name="widget"
               size={24}
               color={focused ? "#fee03e" : "#888"}
             />

@@ -1,15 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  Button,
   Image,
   Alert,
   ScrollView,
-  ActivityIndicator,
+  ActivityIndicator
 } from "react-native";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -33,8 +32,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const FormularioProductos = ({
   setFormProducto,
   categorias,
-  setCategoriaSeleccionada,
-  categoriaSeleccionada,
   cargarProductos,
   formProductoAcciones,
   productos,
@@ -50,10 +47,19 @@ const FormularioProductos = ({
   const [descripcion, setDescripcion] = useState(
     producto ? producto.DESCRIPCION : ""
   );
-  const [precioCompra, setPrecioCompra] = useState(producto ? producto.PRECIO_COMPRA : 0);
+  const [precioCompra, setPrecioCompra] = useState(
+    producto ? producto.PRECIO_COMPRA : 0
+  );
   const [precio, setPrecio] = useState(producto ? producto.PRECIO : 0);
   const [cantidad, setCantidad] = useState(producto ? producto.CANTIDAD : 0);
-  const [image, setImage] = useState(null);
+  const [image, setImage] = useState(producto ? producto.IMAGEN : null);
+
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(
+    producto ? producto.CATEGORIA : ""
+  );
+
+  //VALIDAR EDITANDO
+  const [Editando, setEditando] = useState(producto ? true : false);
 
   //CARGA
   const [isLoading, setIsLoading] = useState(false);
@@ -223,6 +229,18 @@ const FormularioProductos = ({
       return;
     }
 
+    if (!precioCompra) {
+      Alert.alert("Obligatorio", "El precio de compra es Requerido", [
+        { text: "Vale" },
+      ]);
+      return;
+    }
+
+    if (precioCompra < 0) {
+      Alert.alert("Obligatorio", "Precio compra invalido.", [{ text: "Vale" }]);
+      return;
+    }
+
     if (!precio) {
       Alert.alert("Obligatorio", "El precio es Requerido", [{ text: "Vale" }]);
       return;
@@ -247,10 +265,12 @@ const FormularioProductos = ({
       return;
     }
 
+    const cantidadString = cantidad.toString();
+
     if (
-      cantidad.includes(",") ||
-      cantidad.includes(" ") ||
-      cantidad.includes("-")
+      cantidadString.includes(",") ||
+      cantidadString.includes(" ") ||
+      cantidadString.includes("-")
     ) {
       Alert.alert(
         "Obligatorio",
@@ -260,6 +280,18 @@ const FormularioProductos = ({
     }
 
     if (precio.includes(",") || precio.includes(" ") || precio.includes("-")) {
+      Alert.alert(
+        "Obligatorio",
+        "No puede dejar espacios ni colocar una [ , ] ni colocar valores -"
+      );
+      return;
+    }
+
+    if (
+      precioCompra.includes(",") ||
+      precioCompra.includes(" ") ||
+      precioCompra.includes("-")
+    ) {
       Alert.alert(
         "Obligatorio",
         "No puede dejar espacios ni colocar una [ , ] ni colocar valores -"
@@ -291,6 +323,20 @@ const FormularioProductos = ({
       return;
     }
 
+    if (!precioCompra) {
+      Alert.alert("Obligatorio", "El precio de compra es Requerido", [
+        { text: "Vale" },
+      ]);
+      return;
+    }
+
+    if (precioCompra < 0) {
+      Alert.alert("Obligatorio", "Precio de compra invalido.", [
+        { text: "Vale" },
+      ]);
+      return;
+    }
+
     if (!precio) {
       Alert.alert("Obligatorio", "El precio es Requerido", [{ text: "Vale" }]);
       return;
@@ -315,8 +361,37 @@ const FormularioProductos = ({
       return;
     }
 
-    if (!validateEntero(cantidad)) {
-      Alert.alert("Error", "Cantidad Invalidad, procure usar numeros enteros.");
+    const cantidadString = cantidad.toString();
+
+    if (
+      cantidadString.includes(",") ||
+      cantidadString.includes(" ") ||
+      cantidadString.includes("-")
+    ) {
+      Alert.alert(
+        "Obligatorio",
+        "No puede dejar espacios ni colocar una [ , ] ni colocar valores -"
+      );
+      return;
+    }
+
+    if (precio.includes(",") || precio.includes(" ") || precio.includes("-")) {
+      Alert.alert(
+        "Obligatorio",
+        "No puede dejar espacios ni colocar una [ , ] ni colocar valores -"
+      );
+      return;
+    }
+
+    if (
+      precioCompra.includes(",") ||
+      precioCompra.includes(" ") ||
+      precioCompra.includes("-")
+    ) {
+      Alert.alert(
+        "Obligatorio",
+        "No puede dejar espacios ni colocar una [ , ] ni colocar valores -"
+      );
       return;
     }
 
@@ -438,13 +513,11 @@ const FormularioProductos = ({
                   setCategoria(itemValue);
                 }}
               >
-                {productos.length > 0 && (
-                  <Picker.Item
-                    label="Seleccione Categoria"
-                    value=""
-                    color="#ccc"
-                  />
-                )}
+                <Picker.Item
+                  label="Seleccione Categoria"
+                  value=""
+                  color="#ccc"
+                />
 
                 {categorias && categorias.length > 0 ? (
                   categorias.map((categoria) => (
@@ -458,7 +531,7 @@ const FormularioProductos = ({
                   ))
                 ) : (
                   <Picker.Item
-                    label="Cargando... o no hay Categorias"
+                    label="No hay Categorias Registradas"
                     value=""
                   />
                 )}
@@ -489,7 +562,11 @@ const FormularioProductos = ({
           </View>
           <View style={styles.campo}>
             <View style={styles.campoNumeric}>
-              <Text style={[styles.label, styles.labelNumeric, {fontSize: 15}]}>Precios</Text>
+              <Text
+                style={[styles.label, styles.labelNumeric, { fontSize: 15 }]}
+              >
+                Precios
+              </Text>
 
               <TextInput
                 style={[styles.Input, styles.InputNumeric]}
@@ -498,17 +575,6 @@ const FormularioProductos = ({
                 keyboardType="numeric"
                 value={precioCompra}
                 onChangeText={(precio) => {
-                  if (
-                    precio.includes(",") ||
-                    precio.includes(" ") ||
-                    precio.includes("-")
-                  ) {
-                    Alert.alert(
-                      "Obligatorio",
-                      "No puede dejar espacios ni colocar una [ , ] ni colocar valores -"
-                    );
-                    return;
-                  }
                   setPrecioCompra(precio);
                 }}
               />
@@ -520,17 +586,6 @@ const FormularioProductos = ({
                 keyboardType="numeric"
                 value={precio}
                 onChangeText={(precio) => {
-                  if (
-                    precio.includes(",") ||
-                    precio.includes(" ") ||
-                    precio.includes("-")
-                  ) {
-                    Alert.alert(
-                      "Obligatorio",
-                      "No puede dejar espacios ni colocar una [ , ] ni colocar valores -"
-                    );
-                    return;
-                  }
                   setPrecio(precio);
                 }}
               />
@@ -586,16 +641,20 @@ const FormularioProductos = ({
           <View style={styles.campo}>
             <View style={styles.containerFoto}>
               {producto
-                ? !image && (
-                    <Text style={styles.label}>Seleccionar Nueva Imagen</Text>
-                  )
+                ? !image && <Text></Text>
                 : !image && (
                     <Text style={styles.label}>Seleccionar Imagen</Text>
                   )}
 
-              {image && <Text style={styles.label}>Seleccionada: </Text>}
+              {image && !image.includes("null") && (
+                <Text style={styles.label}>Seleccionada: </Text>
+              )}
 
-              {!image && (
+              {(!image || image.includes("null")) && Editando && (
+                <Text style={styles.label}>No posee imagen en el producto</Text>
+              )}
+
+              {(!image || image.includes("null")) && (
                 <TouchableOpacity
                   style={styles.btnSeleccionarImagen}
                   onPress={pickImage}
@@ -606,7 +665,7 @@ const FormularioProductos = ({
                 </TouchableOpacity>
               )}
 
-              {image && (
+              {image && !image.includes("null") && (
                 <>
                   <Image
                     source={{ uri: image }}

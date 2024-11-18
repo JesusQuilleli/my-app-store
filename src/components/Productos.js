@@ -503,6 +503,7 @@ const Productos = () => {
             style={{ height: 120, width: 120 }}
           />
         )}
+        
       </View>
     </View>
   );
@@ -609,7 +610,7 @@ const Productos = () => {
               >
                 <Text style={styles.valorTotal}>{totalGanancia === 0 ? (<Text style={{fontSize: 10, textAlign:'center'}}>Sin ganacia</Text>): (<Text>{totalGanancia.toFixed(2)} $</Text>)}  </Text>
                 {totalGanancia !== 0 && productos.CANTIDAD !== 0 && (<Text style={styles.valorTotal}>
-                  / {porcentajeGananciaPromedio.toFixed(0)} %
+                    {porcentajeGananciaPromedio.toFixed(0)} %
                 </Text>)}
               </View>
             </View>

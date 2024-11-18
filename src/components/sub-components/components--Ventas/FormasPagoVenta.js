@@ -148,11 +148,6 @@ const FormasPagoVenta = ({
     } 
   }; 
 
-  useEffect(() => {
-    console.log(montoAbonado);
-    
-  }, [])   
-
   return (
     <View style={styles.modalOverlay}>
       {isLoading && (

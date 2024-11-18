@@ -174,7 +174,6 @@ const FormularioVenta = ({
 
   useEffect(() => {
     cargarProductos();
-    console.log(fecha)  
   }, []);
 
   const Item = ({ nombre, cantidad, precio, agregar }) => (

@@ -19,10 +19,19 @@ import * as Network from "expo-network";
 
 import { PagosContext } from "./Context/pagosContext.js";
 
+import LottieView from "lottie-react-native";
+
 import Pagos from "./Pagos";
+import InfoCard from "./components--/card.js";
 
 const Resumen = () => {
-  const { verPagos, setVerPagos, cargarPagos, cargarPagosCodigo } = useContext(PagosContext);
+  const {
+    verPagos,
+    setVerPagos,
+    cargarPagos,
+    cargarPagosCodigo,
+    ventasResumidas,
+  } = useContext(PagosContext);
 
   const [modalPagos, setModalPagos] = useState(false);
 
@@ -77,38 +86,38 @@ const Resumen = () => {
     try {
       // Verifica si hay conexión a Internet
       const networkState = await Network.getNetworkStateAsync();
-      
+
       if (!networkState.isConnected) {
         console.log("No hay conexión a Internet.");
         return;
       }
-  
+
       // Si está conectado, solicita permisos de notificación
       const { status } = await Notifications.requestPermissionsAsync();
-  
-      if (status !== 'granted') {
+
+      if (status !== "granted") {
         console.log("Permisos de notificación denegados");
         return;
       }
-  
+
       // Obtiene el token de notificación de Expo
       const token = (await Notifications.getExpoPushTokenAsync()).data;
-  
+
       // Obtén el ID del administrador desde AsyncStorage
       const adminIdString = await AsyncStorage.getItem("adminId");
       const adminId = parseInt(adminIdString, 10);
-  
+
       if (isNaN(adminId)) {
         console.log("ID de administrador no válido.");
         return;
       }
-  
+
       // Envía el token al backend si todo está correcto
       const response = await axios.post(`${url}/guardarToken`, {
         administrador_id: adminId,
         token,
       });
-  
+
       if (response.status === 200) {
         console.log("Token de notificación registrado con éxito.");
       } else {
@@ -125,18 +134,18 @@ const Resumen = () => {
       // Obtén el id_admin del AsyncStorage
       const adminIdString = await AsyncStorage.getItem("adminId");
       const adminId = parseInt(adminIdString, 10);
-  
+
       // Asegúrate de que el id_admin está definido
       if (isNaN(adminId)) {
         console.error("ID de administrador no encontrado");
         return;
       }
-  
+
       // Hacer la solicitud al backend
       const response = await axios.post(`${url}/verificarInventario`, {
         id_admin: adminId,
       });
-  
+
       if (response.status === 200) {
         // Configura el manejador de notificaciones
         Notifications.setNotificationHandler({
@@ -157,13 +166,25 @@ const Resumen = () => {
   useEffect(() => {
     registerForPushNotifications();
     verificarInventario();
-   
   }, []);
 
   return (
     <View style={styles.container}>
-      {showInitialMessage ? (
-        <Animated.View style={{ alignItems: "center", opacity }}>
+      {showInitialMessage && (
+        <Animated.View
+          style={{
+            alignItems: "center",
+            opacity,
+            backgroundColor: "#fff",
+            borderRadius: 10,
+            padding: 20,
+            margin: 10,
+            shadowColor: "#000",
+            shadowOpacity: 0.2,
+            shadowRadius: 5,
+            elevation: 5,
+          }}
+        >
           <Text style={{ fontSize: 20, fontWeight: "900", marginTop: 15 }}>
             Tipo de Conexión:{" "}
             {connectionType === "WIFI" ? (
@@ -194,19 +215,95 @@ const Resumen = () => {
               : "Conexión inestable o sin conexión"}
           </Text>
         </Animated.View>
-      ) : (
-        <Text style={{ fontSize: 36, fontWeight: "900", marginTop: 15, textTransform: 'uppercase'  }}>Dashboard</Text>
       )}
 
-      <TouchableOpacity
-        style={styles.btn}
-        onPress={() => {
-          setModalPagos(true);
+      <InfoCard title="Aplicación de Gestión, Control de Ventas y Pagos" />
+
+      <View style={{ backgroundColor: "#fff", borderRadius: 20 }}>
+        <LottieView
+          source={require("./../../assets/animation/Animation - 1731902275259.json")} // Ruta a tu archivo de animación
+          autoPlay
+          loop
+          style={{ width: 200, height: 200 }}
+        />
+      </View>
+
+      <Text
+        style={{
+          marginVertical: 20,
+          fontSize: 30,
+          fontWeight: "bold",
+          textAlign: "center",
         }}
       >
-        <Text style={{ color: "#000", fontSize: 24, fontWeight: 'bold' }}>Pagos </Text>
-        <Text style={styles.nro}>{verPagos.length}</Text>
-      </TouchableOpacity>
+        Resumen de mis Operaciones
+      </Text>
+
+      <View
+        style={{
+          width: "100%",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-evenly",
+        }}
+      >
+        <TouchableOpacity
+          style={styles.btn}
+          onPress={() => {
+            setModalPagos(true);
+          }}
+        >
+          <Text
+            style={{
+              color: "#000",
+              fontSize: 20,
+              fontWeight: "bold",
+              textTransform: "uppercase",
+            }}
+          >
+            Pagos{" "}
+          </Text>
+          <Text style={styles.nro}>
+            {verPagos.length === 0 ? (
+              <Text style={{ fontSize: 12, textTransform: "uppercase" }}>
+                Historial de pagos vacio
+              </Text>
+            ) : (
+              <Text
+                style={{ fontSize: 24, fontWeight: "bold", color: "#ffc727" }}
+              >
+                {verPagos.length}
+              </Text>
+            )}
+          </Text>
+        </TouchableOpacity>
+
+        <View style={styles.btn}>
+          <Text
+            style={{
+              color: "#000",
+              fontSize: 20,
+              fontWeight: "bold",
+              textTransform: "uppercase",
+            }}
+          >
+            Ventas{" "}
+          </Text>
+          <Text style={styles.nro}>
+            {verPagos.length === 0 ? (
+              <Text style={{ fontSize: 12, textTransform: "uppercase" }}>
+                Sin Ventas Realizadas
+              </Text>
+            ) : (
+              <Text
+                style={{ fontSize: 24, fontWeight: "bold", color: "#ffc727" }}
+              >
+                {ventasResumidas.length}
+              </Text>
+            )}
+          </Text>
+        </View>
+      </View>
 
       <Modal visible={modalPagos} animationType="fade">
         <Pagos
@@ -230,15 +327,18 @@ const styles = StyleSheet.create({
   },
   btn: {
     backgroundColor: "#fff",
-    width: "90%",
+    width: "40%",
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 12,
-    marginTop: 20,
+    borderRadius: 50,
     padding: 20,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-around",
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
   },
   nro: {
     fontSize: 30,

@@ -6,6 +6,7 @@ import {
   TextInput,
   Alert,
   TouchableOpacity,
+  ActivityIndicator
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -23,6 +24,9 @@ const RegistroUnico = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+
+  const [isLoading, setIsLoading] = useState(false);
+
   const [passwordVisible, setPasswordVisible] = useState(false);
 
   const [showSinConexion, setShowSinConexion] = useState(false);
@@ -52,9 +56,10 @@ const RegistroUnico = ({ navigation }) => {
       { cancelable: false }
     );
   };
-
+  
   //FUNCION PARA ENVIAR DATOS AL END POINT EN EL SERVER
   const handleRegisterAdmin = async () => {
+    setIsLoading(true);
     try {
       if (!name) {
         Alert.alert("Obligatorio", "El nombre es Requerido.", [
@@ -117,8 +122,29 @@ const RegistroUnico = ({ navigation }) => {
         setShowSinConexion(true);
         setTimeout(() => setShowSinConexion(false), 3000); // Ocultar después de 3 segundos
       }
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#f2f3f4",
+        }}
+      >
+        <ActivityIndicator
+          size="large"
+          color="#fee03e"
+          style={{ transform: [{ scale: 2 }] }}
+        />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
