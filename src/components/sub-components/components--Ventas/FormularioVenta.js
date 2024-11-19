@@ -72,9 +72,9 @@ const FormularioVenta = ({
     setModalSelectClient(false); // Cierra el modal después de seleccionar el cliente
   };
 
-  //FUNCION PARA AGREGAR Y RESTARLOS DE LA BASE DE DATOS PRODUCTOS AL CARRITO
-  const agregarProductoAlCarrito = async (producto) => {
-    if (clienteSeleccionado.NOMBRE == "") {
+  //PRUEBA
+  const agregarProductoAlCarrito = (producto) => {
+    if (clienteSeleccionado.NOMBRE === "") {
       Alert.alert(
         "Obligatorio",
         "Seleccione el cliente para poder cargar los productos al carrito.",
@@ -82,11 +82,13 @@ const FormularioVenta = ({
       );
       return;
     }
-
+  
     if (producto.CANTIDAD === 0) {
       Alert.alert("Producto Agotado", "Este producto ya no está disponible.");
       return;
     }
+  
+    // Reducir la cantidad en la lista de productos
     const productosActualizados = productos.map((item) => {
       if (item.ID_PRODUCTO === producto.ID_PRODUCTO) {
         return { ...item, CANTIDAD: item.CANTIDAD - 1 };
@@ -94,11 +96,12 @@ const FormularioVenta = ({
       return item;
     });
     setProductos(productosActualizados);
-
+  
+    // Agregar o actualizar el producto en el carrito
     const productoExistente = productosCarrito.find(
       (item) => item.ID_PRODUCTO === producto.ID_PRODUCTO
     );
-
+  
     if (productoExistente) {
       const carritoActualizado = productosCarrito.map((item) => {
         if (item.ID_PRODUCTO === producto.ID_PRODUCTO) {
@@ -117,16 +120,6 @@ const FormularioVenta = ({
           CANTIDAD: 1,
         },
       ]);
-    }
-    try {
-      await axios.put(`${url}/updateProductoStock/${producto.ID_PRODUCTO}`, {
-        cantidad: -1,
-      });
-    } catch (error) {
-      console.error(
-        "Error al actualizar la cantidad en la base de datos",
-        error
-      );
     }
   };
 
@@ -174,8 +167,8 @@ const FormularioVenta = ({
 
   useEffect(() => {
     cargarProductos();
-  }, []);
-
+  }, []); 
+  
   const Item = ({ nombre, cantidad, precio, agregar }) => (
     <View style={styles.item}>
       <View style={styles.textContainer}>

@@ -66,16 +66,18 @@ const ProcesarVenta = ({
     setOpciones(tipo);
   };
 
-  const quitarProductoDelCarrito = async (producto) => {
+  //QUITAR PRODUCTOS
+  const quitarProductoDelCarrito = (producto) => {
     const productoEnCarrito = productosCarrito.find(
       (item) => item.ID_PRODUCTO === producto.ID_PRODUCTO
     );
-
+  
     if (!productoEnCarrito) {
       console.log("El producto no está en el carrito");
       return;
     }
-
+  
+    // Aumentar la cantidad en la lista de productos
     const productosActualizados = productos.map((item) => {
       if (item.ID_PRODUCTO === producto.ID_PRODUCTO) {
         return { ...item, CANTIDAD: item.CANTIDAD + 1 };
@@ -83,7 +85,8 @@ const ProcesarVenta = ({
       return item;
     });
     setProductos(productosActualizados);
-
+  
+    // Quitar o actualizar el producto en el carrito
     let carritoActualizado;
     if (productoEnCarrito.CANTIDAD > 1) {
       carritoActualizado = productosCarrito.map((item) => {
@@ -98,57 +101,58 @@ const ProcesarVenta = ({
       );
     }
     setProductosCarrito(carritoActualizado);
-    try {
-      await axios.put(`${url}/updateProductoStock/${producto.ID_PRODUCTO}`, {
-        cantidad: 1,
-      });
-    } catch (error) {
-      console.error(
-        "Error al actualizar la cantidad en la base de datos",
-        error
-      );
-    }
   };
 
+  //PROCESAR VENTA
   const procesarVenta = async () => {
     setIsLoading(true); // Comienza la carga
     try {
-      const totalPendiente = totalPrecio - primerAbono;
+      // Obtener el ID del administrador desde AsyncStorage
       const adminId = await AsyncStorage.getItem("adminId");
-
+  
+      // Calcular monto pendiente si aplica
+      const totalPendiente = totalPrecio - primerAbono;
+  
+      // Preparar los datos de la venta
       const ventaData = {
         clienteId: clienteSeleccionado.ID_CLIENTE,
         pagoTotal: parseFloat(parseFloat(totalPrecio).toFixed(2)),
         montoPendiente:
-          tipoPago === "POR ABONO" ? parseFloat(totalPendiente.toFixed(2)) : 0,
+        tipoPago === "POR ABONO" ? parseFloat(totalPendiente.toFixed(2)) : 0,
         fechaVenta: fecha.toISOString().slice(0, 10),
         estadoPago: tipoPago === "AL CONTADO" ? "PAGADO" : "PENDIENTE",
         tipoPago: tipoPago,
         administradorId: adminId,
       };
-
-      // Enviar los datos de la venta a la API
+  
+      // 1. Procesar el carrito: Enviar el array completo de productos
+      try {
+        await axios.put(`${url}/updateProductosStock`, productosCarrito); // Enviar todos los productos
+      } catch (error) {
+        console.error("Error al actualizar el stock de los productos", error);
+        throw new Error("No se pudo actualizar el stock. Verifica los productos.");
+      }
+  
+      // 2. Registrar la venta en la base de datos
       const response = await axios.post(`${url}/procesarVenta`, ventaData);
       const ventaId = response.data.ID_VENTA;
-
-      // Iterar sobre los productos en el carrito y registrarlos
-      for (const producto of productosCarrito) {
-        try {
-          await axios.post(`${url}/ventaProductos`, {
-            ventaId: ventaId,
-            productoId: producto.ID_PRODUCTO,
-            cantidad: producto.CANTIDAD,
-          });
-        } catch (error) {
-          console.error(
-            `Error al agregar el producto ${producto.ID_PRODUCTO} a la venta`,
-            error
-          );
-        }
+  
+      // 3. Registrar los productos de la venta
+      try {
+        await axios.post(`${url}/ventaProductos`, {
+          ventaId: ventaId,
+          productos: productosCarrito, // Enviar el array completo de productos
+        });
+      } catch (error) {
+        console.error("Error al registrar los productos de la venta", error);
+        throw new Error("Error al registrar los productos en la venta.");
       }
+  
+      // Limpiar el carrito después de procesar la venta
+      setProductosCarrito([]);
     } catch (error) {
       console.error("Error al procesar la venta", error);
-      alert("Ocurrió un error al procesar la venta. Inténtalo nuevamente.");
+      Alert.alert("Error", "Ocurrió un error al procesar la venta. Inténtalo nuevamente.");
     } finally {
       setIsLoading(false); // Finaliza la carga
     }
@@ -165,7 +169,7 @@ const ProcesarVenta = ({
         return;
       }
 
-      await procesarVenta(); // Supón que esta es tu función que procesa la venta
+      await procesarVenta();
 
       // Mostrar la alerta de éxito
       Alert.alert("Éxito", "Venta procesada exitosamente.", [

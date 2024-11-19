@@ -113,14 +113,6 @@ const InformacionVenta = ({
     cargarPagoMovil();
   }, []);
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#fee03e" />
-      </View>
-    );
-  }
-
   const closeForm = () => {
     setModalVentasDetalladas(false);
   };
@@ -249,7 +241,7 @@ const InformacionVenta = ({
               ventasDetalladas.TELEFONO,
               ventasDetalladas.CLIENTE,
               ventasDetalladas.MONTO_PENDIENTE,
-              ventasDetalladas.ABONO
+              ABONO
             );
           },
         },
@@ -260,7 +252,7 @@ const InformacionVenta = ({
               ventasDetalladas.TELEFONO,
               ventasDetalladas.CLIENTE,
               ventasDetalladas.MONTO_PENDIENTE,
-              ventasDetalladas.ABONO
+              ABONO
             );
           },
         },
@@ -293,232 +285,238 @@ const InformacionVenta = ({
           </View>
         </View>
 
-        <View style={styles.padreContent}>
-          <View style={styles.botonesContenedor}>
-            {ventasDetalladas.TIPO_PAGO === "POR ABONO" && (
-              <View
-                style={{
-                  width: "50%",
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#fee03e" />
+          </View>
+        ) : (
+          <View style={styles.padreContent}>
+            <View style={styles.botonesContenedor}>
+              {ventasDetalladas.TIPO_PAGO === "POR ABONO" && (
+                <View
+                  style={{
+                    width: "50%",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-evenly",
+                  }}
+                >
+                  {ventasDetalladas.ESTADO_PAGO === "PENDIENTE" && (
+                    <TouchableOpacity
+                      onPress={() => handleNotificar(ventasDetalladas)}
+                      style={styles.BtnNotificar}
+                    >
+                      <MaterialIcons
+                        name="notifications-active"
+                        size={24}
+                        color="#FFF"
+                      />
+                    </TouchableOpacity>
+                  )}
+
+                  <TouchableOpacity
+                    onPress={async () => {
+                      setModalHistorialPagos(true);
+                      await cargarHistorialPagos(ventasDetalladas.ID_VENTA);
+                    }}
+                    style={styles.BtnPagos}
+                  >
+                    <Text style={styles.BtnPagoText}>Historial de Pagos</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              <TouchableOpacity
+                onPress={async () => {
+                  setModalProductosVendidos(true);
+                  await cargarHistorialVentas(ventasDetalladas.ID_VENTA);
+                }}
+                style={styles.BtnProductos}
+              >
+                <Text style={styles.BtnProductosText}>Productos Vendidos</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View
+              style={[
+                styles.content,
+                {
+                  width: "100%",
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "space-evenly",
+                  marginTop: 10,
+                },
+              ]}
+            >
+              <View
+                style={{
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
-                {ventasDetalladas.ESTADO_PAGO === "PENDIENTE" && (
-                  <TouchableOpacity
-                    onPress={() => handleNotificar(ventasDetalladas)}
-                    style={styles.BtnNotificar}
-                  >
-                    <MaterialIcons
-                      name="notifications-active"
-                      size={24}
-                      color="#FFF"
-                    />
-                  </TouchableOpacity>
-                )}
-
-                <TouchableOpacity
-                  onPress={async () => {
-                    setModalHistorialPagos(true);
-                    await cargarHistorialPagos(ventasDetalladas.ID_VENTA);
-                  }}
-                  style={styles.BtnPagos}
-                >
-                  <Text style={styles.BtnPagoText}>Historial de Pagos</Text>
-                </TouchableOpacity>
+                <Text style={styles.label}>Cliente</Text>
+                <Text style={styles.valor}>{ventasDetalladas.CLIENTE}</Text>
               </View>
-            )}
-
-            <TouchableOpacity
-              onPress={async () => {
-                setModalProductosVendidos(true);
-                await cargarHistorialVentas(ventasDetalladas.ID_VENTA);
-              }}
-              style={styles.BtnProductos}
-            >
-              <Text style={styles.BtnProductosText}>Productos Vendidos</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View
-            style={[
-              styles.content,
-              {
-                width: "100%",
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-evenly",
-                marginTop: 10,
-              },
-            ]}
-          >
-            <View
-              style={{
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Text style={styles.label}>Cliente</Text>
-              <Text style={styles.valor}>{ventasDetalladas.CLIENTE}</Text>
+              <View
+                style={{
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Text style={styles.label}>Codigo</Text>
+                <Text style={styles.valor}>{ventasDetalladas.ID_VENTA}</Text>
+              </View>
             </View>
-            <View
-              style={{
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Text style={styles.label}>Codigo</Text>
-              <Text style={styles.valor}>{ventasDetalladas.ID_VENTA}</Text>
-            </View>
-          </View>
 
-          <View style={styles.content}>
-            <Text style={styles.label}>Fecha de Venta</Text>
-            <Text style={styles.valor}>
-              {formatearFecha(ventasDetalladas.FECHA)}
-            </Text>
-          </View>
-
-          <View style={styles.content}>
-            <Text style={styles.label}>Tipo de Pago</Text>
-            <Text style={styles.valor}>{ventasDetalladas.TIPO_PAGO}</Text>
-          </View>
-
-          <View style={styles.content}>
             <View style={styles.content}>
-              <Text style={styles.label}>Monto Total</Text>
+              <Text style={styles.label}>Fecha de Venta</Text>
               <Text style={styles.valor}>
-                {ventasDetalladas.MONTO_TOTAL}{" "}
-                <Text style={{ fontSize: 12 }}>Dolares</Text>
-              </Text>
-              <Text style={styles.label}>Otros Precios</Text>
-              <Text style={styles.valor}>
-                {isNaN(TasaBolivares) || TasaBolivares === 0 ? (
-                  <Text>No disponible</Text>
-                ) : (
-                  (ventasDetalladas.MONTO_TOTAL * TasaBolivares).toFixed(2)
-                )}
-                <Text style={{ fontSize: 12 }}>
-                  {isNaN(TasaPesos) ? <Text></Text> : <Text> Bolivares</Text>}{" "}
-                </Text>
-              </Text>
-              <Text style={styles.valor}>
-                {isNaN(TasaPesos) || TasaPesos === 0 ? (
-                  <Text>No disponible</Text>
-                ) : (
-                  (ventasDetalladas.MONTO_TOTAL * TasaPesos).toFixed(0)
-                )}
-                <Text style={{ fontSize: 12 }}>
-                  {isNaN(TasaPesos) ? <Text></Text> : <Text> Pesos</Text>}{" "}
-                </Text>
+                {formatearFecha(ventasDetalladas.FECHA)}
               </Text>
             </View>
 
-            {parseFloat(ventasDetalladas.MONTO_PENDIENTE) !== 0.0 && (
+            <View style={styles.content}>
+              <Text style={styles.label}>Tipo de Pago</Text>
+              <Text style={styles.valor}>{ventasDetalladas.TIPO_PAGO}</Text>
+            </View>
+
+            <View style={styles.content}>
               <View style={styles.content}>
-                <Text style={styles.label}>MONTO PAGADO</Text>
+                <Text style={styles.label}>Monto Total</Text>
                 <Text style={styles.valor}>
-                  {parseFloat(ABONO) === 0.0 ? (
-                    <Text style={{ fontSize: 18 }}>
-                      No se realizó ningún abono inicial
-                    </Text>
+                  {ventasDetalladas.MONTO_TOTAL}{" "}
+                  <Text style={{ fontSize: 12 }}>Dolares</Text>
+                </Text>
+                <Text style={styles.label}>Otros Precios</Text>
+                <Text style={styles.valor}>
+                  {isNaN(TasaBolivares) || TasaBolivares === 0 ? (
+                    <Text>No disponible</Text>
                   ) : (
-                    <Text>
-                      {ABONO} <Text style={{ fontSize: 12 }}>Dólares</Text>
-                    </Text>
+                    (ventasDetalladas.MONTO_TOTAL * TasaBolivares).toFixed(2)
                   )}
+                  <Text style={{ fontSize: 12 }}>
+                    {isNaN(TasaPesos) ? <Text></Text> : <Text> Bolivares</Text>}{" "}
+                  </Text>
+                </Text>
+                <Text style={styles.valor}>
+                  {isNaN(TasaPesos) || TasaPesos === 0 ? (
+                    <Text>No disponible</Text>
+                  ) : (
+                    (ventasDetalladas.MONTO_TOTAL * TasaPesos).toFixed(0)
+                  )}
+                  <Text style={{ fontSize: 12 }}>
+                    {isNaN(TasaPesos) ? <Text></Text> : <Text> Pesos</Text>}{" "}
+                  </Text>
                 </Text>
               </View>
-            )}
 
-            <Text style={styles.label}>Monto Pendiente</Text>
-
-            {parseFloat(ventasDetalladas.MONTO_PENDIENTE) === 0.0 ? (
-              <Text style={[styles.valor, { textTransform: "uppercase" }]}>
-                No hay Deuda
-              </Text>
-            ) : (
-              <>
-                <View style={styles.montoContainer}>
+              {parseFloat(ventasDetalladas.MONTO_PENDIENTE) !== 0.0 && (
+                <View style={styles.content}>
+                  <Text style={styles.label}>MONTO PAGADO</Text>
                   <Text style={styles.valor}>
-                    {parseFloat(ventasDetalladas.MONTO_PENDIENTE).toFixed(2)}{" "}
-                    <Text style={{ fontSize: 12 }}>Dolares</Text>
-                  </Text>
-                </View>
-                <Text style={styles.label}>Otros Precios</Text>
-                <View style={styles.montoContainer}>
-                  <Text style={styles.valor}>
-                    {isNaN(TasaBolivares) || TasaBolivares === 0 ? (
-                      <Text>No disponible</Text>
-                    ) : (
-                      parseFloat(
-                        ventasDetalladas.MONTO_PENDIENTE * TasaBolivares
-                      ).toFixed(2)
-                    )}
-                    <Text style={{ fontSize: 12 }}>
-                      {isNaN(TasaPesos) ? (
-                        <Text></Text>
-                      ) : (
-                        <Text> Bolivares</Text>
-                      )}{" "}
-                    </Text>
-                  </Text>
-                </View>
-
-                <View style={styles.montoContainer}>
-                  <Text style={styles.valor}>
-                    {isNaN(TasaPesos) || TasaPesos === 0 ? (
-                      <Text>No disponible</Text>
-                    ) : (
-                      parseFloat(
-                        ventasDetalladas.MONTO_PENDIENTE * TasaPesos
-                      ).toFixed(0)
-                    )}
-                    <Text style={{ fontSize: 12 }}>
-                      {isNaN(TasaPesos) ? <Text></Text> : <Text> Pesos</Text>}{" "}
-                    </Text>
-                  </Text>
-                </View>
-              </>
-            )}
-          </View>
-
-          <View style={styles.content}>
-            <Text style={styles.label}>Estado de Venta</Text>
-            <Text
-              style={
-                ventasDetalladas.ESTADO_PAGO === "PAGADO"
-                  ? styles.valorEstado
-                  : styles.valorEstadoNo
-              }
-            >
-              {ventasDetalladas.ESTADO_PAGO}
-            </Text>
-          </View>
-
-          {ventasDetalladas.ESTADO_PAGO === "PENDIENTE" && (
-            <View>
-              <View style={styles.ContanerBtn}>
-                <TouchableOpacity
-                  onPress={() => {
-                    setModalProcesarPago(true);
-                  }}
-                  style={styles.BtnPagar}
-                >
-                  <Text style={styles.BtnPagarText}>
                     {parseFloat(ABONO) === 0.0 ? (
-                      <Text>Adjuntar primer pago</Text>
+                      <Text style={{ fontSize: 18 }}>
+                        No se realizó ningún abono inicial
+                      </Text>
                     ) : (
-                      <Text>Adjuntar Pago</Text>
+                      <Text>
+                        {ABONO} <Text style={{ fontSize: 12 }}>Dólares</Text>
+                      </Text>
                     )}
                   </Text>
-                </TouchableOpacity>
-              </View>
+                </View>
+              )}
+
+              <Text style={styles.label}>Monto Pendiente</Text>
+
+              {parseFloat(ventasDetalladas.MONTO_PENDIENTE) === 0.0 ? (
+                <Text style={[styles.valor, { textTransform: "uppercase" }]}>
+                  No hay Deuda
+                </Text>
+              ) : (
+                <>
+                  <View style={styles.montoContainer}>
+                    <Text style={styles.valor}>
+                      {parseFloat(ventasDetalladas.MONTO_PENDIENTE).toFixed(2)}{" "}
+                      <Text style={{ fontSize: 12 }}>Dolares</Text>
+                    </Text>
+                  </View>
+                  <Text style={styles.label}>Otros Precios</Text>
+                  <View style={styles.montoContainer}>
+                    <Text style={styles.valor}>
+                      {isNaN(TasaBolivares) || TasaBolivares === 0 ? (
+                        <Text>No disponible</Text>
+                      ) : (
+                        parseFloat(
+                          ventasDetalladas.MONTO_PENDIENTE * TasaBolivares
+                        ).toFixed(2)
+                      )}
+                      <Text style={{ fontSize: 12 }}>
+                        {isNaN(TasaPesos) ? (
+                          <Text></Text>
+                        ) : (
+                          <Text> Bolivares</Text>
+                        )}{" "}
+                      </Text>
+                    </Text>
+                  </View>
+
+                  <View style={styles.montoContainer}>
+                    <Text style={styles.valor}>
+                      {isNaN(TasaPesos) || TasaPesos === 0 ? (
+                        <Text>No disponible</Text>
+                      ) : (
+                        parseFloat(
+                          ventasDetalladas.MONTO_PENDIENTE * TasaPesos
+                        ).toFixed(0)
+                      )}
+                      <Text style={{ fontSize: 12 }}>
+                        {isNaN(TasaPesos) ? <Text></Text> : <Text> Pesos</Text>}{" "}
+                      </Text>
+                    </Text>
+                  </View>
+                </>
+              )}
             </View>
-          )}
-        </View>
+
+            <View style={styles.content}>
+              <Text style={styles.label}>Estado de Venta</Text>
+              <Text
+                style={
+                  ventasDetalladas.ESTADO_PAGO === "PAGADO"
+                    ? styles.valorEstado
+                    : styles.valorEstadoNo
+                }
+              >
+                {ventasDetalladas.ESTADO_PAGO}
+              </Text>
+            </View>
+
+            {ventasDetalladas.ESTADO_PAGO === "PENDIENTE" && (
+              <View>
+                <View style={styles.ContanerBtn}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setModalProcesarPago(true);
+                    }}
+                    style={styles.BtnPagar}
+                  >
+                    <Text style={styles.BtnPagarText}>
+                      {parseFloat(ABONO) === 0.0 ? (
+                        <Text>Adjuntar primer pago</Text>
+                      ) : (
+                        <Text>Adjuntar Pago</Text>
+                      )}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          </View>
+        )}
         <Modal visible={modalProcesarPago} animationType="slide">
           <FormasPagoVenta
             setModalProcesarPago={setModalProcesarPago}
@@ -582,9 +580,9 @@ const styles = StyleSheet.create({
     padding: 5,
     borderRadius: 30,
     shadowColor: "#000",
-          shadowOpacity: 0.2,
-          shadowRadius: 5,
-          elevation: 5,
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
   },
   titulo: {
     fontSize: 24,
@@ -650,11 +648,10 @@ const styles = StyleSheet.create({
     padding: 7.5,
     borderRadius: 50,
     marginBottom: 5,
-    marginRight: 20,
     shadowColor: "#000",
-          shadowOpacity: 0.2,
-          shadowRadius: 5,
-          elevation: 5,
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
   },
   BtnProductosText: {
     color: "#FFF",
@@ -668,11 +665,10 @@ const styles = StyleSheet.create({
     padding: 7.5,
     borderRadius: 50,
     marginBottom: 5,
-    marginLeft: 20,
     shadowColor: "#000",
-          shadowOpacity: 0.2,
-          shadowRadius: 5,
-          elevation: 5,
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
   },
   BtnPagoText: {
     color: "#000",
@@ -688,15 +684,15 @@ const styles = StyleSheet.create({
   },
   BtnNotificar: {
     backgroundColor: "maroon",
-    padding: 4,
+    padding: 1.5,
     borderRadius: 50,
     position: "absolute",
     top: -15,
-    left: -15,
+    left: -20,
     shadowColor: "#000",
-          shadowOpacity: 0.2,
-          shadowRadius: 5,
-          elevation: 5,
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
   },
   BtnPagarText: {
     color: "#FFF",

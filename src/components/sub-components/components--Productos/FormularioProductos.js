@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   Image,
   Alert,
   ScrollView,
-  ActivityIndicator
+  ActivityIndicator,
 } from "react-native";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -121,6 +121,7 @@ const FormularioProductos = ({
         headers: {
           "Content-Type": "multipart/form-data",
         },
+        timeout: 10000
       });
 
       if (response.status === 200) {
@@ -151,7 +152,7 @@ const FormularioProductos = ({
   const updateProduct = async (id_producto) => {
     try {
       setIsLoading(true);
-
+  
       const formData = new FormData();
       formData.append("categoria", categoria);
       formData.append("nombre", nombre);
@@ -159,15 +160,18 @@ const FormularioProductos = ({
       formData.append("precioCompra", precioCompra);
       formData.append("precio", precio);
       formData.append("cantidad", cantidad);
-
+  
+      // Verifica si hay imagen cargada
       if (image) {
         formData.append("imagen", {
           uri: image,
           name: "imagen.jpg",
           type: "image/jpeg",
         });
+      } else {
+        formData.append("imagen", null);  // Enviar null si no hay imagen
       }
-
+  
       const response = await axios.put(
         `${url}/updateProduct/${id_producto}`,
         formData,
@@ -177,10 +181,10 @@ const FormularioProductos = ({
           },
         }
       );
-
+  
       if (response.status === 200) {
         await cargarProductos();
-
+  
         Alert.alert("Éxito", "Producto modificado correctamente", [
           {
             text: "OK",
@@ -195,10 +199,12 @@ const FormularioProductos = ({
       }
     } catch (error) {
       console.log("Error al modificar el producto:", error);
-      Alert.alert(
-        "Error",
-        "Ocurrió un error al intentar modificar el producto"
-      );
+      
+      if (error.message.includes("Network Error") || error.code === "ECONNREFUSED") {
+        Alert.alert("Error de conexión", "Fallo en la conexión, por favor intente nuevamente.");
+      } else {
+        Alert.alert("Error", "Ocurrió un error al intentar modificar el producto");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -308,7 +314,7 @@ const FormularioProductos = ({
     cleaningInputs();
   };
 
-  const handleModificar = async () => {
+  const handleModificar = () => {
     const productInteger = parseInt(producto.ID_PRODUCTO);
 
     if (!categoria) {
@@ -401,7 +407,7 @@ const FormularioProductos = ({
     }
 
     try {
-      await updateProduct(productInteger);
+      updateProduct(productInteger);
       cargarProductos();
     } catch (error) {
       console.error("Error al modificar el producto:", error);
@@ -530,10 +536,7 @@ const FormularioProductos = ({
                     />
                   ))
                 ) : (
-                  <Picker.Item
-                    label="No hay Categorias Registradas"
-                    value=""
-                  />
+                  <Picker.Item label="No hay Categorias Registradas" value="" />
                 )}
               </Picker>
             )}

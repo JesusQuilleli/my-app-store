@@ -1,11 +1,11 @@
-import React,{useState, useEffect}from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   FlatList,
-  ActivityIndicator
+  ActivityIndicator,
 } from "react-native";
 
 import FontAwesome from "@expo/vector-icons/FontAwesome";
@@ -14,25 +14,16 @@ const HistorialProductosVenta = ({
   setModalProductosVendidos,
   historialVentas,
 }) => {
+  //CARGA
+  const [loading, setLoading] = useState(true);
 
- //CARGA
- const [loading, setLoading] = useState(true);
-
- useEffect(() => {
-  if (
-    historialVentas
-  ) {
-    setLoading(false);
-  }
-}, [historialVentas]);
-
-if (loading) {
-  return (
-    <View style={styles.loadingContainer}>
-      <ActivityIndicator size="large" color="#fee03e" />
-    </View>
-  );
-}
+  useEffect(() => {
+    if (historialVentas && historialVentas.length !== 0) {
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+  }, [historialVentas]);
 
   const Item = ({ PRODUCTO, CANTIDAD }) => (
     <View style={styles.item}>
@@ -56,14 +47,20 @@ if (loading) {
           </TouchableOpacity>
         </View>
 
-        <FlatList
-          data={historialVentas}
-          keyExtractor={(item) => item.ID_VENTA}
-          style={styles.tablePagos}
-          renderItem={({ item }) => (
-            <Item PRODUCTO={item.PRODUCTO} CANTIDAD={item.CANTIDAD} />
-          )}
-        />
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#fee03e" />
+          </View>
+        ) : (
+          <FlatList
+            data={historialVentas}
+            keyExtractor={(item) => `${item.VENTA_ID}-${item.ID_PRODUCTO}`}
+            style={styles.tablePagos}
+            renderItem={({ item }) => (
+              <Item PRODUCTO={item.PRODUCTO} CANTIDAD={item.CANTIDAD} />
+            )}
+          />
+        )}
       </View>
     </View>
   );
@@ -111,9 +108,9 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   nombreProducto: {
-   fontSize: 18,
-   fontWeight: "800",
- },
+    fontSize: 18,
+    fontWeight: "800",
+  },
   defecto: {
     fontSize: 15,
     textTransform: "uppercase",
@@ -131,5 +128,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    padding: 60,
   },
 });

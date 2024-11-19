@@ -24,8 +24,6 @@ const Resumen = () => {
   const { verPagos, ventasResumidas, productos, clientes } =
     useContext(PagosContext);
 
-  const [modalPagos, setModalPagos] = useState(false);
-
   //PUSHEAR NOTIFICACIONES
   const registerForPushNotifications = async () => {
     try {
@@ -92,11 +90,6 @@ const Resumen = () => {
       const response = await axios.post(`${url}/verificarInventario`, {
         id_admin: adminId,
       });
-
-      console.log(
-        "Respuesta del backend al verificar inventario:",
-        response.data
-      );
 
       if (response.status === 200) {
         Notifications.setNotificationHandler({

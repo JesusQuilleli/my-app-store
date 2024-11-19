@@ -364,7 +364,7 @@ const Productos = () => {
               : "Imagen no disponible";
 
             // Formato del producto con precio en diferentes monedas
-            return `🛍️ *${nombre}*\n📝 *Descripción:* ${descripcion}\n💵 *Precio en Dólares:* ${precioDolares}$\n💰 *Precio en Bolívares:* ${precioBolivares} Bs\n💸 *Precio en Pesos:* ${precioPesos} MXN\n📦 *Disponible:* ${cantidad}\n📸 *Imagen:* ${imagen}\n`;
+            return `🛍️ *${nombre}*\n📝 *Descripción:* ${descripcion}\n💵 *Precio en Dólares:* ${precioDolares}$\n💰 *Precio en Bolívares:* ${precioBolivares} Bs\n💸 *Precio en Pesos:* ${precioPesos} COP\n📦 *Disponible:* ${cantidad}\n📸 *Imagen:* ${imagen}\n`;
           })
           .join("\n");
 
@@ -435,7 +435,7 @@ const Productos = () => {
                 <p>📝 <strong>Descripción:</strong> ${descripcion}</p>
                 <p>💵 <strong>Precio en Dólares:</strong> ${precioDolares}$</p>
                 <p>💰 <strong>Precio en Bolívares:</strong> ${precioBolivares} Bs</p>
-                <p>💸 <strong>Precio en Pesos:</strong> ${precioPesos} MXN</p>
+                <p>💸 <strong>Precio en Pesos:</strong> ${precioPesos} COP</p>
                 <p>📦 <strong>Disponible:</strong> ${cantidad}</p>
               </div>
               <hr style="border: 1px dashed #ccc; margin: 20px 0;" />

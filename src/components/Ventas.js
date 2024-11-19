@@ -666,9 +666,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginVertical: 2.5,
     shadowColor: "#000",
-          shadowOpacity: 0.2,
-          shadowRadius: 2.5,
-          elevation: 5,
+    shadowOpacity: 0.2,
+    shadowRadius: 2.5,
+    elevation: 5,
   },
   BtnVentaText: {
     textAlign: "center",
@@ -753,9 +753,9 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     marginHorizontal: 5,
     shadowColor: "#000",
-          shadowOpacity: 0.2,
-          shadowRadius: 2.5,
-          elevation: 5,
+    shadowOpacity: 0.2,
+    shadowRadius: 2.5,
+    elevation: 5,
   },
   btnFechaIncialText: {
     fontWeight: "900",
@@ -766,9 +766,9 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     marginHorizontal: 5,
     shadowColor: "#000",
-          shadowOpacity: 0.2,
-          shadowRadius: 2.5,
-          elevation: 5,
+    shadowOpacity: 0.2,
+    shadowRadius: 2.5,
+    elevation: 5,
   },
   btnFechaFinalText: {
     fontWeight: "900",
@@ -780,9 +780,9 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     marginHorizontal: 5,
     shadowColor: "#000",
-          shadowOpacity: 0.2,
-          shadowRadius: 2.5,
-          elevation: 5,
+    shadowOpacity: 0.2,
+    shadowRadius: 2.5,
+    elevation: 5,
   },
   btnverFecha: {
     padding: 8,
@@ -795,7 +795,6 @@ const styles = StyleSheet.create({
     width: "100%",
     marginVertical: 15,
     textTransform: "uppercase",
-    
   },
   input: {
     width: "70%",
@@ -805,14 +804,13 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 8,
     shadowColor: "#000",
-          shadowOpacity: 0.2,
-          shadowRadius: 2.5,
-          elevation: 5,
-    
+    shadowOpacity: 0.2,
+    shadowRadius: 2.5,
+    elevation: 5,
   },
   contentButtonAndInput: {
     width: "100%",
-    alignItems:'center'
+    alignItems: "center",
   },
   botonAvisar: {
     backgroundColor: "#25D366",
