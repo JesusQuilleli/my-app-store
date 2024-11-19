@@ -70,7 +70,9 @@ const Login = ({ navigation }) => {
     } catch (error) {
       if (error.response) {
         if (error.response.status === 404) {
-          Alert.alert("Error", "Correo no registrado debe registrarse");
+          Alert.alert("Error", "¡Correo no Registrado!");
+        } else if (error.response.status === 401) {
+          Alert.alert("Error", "¡Contraseña Incorrecta!");
         } else if (error.response.status === 500) {
           Alert.alert(
             "Error",

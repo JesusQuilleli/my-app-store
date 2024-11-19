@@ -63,8 +63,6 @@ const Resumen = () => {
         token,
       });
 
-      console.log("Respuesta del backend al guardar token:", response.data);
-
       if (response.status === 200) {
         console.log("Token de notificación registrado con éxito.");
       } else {

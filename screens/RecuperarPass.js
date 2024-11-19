@@ -146,7 +146,7 @@ const RecuperarPass = ({navigation}) => {
             <TextInput
               placeholder="ejemplo@gmail.com"
               value={email}
-              onChangeText={setEmail}
+              onChangeText={(email) => setEmail(email.toLowerCase())}
               style={styles.inputs}
               editable={verValidar ? false : true}
               keyboardType='email-address'
