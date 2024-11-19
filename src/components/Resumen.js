@@ -1,12 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Modal,
-  Animated,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
 import axios from "axios";
 import { url } from "../helpers/url.js";
@@ -21,70 +14,21 @@ import { PagosContext } from "./Context/pagosContext.js";
 
 import LottieView from "lottie-react-native";
 
-import Pagos from "./Pagos";
 import InfoCard from "./components--/card.js";
 
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import Fontisto from "@expo/vector-icons/Fontisto";
+
 const Resumen = () => {
-  const {
-    verPagos,
-    setVerPagos,
-    cargarPagos,
-    cargarPagosCodigo,
-    ventasResumidas,
-  } = useContext(PagosContext);
+  const { verPagos, ventasResumidas, productos, clientes } =
+    useContext(PagosContext);
 
   const [modalPagos, setModalPagos] = useState(false);
-
-  const [isConnected, setIsConnected] = useState(true);
-  const [connectionType, setConnectionType] = useState("WIFI");
-  const [showInitialMessage, setShowInitialMessage] = useState(true);
-  const opacity = useState(new Animated.Value(0))[0]; // Valor inicial de opacidad (0)
-
-  // Efecto para verificar la conexión de red
-  useEffect(() => {
-    const checkConnection = async () => {
-      try {
-        const networkState = await Network.getNetworkStateAsync(); // Obtener estado de la red
-
-        setIsConnected(networkState.isConnected); // Actualizar estado de conexión
-        setConnectionType(networkState.type); // Obtener el tipo de conexión (wifi, celular, etc.)
-
-        // Animar la opacidad para que aparezca el mensaje de conexión
-        Animated.timing(opacity, {
-          toValue: 1, // Cambiar la opacidad a 1
-          duration: 1000, // Duración de la animación
-          useNativeDriver: true,
-        }).start();
-
-        // Después de 3 segundos, cambiar a "Dashboard" y desvanecer el mensaje de conexión
-        setTimeout(() => {
-          setShowInitialMessage(false); // Ocultar el mensaje de conexión
-          Animated.timing(opacity, {
-            toValue: 0, // Hacer que el mensaje desaparezca lentamente
-            duration: 1000,
-            useNativeDriver: true,
-          }).start();
-        }, 3000); // 3 segundos para mostrar el mensaje de conexión
-      } catch (error) {
-        console.log("Error al verificar la conexión:", error);
-      }
-    };
-
-    checkConnection(); // Verificar la conexión al cargar el componente
-
-    // Opcional: puedes usar un listener para monitorear cambios de red si lo necesitas
-    // Network.addListener('connectionChange', checkConnection);
-
-    return () => {
-      // Limpiar listeners si es necesario
-      // Network.removeListener('connectionChange', checkConnection);
-    };
-  }, []); // Se ejecuta solo una vez al cargar el componente
 
   //PUSHEAR NOTIFICACIONES
   const registerForPushNotifications = async () => {
     try {
-      // Verifica si hay conexión a Internet
       const networkState = await Network.getNetworkStateAsync();
 
       if (!networkState.isConnected) {
@@ -92,7 +36,6 @@ const Resumen = () => {
         return;
       }
 
-      // Si está conectado, solicita permisos de notificación
       const { status } = await Notifications.requestPermissionsAsync();
 
       if (status !== "granted") {
@@ -100,10 +43,13 @@ const Resumen = () => {
         return;
       }
 
-      // Obtiene el token de notificación de Expo
       const token = (await Notifications.getExpoPushTokenAsync()).data;
 
-      // Obtén el ID del administrador desde AsyncStorage
+      if (!token) {
+        console.log("No se pudo obtener el token de notificación.");
+        return;
+      }
+
       const adminIdString = await AsyncStorage.getItem("adminId");
       const adminId = parseInt(adminIdString, 10);
 
@@ -112,42 +58,49 @@ const Resumen = () => {
         return;
       }
 
-      // Envía el token al backend si todo está correcto
       const response = await axios.post(`${url}/guardarToken`, {
         administrador_id: adminId,
         token,
       });
 
+      console.log("Respuesta del backend al guardar token:", response.data);
+
       if (response.status === 200) {
         console.log("Token de notificación registrado con éxito.");
       } else {
-        console.log("Error al guardar el token en el backend");
+        console.log(
+          "Error al guardar el token en el backend. Status:",
+          response.status
+        );
       }
     } catch (error) {
-      console.log("Error al registrar el token de notificación:", error);
+      console.log(
+        "Error al registrar el token de notificación:",
+        error.response?.data || error.message
+      );
     }
   };
 
-  //VERIFICAR EL INVENTARIO
   const verificarInventario = async () => {
     try {
-      // Obtén el id_admin del AsyncStorage
       const adminIdString = await AsyncStorage.getItem("adminId");
       const adminId = parseInt(adminIdString, 10);
 
-      // Asegúrate de que el id_admin está definido
       if (isNaN(adminId)) {
-        console.error("ID de administrador no encontrado");
+        console.error("ID de administrador no encontrado o no válido");
         return;
       }
 
-      // Hacer la solicitud al backend
       const response = await axios.post(`${url}/verificarInventario`, {
         id_admin: adminId,
       });
 
+      console.log(
+        "Respuesta del backend al verificar inventario:",
+        response.data
+      );
+
       if (response.status === 200) {
-        // Configura el manejador de notificaciones
         Notifications.setNotificationHandler({
           handleNotification: async () => ({
             shouldShowAlert: true,
@@ -156,10 +109,13 @@ const Resumen = () => {
           }),
         });
       } else {
-        console.log("Error al verificar inventario.");
+        console.log("Error al verificar inventario. Status:", response.status);
       }
     } catch (error) {
-      console.error("Error al verificar el inventario:", error);
+      console.error(
+        "Error al verificar el inventario:",
+        error.response?.data || error.message
+      );
     }
   };
 
@@ -170,56 +126,18 @@ const Resumen = () => {
 
   return (
     <View style={styles.container}>
-      {showInitialMessage && (
-        <Animated.View
-          style={{
-            alignItems: "center",
-            opacity,
-            backgroundColor: "#fff",
-            borderRadius: 10,
-            padding: 20,
-            margin: 10,
-            shadowColor: "#000",
-            shadowOpacity: 0.2,
-            shadowRadius: 5,
-            elevation: 5,
-          }}
-        >
-          <Text style={{ fontSize: 20, fontWeight: "900", marginTop: 15 }}>
-            Tipo de Conexión:{" "}
-            {connectionType === "WIFI" ? (
-              <Text>Red WiFi</Text>
-            ) : (
-              <Text>Datos Móviles</Text>
-            )}
-          </Text>
-          <Text
-            style={
-              isConnected
-                ? {
-                    fontSize: 19,
-                    fontWeight: "900",
-                    marginTop: 15,
-                    color: "green",
-                  }
-                : {
-                    fontSize: 19,
-                    fontWeight: "900",
-                    marginTop: 15,
-                    color: "red",
-                  }
-            }
-          >
-            {isConnected
-              ? "Conexión estable"
-              : "Conexión inestable o sin conexión"}
-          </Text>
-        </Animated.View>
-      )}
-
       <InfoCard title="Aplicación de Gestión, Control de Ventas y Pagos" />
 
-      <View style={{ backgroundColor: "#fff", borderRadius: 20 }}>
+      <View
+        style={{
+          backgroundColor: "#fff",
+          borderRadius: 20,
+          shadowColor: "#000",
+          shadowOpacity: 0.2,
+          shadowRadius: 5,
+          elevation: 5,
+        }}
+      >
         <LottieView
           source={require("./../../assets/animation/Animation - 1731902275259.json")} // Ruta a tu archivo de animación
           autoPlay
@@ -247,12 +165,7 @@ const Resumen = () => {
           justifyContent: "space-evenly",
         }}
       >
-        <TouchableOpacity
-          style={styles.btn}
-          onPress={() => {
-            setModalPagos(true);
-          }}
-        >
+        <View style={styles.btn}>
           <Text
             style={{
               color: "#000",
@@ -261,22 +174,22 @@ const Resumen = () => {
               textTransform: "uppercase",
             }}
           >
-            Pagos{" "}
+            <MaterialIcons name="payments" size={40} color="green" />
           </Text>
           <Text style={styles.nro}>
             {verPagos.length === 0 ? (
               <Text style={{ fontSize: 12, textTransform: "uppercase" }}>
-                Historial de pagos vacio
+                Sin pagos
               </Text>
             ) : (
               <Text
-                style={{ fontSize: 24, fontWeight: "bold", color: "#ffc727" }}
+                style={{ fontSize: 30, fontWeight: "bold", color: "#333" }}
               >
                 {verPagos.length}
               </Text>
             )}
           </Text>
-        </TouchableOpacity>
+        </View>
 
         <View style={styles.btn}>
           <Text
@@ -287,16 +200,16 @@ const Resumen = () => {
               textTransform: "uppercase",
             }}
           >
-            Ventas{" "}
+            <MaterialIcons name="point-of-sale" size={40} color="gray" />
           </Text>
           <Text style={styles.nro}>
             {verPagos.length === 0 ? (
               <Text style={{ fontSize: 12, textTransform: "uppercase" }}>
-                Sin Ventas Realizadas
+                Sin Ventas
               </Text>
             ) : (
               <Text
-                style={{ fontSize: 24, fontWeight: "bold", color: "#ffc727" }}
+                style={{ fontSize: 30, fontWeight: "bold", color: "#333" }}
               >
                 {ventasResumidas.length}
               </Text>
@@ -305,15 +218,67 @@ const Resumen = () => {
         </View>
       </View>
 
-      <Modal visible={modalPagos} animationType="fade">
-        <Pagos
-          setModalPagos={setModalPagos}
-          verPagos={verPagos}
-          setVerPagos={setVerPagos}
-          cargarPagos={cargarPagos}
-          cargarPagosCodigo={cargarPagosCodigo}
-        />
-      </Modal>
+      <View
+        style={{
+          width: "100%",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-evenly",
+          marginTop: 20,
+        }}
+      >
+        <View style={styles.btn}>
+          <Text
+            style={{
+              color: "#000",
+              fontSize: 20,
+              fontWeight: "bold",
+              textTransform: "uppercase",
+            }}
+          >
+            <FontAwesome5 name="shopping-cart" size={40} color="#ffdb27" />
+          </Text>
+          <Text style={styles.nro}>
+            {productos.length === 0 ? (
+              <Text style={{ fontSize: 12, textTransform: "uppercase" }}>
+                Sin productos
+              </Text>
+            ) : (
+              <Text
+                style={{ fontSize: 30, fontWeight: "bold", color: "#333" }}
+              >
+                {productos.length}
+              </Text>
+            )}
+          </Text>
+        </View>
+
+        <View style={styles.btn}>
+          <Text
+            style={{
+              color: "#000",
+              fontSize: 20,
+              fontWeight: "bold",
+              textTransform: "uppercase",
+            }}
+          >
+            <Fontisto name="persons" size={40} color="#ffdab9" />
+          </Text>
+          <Text style={styles.nro}>
+            {clientes.length === 0 ? (
+              <Text style={{ fontSize: 12, textTransform: "uppercase" }}>
+                Sin Clientes
+              </Text>
+            ) : (
+              <Text
+                style={{ fontSize: 30, fontWeight: "bold", color: "#333" }}
+              >
+                {clientes.length}
+              </Text>
+            )}
+          </Text>
+        </View>
+      </View>
     </View>
   );
 };

@@ -48,7 +48,14 @@ const Productos = () => {
   const [modalCategoria, setModalCategoria] = useState(false);
 
   //PRODUCTOS
-  const { cargarProductos, productos, setProductos, productoNoEncontrado, setProductoNoEncontrado } = useContext(PagosContext);
+  const {
+    cargarProductos,
+    productos,
+    setProductos,
+    productoNoEncontrado,
+    setProductoNoEncontrado,
+  } = useContext(PagosContext);
+
   const [producto, setProducto] = useState({});
   //PRODUCTOS SELECCIONADOS PARA COMPARTIR
   const [productosSeleccionados, setProductosSeleccionados] = useState([]);
@@ -82,59 +89,61 @@ const Productos = () => {
       )
     : "No disponible";
 
-    const calcularTotalesYGanancia = (productos) => {
-      let totalCompra = 0;
-      let totalVenta = 0;
-      let totalGanancia = 0;
-      let totalPorcentajeGanancia = 0;
-    
-      // Filtrar solo los productos con cantidad mayor a 0 (productos disponibles)
-      const productosDisponibles = productos.filter((producto) => producto.CANTIDAD > 0);
-    
-      // Si no hay productos disponibles, no se hace el cálculo
-      if (productosDisponibles.length === 0) {
-        return {
-          totalCompra: 0,
-          totalVenta: 0,
-          totalGanancia: 0,
-          porcentajeGananciaPromedio: 0,
-        };
-      }
-    
-      // Iterar sobre los productos disponibles y calcular los totales de compra, venta y ganancia
-      productosDisponibles.forEach((producto) => {
-        const cantidad = producto.CANTIDAD;
-        const precioCompra = parseFloat(producto.PRECIO_COMPRA);
-        const precioVenta = parseFloat(producto.PRECIO);
-    
-        const totalProductoCompra = cantidad * precioCompra;
-        const totalProductoVenta = cantidad * precioVenta;
-    
-        // Ganancia del producto
-        const gananciaProducto = totalProductoVenta - totalProductoCompra;
-    
-        // Porcentaje de ganancia para este producto
-        const porcentajeGanancia = (gananciaProducto / totalProductoCompra) * 100;
-    
-        totalCompra += totalProductoCompra;
-        totalVenta += totalProductoVenta;
-        totalGanancia += gananciaProducto;
-    
-        // No ponderar el porcentaje de ganancia, solo sumarlo
-        totalPorcentajeGanancia += porcentajeGanancia;
-      });
-    
-      // Promedio del porcentaje de ganancia
-      const porcentajeGananciaPromedio =
-        totalPorcentajeGanancia / productosDisponibles.length;
-    
+  const calcularTotalesYGanancia = (productos) => {
+    let totalCompra = 0;
+    let totalVenta = 0;
+    let totalGanancia = 0;
+    let totalPorcentajeGanancia = 0;
+
+    // Filtrar solo los productos con cantidad mayor a 0 (productos disponibles)
+    const productosDisponibles = productos.filter(
+      (producto) => producto.CANTIDAD > 0
+    );
+
+    // Si no hay productos disponibles, no se hace el cálculo
+    if (productosDisponibles.length === 0) {
       return {
-        totalCompra,
-        totalVenta,
-        totalGanancia,
-        porcentajeGananciaPromedio,
+        totalCompra: 0,
+        totalVenta: 0,
+        totalGanancia: 0,
+        porcentajeGananciaPromedio: 0,
       };
+    }
+
+    // Iterar sobre los productos disponibles y calcular los totales de compra, venta y ganancia
+    productosDisponibles.forEach((producto) => {
+      const cantidad = producto.CANTIDAD;
+      const precioCompra = parseFloat(producto.PRECIO_COMPRA);
+      const precioVenta = parseFloat(producto.PRECIO);
+
+      const totalProductoCompra = cantidad * precioCompra;
+      const totalProductoVenta = cantidad * precioVenta;
+
+      // Ganancia del producto
+      const gananciaProducto = totalProductoVenta - totalProductoCompra;
+
+      // Porcentaje de ganancia para este producto
+      const porcentajeGanancia = (gananciaProducto / totalProductoCompra) * 100;
+
+      totalCompra += totalProductoCompra;
+      totalVenta += totalProductoVenta;
+      totalGanancia += gananciaProducto;
+
+      // No ponderar el porcentaje de ganancia, solo sumarlo
+      totalPorcentajeGanancia += porcentajeGanancia;
+    });
+
+    // Promedio del porcentaje de ganancia
+    const porcentajeGananciaPromedio =
+      totalPorcentajeGanancia / productosDisponibles.length;
+
+    return {
+      totalCompra,
+      totalVenta,
+      totalGanancia,
+      porcentajeGananciaPromedio,
     };
+  };
 
   const { totalCompra, totalVenta, totalGanancia, porcentajeGananciaPromedio } =
     calcularTotalesYGanancia(productos);
@@ -202,7 +211,17 @@ const Productos = () => {
   //FUNCION BUSCAR PRODUCTOS
   const searchProducto = async (nombre) => {
     try {
-      const response = await axios.get(`${url}/buscarProductos`, {
+      const adminIdString = await AsyncStorage.getItem("adminId");
+      if (adminIdString === null) {
+        console.log("ID de administrador no encontrado.");
+        return;
+      }
+      const adminId = parseInt(adminIdString, 10);
+      if (isNaN(adminId)) {
+        console.log("ID de administrador no es un número válido.");
+        return;
+      }
+      const response = await axios.get(`${url}/buscarProductos/${adminId}`, {
         params: { nombre: nombre },
       });
 
@@ -503,7 +522,6 @@ const Productos = () => {
             style={{ height: 120, width: 120 }}
           />
         )}
-        
       </View>
     </View>
   );
@@ -590,13 +608,25 @@ const Productos = () => {
               style={{ alignItems: "center", justifyContent: "flex-start" }}
             >
               <Text style={styles.labelTotal}>TOTAL INVERTIDO</Text>
-              <Text style={styles.valorTotal}>{totalCompra === 0 ? (<Text style={{fontSize: 10}}>Aún no hay Inversión</Text>):(<Text>{totalCompra.toFixed(2)} $</Text>)}</Text>
+              <Text style={styles.valorTotal}>
+                {totalCompra === 0 ? (
+                  <Text style={{ fontSize: 10 }}>Aún no hay Inversión</Text>
+                ) : (
+                  <Text>{totalCompra.toFixed(2)} $</Text>
+                )}
+              </Text>
             </View>
             <View
               style={{ alignItems: "center", justifyContent: "flex-start" }}
             >
               <Text style={styles.labelTotal}>TOTAL DE VENTA</Text>
-              <Text style={styles.valorTotal}>{totalVenta === 0 ? (<Text style={{fontSize: 10}}>Aún no hay Inversión</Text>):(<Text>{totalVenta.toFixed(2)} $</Text>)}</Text>
+              <Text style={styles.valorTotal}>
+                {totalVenta === 0 ? (
+                  <Text style={{ fontSize: 10 }}>Aún no hay Inversión</Text>
+                ) : (
+                  <Text>{totalVenta.toFixed(2)} $</Text>
+                )}
+              </Text>
             </View>
             <View style={{ alignItems: "center", justifyContent: "center" }}>
               <Text style={styles.labelTotal}>GANANCIA ESTIMADA</Text>
@@ -608,10 +638,20 @@ const Productos = () => {
                   width: 90,
                 }}
               >
-                <Text style={styles.valorTotal}>{totalGanancia === 0 ? (<Text style={{fontSize: 10, textAlign:'center'}}>Sin ganacia</Text>): (<Text>{totalGanancia.toFixed(2)} $</Text>)}  </Text>
-                {totalGanancia !== 0 && productos.CANTIDAD !== 0 && (<Text style={styles.valorTotal}>
+                <Text style={styles.valorTotal}>
+                  {totalGanancia === 0 ? (
+                    <Text style={{ fontSize: 10, textAlign: "center" }}>
+                      Sin ganacia
+                    </Text>
+                  ) : (
+                    <Text>{totalGanancia.toFixed(2)} $</Text>
+                  )}{" "}
+                </Text>
+                {totalGanancia !== 0 && productos.CANTIDAD !== 0 && (
+                  <Text style={styles.valorTotal}>
                     {porcentajeGananciaPromedio.toFixed(0)} %
-                </Text>)}
+                  </Text>
+                )}
               </View>
             </View>
           </View>
@@ -638,6 +678,12 @@ const Productos = () => {
             <Text style={styles.noSearchText}>
               No se ha Encontrado el Producto
             </Text>
+          </View>
+        )}
+
+        {productos.length === 0 && !productoNoEncontrado && (
+          <View style={styles.noSearch}>
+            <Text style={styles.noSearchText}>Sin resultados</Text>
           </View>
         )}
 
@@ -738,6 +784,7 @@ const Productos = () => {
             categorias={categorias}
             setCategorias={setCategorias}
             cargarCategorias={cargarCategorias}
+            cargarProductos={cargarProductos}
           />
         </Modal>
 
@@ -792,7 +839,8 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontSize: 26,
     fontWeight: "900",
-    textTransform:'uppercase'
+    textTransform: "uppercase",
+    
   },
   tituloBold: {
     color: "#fcd53f",
@@ -825,6 +873,10 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 50,
     marginLeft: 5,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
   },
   boxInput: {
     backgroundColor: "#efefef",
@@ -833,6 +885,10 @@ const styles = StyleSheet.create({
     borderColor: "#fcd53f",
     borderWidth: 0.5,
     borderRadius: 15,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
   },
   textInput: {
     padding: 8,
@@ -846,6 +902,10 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 50,
     marginLeft: 5,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
   },
   tableProductos: {
     width: "90%",
@@ -872,6 +932,10 @@ const styles = StyleSheet.create({
     bottom: 0,
     marginRight: 10,
     marginBottom: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
   },
   item: {
     backgroundColor: "#fff",
@@ -935,10 +999,11 @@ const styles = StyleSheet.create({
   noSearch: {
     alignItems: "center",
     justifyContent: "center",
+    marginTop: 20
   },
   noSearchText: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: "900",
   },
   contentOpcionesP: {
     flexDirection: "row",

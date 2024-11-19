@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Modal,
   FlatList,
-  Image
+  Image,
 } from "react-native";
 
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -18,10 +18,7 @@ import InformacionCliente from "./sub-components/components--Clientes/Informacio
 import axios from "axios";
 
 //URLS
-import {url} from './../helpers/url'
-
-//ALMACENAMIENTO LOCAL
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { url } from "./../helpers/url";
 
 import SkeletonLoaderClientes from "./components--/skeletonAnimatedClientes.js";
 
@@ -29,59 +26,35 @@ import SkeletonLoaderClientes from "./components--/skeletonAnimatedClientes.js";
 import { PagosContext } from "./Context/pagosContext.js";
 
 const Clientes = () => {
-
-  const [clientes, setClientes] = useState([]);
   const [cliente, setCliente] = useState({});
 
-  const {cargarVentas, cargarPagos} = useContext(PagosContext);
+  const { cargarVentas, cargarPagos, clientes, setClientes, cargarClientes } =
+    useContext(PagosContext);
 
   const [formClientes, setFormClientes] = useState(false);
   const [modalInformacionCliente, setModalInformacionCliente] = useState(false);
 
   const [clienteNoEncontrado, setClienteNoEncontrado] = useState(false);
 
-
   useEffect(() => {
-    cargarClientes()
-  }, [])
-
-  const cargarClientes = async () => {
-    try{
-      const adminIdString = await AsyncStorage.getItem("adminId");
-      if (adminIdString === null) {
-        console.log("ID de administrador no encontrado.");
-        return;
-      }
-      const adminId = parseInt(adminIdString, 10);
-      if (isNaN(adminId)) {
-        console.log("ID de administrador no es un número válido.");
-        return;
-      }
-
-      const response = await axios.get(`${url}/cargarClientes/${adminId}`);
-      const resultadoClientes = response.data.result;
-      setClientes(resultadoClientes);
-    } catch (error) {
-      console.error("Ha ocurrido un error al cargar Clientes", error)
-    }
-  };
+    cargarClientes();
+  }, []);
 
   const closeFormCliente = () => {
     setFormClientes(false);
-  }
+  };
 
   const closeInfoCliente = () => {
     setModalInformacionCliente(false);
-  }
+  };
 
-  const  clientIndex = (id) => {
+  const clientIndex = (id) => {
     const clienteSeleccionado = clientes.find(
       (client) => client.ID_CLIENTE === id
     );
     if (clienteSeleccionado) {
       setCliente(clienteSeleccionado);
       setModalInformacionCliente(true);
-      
     } else {
       console.log("Cliente no Encontrado");
     }
@@ -89,11 +62,12 @@ const Clientes = () => {
 
   const Item = ({ nombre }) => (
     <View style={styles.item}>
-        <Image source={require('../../assets/resources/perfil.webp')} style={styles.boxImage}/>
+      <Image
+        source={require("../../assets/resources/perfil.webp")}
+        style={styles.boxImage}
+      />
       <View style={styles.textContainer}>
-        <Text style={styles.itemText}>
-          {nombre}
-        </Text>
+        <Text style={styles.itemText}>{nombre}</Text>
       </View>
     </View>
   );
@@ -129,7 +103,7 @@ const Clientes = () => {
         <TextInput
           placeholder="B U S C A R   C L I E N T E S"
           placeholderTextColor="#ccc"
-          style={{textAlign:'center'}}
+          style={{ textAlign: "center" }}
           onChangeText={(value) => {
             if (value.length > 0) {
               searchCliente(value);
@@ -151,39 +125,42 @@ const Clientes = () => {
       </TouchableOpacity>
 
       {clienteNoEncontrado && (
-          <View style={styles.noSearch}>
-            <Text style={styles.noSearchText}>
-              No se ha Encontrado el Cliente
-            </Text>
-          </View>
-        )}
+        <View style={styles.noSearch}>
+          <Text style={styles.noSearchText}>
+            No se ha Encontrado el Cliente
+          </Text>
+        </View>
+      )}
 
       <View style={styles.tableClientes}>
         {clientes && clientes.length > 0 ? (
           <FlatList
-          data={clientes}
-          keyExtractor={(item) => item.ID_CLIENTE}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-            onPress={() => {  
-              clientIndex(item.ID_CLIENTE);
-            }}
-            >
-              <Item nombre={item.NOMBRE} />
-            </TouchableOpacity>
-          )}
-        />
-        ) : (!clienteNoEncontrado && <SkeletonLoaderClientes/>)}
+            data={clientes}
+            keyExtractor={(item) => item.ID_CLIENTE}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                onPress={() => {
+                  clientIndex(item.ID_CLIENTE);
+                }}
+              >
+                <Item nombre={item.NOMBRE} />
+              </TouchableOpacity>
+            )}
+          />
+        ) : (
+          !clienteNoEncontrado && <SkeletonLoaderClientes />
+        )}
       </View>
-      
+
       <Modal visible={formClientes} animationType="slide">
-        <FormularioCliente 
-        setFormClientes={setFormClientes}
-        cargarClientes={cargarClientes}/>
+        <FormularioCliente
+          setFormClientes={setFormClientes}
+          cargarClientes={cargarClientes}
+        />
       </Modal>
 
-      <Modal visible={modalInformacionCliente} animationType='fade'>
-          <InformacionCliente 
+      <Modal visible={modalInformacionCliente} animationType="fade">
+        <InformacionCliente
           setModalInformacionCliente={setModalInformacionCliente}
           cliente={cliente}
           setCliente={setCliente}
@@ -195,7 +172,7 @@ const Clientes = () => {
           cargarClientes={cargarClientes}
           cargarVentas={cargarVentas}
           cargarPagos={cargarPagos}
-          />
+        />
       </Modal>
     </View>
   );
@@ -215,7 +192,7 @@ const styles = StyleSheet.create({
     fontSize: 40,
     fontWeight: "900",
     color: "#000",
-    textTransform:'uppercase'
+    textTransform: "uppercase",
   },
   boxInput: {
     backgroundColor: "#efefef",
@@ -226,6 +203,10 @@ const styles = StyleSheet.create({
     padding: 8,
     marginTop: 15,
     textTransform: "uppercase",
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
   },
   btnCliente: {
     backgroundColor: "#439003",
@@ -237,6 +218,10 @@ const styles = StyleSheet.create({
     marginRight: 10,
     marginBottom: 10,
     zIndex: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
   },
   tableClientes: {
     marginTop: 20,
@@ -248,22 +233,22 @@ const styles = StyleSheet.create({
     shadowColor: "#000",
   },
   item: {
-    flexDirection: 'row',
+    flexDirection: "row",
     backgroundColor: "#fff",
     padding: 10,
     borderBottomColor: "#000",
     borderBottomWidth: 0.2,
   },
-  boxImage:{
+  boxImage: {
     width: 50,
     height: 50,
-    borderRadius: 50
+    borderRadius: 50,
   },
-  itemText:{
+  itemText: {
     fontSize: 18,
-    color:'#000',
-    fontWeight:'900',
-    marginLeft: 5
+    color: "#000",
+    fontWeight: "900",
+    marginLeft: 5,
   },
   textContainer: {
     margin: 10,
@@ -271,7 +256,7 @@ const styles = StyleSheet.create({
   noSearch: {
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 20
+    marginTop: 20,
   },
   noSearchText: {
     fontSize: 20,

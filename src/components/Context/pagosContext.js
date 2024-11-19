@@ -14,6 +14,9 @@ export const PagosProvider = ({ children }) => {
   //VENTAS
   const [ventasResumidas, setVentasResumidas] = useState([]);
 
+  //CLIENTES
+  const [clientes, setClientes] = useState([]);
+
   // Función para cargar los pagos desde el servidor
   const cargarPagos = async () => {
     try {
@@ -135,11 +138,34 @@ export const PagosProvider = ({ children }) => {
     }
   };
 
+  //CLIENTES
+  const cargarClientes = async () => {
+    try{
+      const adminIdString = await AsyncStorage.getItem("adminId");
+      if (adminIdString === null) {
+        console.log("ID de administrador no encontrado.");
+        return;
+      }
+      const adminId = parseInt(adminIdString, 10);
+      if (isNaN(adminId)) {
+        console.log("ID de administrador no es un número válido.");
+        return;
+      }
+
+      const response = await axios.get(`${url}/cargarClientes/${adminId}`);
+      const resultadoClientes = response.data.result;
+      setClientes(resultadoClientes);
+    } catch (error) {
+      console.error("Ha ocurrido un error al cargar Clientes", error)
+    }
+  };
+
   // Efecto para cargar los pagos al iniciar el contexto
   useEffect(() => {
     cargarPagos();
     cargarProductos();
     cargarVentas();
+    cargarClientes();
   }, []);
 
   return (
@@ -156,7 +182,10 @@ export const PagosProvider = ({ children }) => {
         setProductoNoEncontrado,
         ventasResumidas,
         setVentasResumidas,
-        cargarVentas
+        cargarVentas,
+        clientes,
+        setClientes,
+        cargarClientes
       }}
     >
       {children}

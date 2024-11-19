@@ -10,6 +10,7 @@ import Clientes from "../src/components/Clientes.js";
 import Productos from "../src/components/Productos.js";
 import Ventas from "../src/components/Ventas.js";
 import Resumen from "../src/components/Resumen.js";
+import Pagos from "../src/components/Pagos.js";
 
 const Tab = createBottomTabNavigator();
 
@@ -37,19 +38,25 @@ export default function Home() {
           } else if (route.name === "Pedidos") {
             iconName = focused ? "clipboard" : "clipboard-outline"; // Ionicons para Pedidos
           } else if(route.name === "Ventas") {
+            iconName = focused ? "receipt" : "receipt-outline";
+          } else if(route.name === "Pagos") {
             iconName = focused ? "cash" : "cash-outline";
-          } 
+          }  
 
           // Devolvemos el ícono con Ionicons para las otras rutas
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: "#fff", // Color del botón activo
+        tabBarActiveTintColor: "#777", // Color del botón activo
         tabBarInactiveTintColor: "#000", // Color del botón inactivo
         tabBarStyle: {
           backgroundColor: "#fee03e", // Color de fondo de la barra
           paddingBottom: 10,
           paddingTop: 10,
           height: 80,
+          shadowColor: "#000",
+          shadowOpacity: 0.2,
+          shadowRadius: 5,
+          elevation: 5, 
         },
         tabBarLabelStyle: {
           fontSize: 12,
@@ -79,6 +86,11 @@ export default function Home() {
       <Tab.Screen
         name="Ventas"
         component={Ventas}
+        options={{ headerShown: false }}
+      />
+      <Tab.Screen
+        name="Pagos"
+        component={Pagos}
         options={{ headerShown: false }}
       />
     </Tab.Navigator>

@@ -581,6 +581,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 5,
     borderRadius: 30,
+    shadowColor: "#000",
+          shadowOpacity: 0.2,
+          shadowRadius: 5,
+          elevation: 5,
   },
   titulo: {
     fontSize: 24,
@@ -647,6 +651,10 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     marginBottom: 5,
     marginRight: 20,
+    shadowColor: "#000",
+          shadowOpacity: 0.2,
+          shadowRadius: 5,
+          elevation: 5,
   },
   BtnProductosText: {
     color: "#FFF",
@@ -661,6 +669,10 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     marginBottom: 5,
     marginLeft: 20,
+    shadowColor: "#000",
+          shadowOpacity: 0.2,
+          shadowRadius: 5,
+          elevation: 5,
   },
   BtnPagoText: {
     color: "#000",
@@ -681,6 +693,10 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: -15,
     left: -15,
+    shadowColor: "#000",
+          shadowOpacity: 0.2,
+          shadowRadius: 5,
+          elevation: 5,
   },
   BtnPagarText: {
     color: "#FFF",

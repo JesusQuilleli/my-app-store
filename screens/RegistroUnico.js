@@ -262,7 +262,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     textAlign: "center",
     fontStyle: "italic",
-    letterSpacing: 4,
   },
   boxText: {
     paddingVertical: 20,
@@ -305,7 +304,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 20,
     textAlign: "center",
-    letterSpacing: 6,
   },
   linkRegistro: {
     marginTop: 20,
@@ -315,7 +313,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#ccc",
     textTransform: "uppercase",
-    letterSpacing: 5,
     textDecorationLine: "underline",
   },
 });

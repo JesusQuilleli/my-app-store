@@ -22,6 +22,7 @@ const FormularioCategoria = ({
   categorias,
   setCategorias,
   cargarCategorias,
+  cargarProductos
 }) => {
 
   const [nombreCategoria, setNombreCategoria] = useState("");
@@ -87,6 +88,7 @@ const FormularioCategoria = ({
                     text: "OK",
                     onPress: async () => {
                       await cargarCategorias();
+                      await cargarProductos();
                     },
                   },
                 ]);

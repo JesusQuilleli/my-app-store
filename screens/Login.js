@@ -69,8 +69,13 @@ const Login = ({ navigation }) => {
       }
     } catch (error) {
       if (error.response) {
-        if (error.response.status === 401) {
-          Alert.alert("Error", "Email o Contraseña Incorrectos");
+        if (error.response.status === 404) {
+          Alert.alert("Error", "Correo no registrado debe registrarse");
+        } else if (error.response.status === 500) {
+          Alert.alert(
+            "Error",
+            "Hubo un problema en el servidor. Por favor, intenta más tarde."
+          );
         } else if (error.response.status === 500) {
           Alert.alert(
             "Error",
@@ -108,7 +113,14 @@ const Login = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View>
+      <View
+        style={{
+          shadowColor: "#000",
+          shadowOpacity: 0.2,
+          shadowRadius: 5,
+          elevation: 5,
+        }}
+      >
         <Image
           source={require("../assets/resources/perfil.webp")}
           style={styles.imagenProfile}
@@ -161,6 +173,18 @@ const Login = ({ navigation }) => {
             }}
           >
             <Text style={styles.linkRegistroText}>Registrarse</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.linkRegistro}
+            onPress={() => {
+              navigation.navigate("RecuperarPass");
+              setEmail("");
+              setPassword("");
+            }}
+          >
+            <Text style={[styles.linkRegistroText, { fontSize: 13 }]}>
+              Olvidé mi Contraseña
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -251,7 +275,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 20,
     textAlign: "center",
-    letterSpacing: 6,
   },
   absolute: {
     position: "absolute",
@@ -267,7 +290,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#ccc",
     textTransform: "uppercase",
-    letterSpacing: 5,
     textDecorationLine: "underline",
   },
 });

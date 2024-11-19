@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   View,
   Text,
@@ -19,13 +19,9 @@ import InformacionPagos from "./sub-components/components--Pagos/InformacionPago
 
 import { formatearFecha } from "../helpers/validaciones";
 
-const Pagos = ({
-  setModalPagos,
-  verPagos,
-  setVerPagos,
-  cargarPagos,
-  cargarPagosCodigo,
-}) => {
+import { PagosContext } from "./Context/pagosContext.js";
+
+const Pagos = () => {
   //PARA ELIMINAR PAGOS
   const [pagosSeleccionados, setPagosSeleccionados] = useState([]);
   const [modoSeleccion, setModoSeleccion] = useState(false);
@@ -34,6 +30,14 @@ const Pagos = ({
   const [Infopagos, setInfoPagos] = useState(false);
 
   const [pagoSeleccionado, setPagoSeleccionado] = useState([]);
+
+  //CONTEXTO
+  const {
+    verPagos,
+    setVerPagos,
+    cargarPagos,
+    cargarPagosCodigo
+  } = useContext(PagosContext);
 
   const seleccionarPago = (idPago) => {
     setModoSeleccion(true); // Activa el modo selección al seleccionar una venta
@@ -178,19 +182,10 @@ const Pagos = ({
           />
         </View>
       )}
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <TouchableOpacity
-            onPress={() => {
-              setModalPagos(false);
-            }}
-            style={styles.btnAtras}
-          >
-            <Entypo name="arrow-long-left" size={30} color="black" />
-          </TouchableOpacity>
-          <Text style={styles.titulo}>Pagos</Text>
-        </View>
-      </View>
+
+      <Text style={styles.pagosText}>
+        Historial de <Text style={{ color: "#fcd53f" }}>Pagos</Text>
+      </Text>
 
       <View style={styles.boxInput}>
         <TextInput
@@ -282,26 +277,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-start",
   },
-  header: {
-    backgroundColor: "#fee03e",
-    width: "100%",
-    padding: 15,
-  },
-  titulo: {
-    fontSize: 24,
-    textTransform: "uppercase",
-    fontWeight: "bold",
-    textAlign: "center",
-    marginLeft: 90,
-  },
-  headerContent: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  btnAtras: {
-    padding: 5,
-    
-  },
   tablePagos: {
     borderRadius: 15,
     overflow: "hidden",
@@ -338,6 +313,10 @@ const styles = StyleSheet.create({
     padding: 8,
     marginVertical: 15,
     textTransform: "uppercase",
+    shadowColor: "#000",
+          shadowOpacity: 0.2,
+          shadowRadius: 5,
+          elevation: 5,
   },
   buttonContainerEliminar: {
     padding: 10,
@@ -358,6 +337,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "#FFF",
     fontWeight: "900",
+    textTransform: "uppercase",
+  },
+  pagosText: {
+    fontSize: 30,
+    fontWeight: "900",
+    textAlign: "center",
+    marginTop: 20,
     textTransform: "uppercase",
   },
 });
