@@ -110,7 +110,6 @@ const FormasPagoVenta = ({
             "El Monto abonado no puede ser mayor al Monto Pendiente",
             [{ text: "Vale" }]
           );
-          setMontoAbonado(0);
           return;
         }
         abono = parseFloat(montoAbonado).toFixed(2);

@@ -239,7 +239,7 @@ const Resumen = () => {
           <Text style={styles.nro}>
             {productos.length === 0 ? (
               <Text style={{ fontSize: 12, textTransform: "uppercase" }}>
-                Sin productos
+                Sin pro...
               </Text>
             ) : (
               <Text
@@ -265,7 +265,7 @@ const Resumen = () => {
           <Text style={styles.nro}>
             {clientes.length === 0 ? (
               <Text style={{ fontSize: 12, textTransform: "uppercase" }}>
-                Sin Clientes
+                Sin Clie...
               </Text>
             ) : (
               <Text

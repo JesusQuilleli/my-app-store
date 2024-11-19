@@ -65,11 +65,16 @@ const RecuperarPass = ({navigation}) => {
       );
       setVerValidar(true);
     } catch (error) {
-      Alert.alert(
-        "Error",
-        error.response?.data?.error ||
-          "No se pudo enviar el código. Inténtalo nuevamente."
-      );
+      if (error.response.status === 404) {
+        Alert.alert("Error", "¡Correo no Registrado!");
+      } else {
+        Alert.alert(
+          "Error",
+          error.response?.data?.error ||
+            "No se pudo enviar el código. Inténtalo nuevamente."
+        );
+      }
+     
     } finally {
       setIsLoading(false);
     }
