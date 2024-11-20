@@ -169,6 +169,14 @@ const ProcesarVenta = ({
         return;
       }
 
+      if(primerAbono > totalPrecio){
+        Alert.alert(
+          "Error al procesar la venta.",
+          "No puedes abonar un monto superior a la deuda de la venta."
+        );
+        return;
+      }
+
       await procesarVenta();
 
       // Mostrar la alerta de éxito

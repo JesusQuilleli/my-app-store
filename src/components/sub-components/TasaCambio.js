@@ -6,6 +6,7 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 
 import axios from "axios";
@@ -17,31 +18,45 @@ import Checkbox from "expo-checkbox";
 
 const TasaCambio = () => {
   const [verTasas, setVerTasas] = useState([]);
+
+  const [isLoading, setIsLoading] = useState(false);
+
   const [moneda, setMoneda] = useState("BOLIVARES");
-  const [tasa, setTasa] = useState(0);
-  const [tasaAnterior, setTasaAnterior] = useState(null); // Estado para almacenar la tasa anterior
+  const [tasa, setTasa] = useState("");
+  const [tasaAnterior, setTasaAnterior] = useState(null);
 
   const cargarTasaUnica = async () => {
+    setIsLoading(true);
     const adminId = await AsyncStorage.getItem("adminId");
     try {
       const response = await axios.get(`${url}/verTasa/${adminId}`);
       setVerTasas(response.data.data); // Guarda la tasa única en el estado
     } catch (error) {
       console.error("Error al cargar la tasa de cambio:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const insertarOActualizarTasa = async () => {
+    setIsLoading(true);
     const adminId = await AsyncStorage.getItem("adminId");
     try {
-      const response = await axios.post(`${url}/insertarOActualizarTasa`, {
+      await axios.post(`${url}/insertarOActualizarTasa`, {
         moneda,
-        tasa,
+        tasa: parseFloat(tasa), // Asegúrate de usar el estado actualizado de `tasa`
         adminId,
       });
-      await cargarTasaUnica(); // Carga la tasa para ver el cambio
+      await cargarTasaUnica();
+      Alert.alert(
+        "Muy Bien", // Título del alert
+        "Tasa cargada.", // Mensaje
+        [{ text: "Vale" }]
+      );
     } catch (error) {
       console.error("Error al procesar la tasa de cambio:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -73,8 +88,48 @@ const TasaCambio = () => {
     await insertarOActualizarTasa();
 
     setTasa(0);
-
   };
+
+  const cargarTasaBCV = async () => {
+    setIsLoading(true); // Muestra un indicador de carga
+
+    try {
+      const response = await axios.get(
+        `https://pydolarve.org/api/v1/dollar?page=bcv`
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      const dolarBCV = response.data.monitors.usd;
+
+      setTasa(dolarBCV.price.toString()); // Actualiza el estado de la tasa
+
+    } catch (error) {
+      console.error("Error al obtener la tasa BCV", error);
+    } finally {
+      setIsLoading(false); // Oculta el indicador de carga
+    }
+  };
+
+  const handleTasaBCV = async () => {
+
+    try {
+      await cargarTasaBCV();
+ 
+      Alert.alert(
+        "Exito", // Título del alert
+        "Tasa Obtenida correctamente!", // Mensaje
+        [{ text: "Vale" }]
+      );
+    } catch (error) {
+      // Mostrar un mensaje en caso de error
+      Alert.alert(
+        "Error", // Título del alert
+        "Tasa no sincronizada.", // Mensaje
+        [{ text: "Vale" }]
+      );
+    }
+  };   
 
   useEffect(() => {
     // Solo recargar si hay un cambio en `verTasas`
@@ -86,7 +141,28 @@ const TasaCambio = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.titulo}>Tasa Usada</Text>
+      {isLoading && (
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(242, 243, 244, 0.8)",
+            zIndex: 1000,
+          }}
+        >
+          <ActivityIndicator
+            size="large"
+            color="#fee03e"
+            style={{ transform: [{ scale: 2 }] }}
+          />
+        </View>
+      )}
+      <Text style={[styles.titulo, {marginBottom: 20}]}>Tasa Usada</Text>
       <View style={styles.padreContent}>
         <View style={styles.content}>
           <View style={styles.ItemContent}>
@@ -127,7 +203,7 @@ const TasaCambio = () => {
         </View>
       </View>
 
-      <Text style={styles.titulo}>Cargar Tasa</Text>
+      <Text style={[styles.titulo, { marginBottom: 20 }]}>Ingresar Tasa</Text>
 
       <View style={[styles.padreContent]}>
         <View style={styles.content}>
@@ -170,13 +246,10 @@ const TasaCambio = () => {
             borderTopWidth: 1,
           }}
         >
-          <Text style={{ fontSize: 20, fontWeight: "800" }}>
-            Ingresa el valor de la Tasa
-          </Text>
           <TextInput
             keyboardType="numeric"
             style={styles.input}
-            placeholder="Escribe el Valor Ejemplo: 100"
+            placeholder="Ingresa el valor de la Tasa"
             value={tasa}
             onChangeText={(value) => {
               setTasa(value);
@@ -185,13 +258,24 @@ const TasaCambio = () => {
         </View>
       </View>
 
+      <View style={{width:'100%',flexDirection:'row',alignItems:'center', justifyContent:'space-evenly', marginTop: 26}}>
       <TouchableOpacity onPress={procesarTasa} style={styles.BtnTasa}>
         {verTasas.length > 0 ? (
-          <Text style={styles.BtnTasaText}>Actualizar</Text>
+          <Text style={styles.BtnTasaText}>Cargar Tasa</Text>
         ) : (
           <Text style={styles.BtnTasaText}>Guardar</Text>
         )}
       </TouchableOpacity>
+
+      {moneda !== 'PESOS' && (<TouchableOpacity
+        onPress={handleTasaBCV}
+        style={styles.BtnTasaBCV}
+      >
+        <Text style={styles.BtnTasaBCVText}>Obtener Tasa BCV</Text>
+      </TouchableOpacity>)}
+      </View>
+
+      
     </View>
   );
 };
@@ -207,7 +291,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 30,
     fontWeight: "bold",
-    marginVertical: 20,
+    marginTop: 20,
   },
   padreContent: {
     width: "80%",
@@ -244,13 +328,23 @@ const styles = StyleSheet.create({
     color: "#334155",
   },
   BtnTasa: {
-    marginTop: 30,
     backgroundColor: "#888",
     padding: 15,
     borderRadius: 12,
   },
+  BtnTasaBCV: {
+    backgroundColor: "maroon",
+    padding: 15,
+    borderRadius: 12,
+  },
+  BtnTasaBCVText: {
+    fontSize: 17,
+    fontWeight: "900",
+    textTransform: "uppercase",
+    color: "#FFF",
+  },
   BtnTasaText: {
-    fontSize: 28,
+    fontSize: 17,
     fontWeight: "900",
     textTransform: "uppercase",
     color: "#FFF",
@@ -259,5 +353,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "900",
     width: "100%",
+    fontSize: 20,
+    marginVertical: 20
   },
 });

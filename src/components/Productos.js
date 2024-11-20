@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, ActivityIndicator } from "react";
 import {
   View,
   Text,
@@ -73,6 +73,8 @@ const Productos = () => {
   //FORMULARIO PARA AGREGAR PRODUCTOS
   const [formProducto, setFormProducto] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  const [isLoadingLoad, setIsLoadingLoad] = useState(true);
 
   //TASAS
   const [verTasas, setVerTasas] = useState([]);
@@ -265,19 +267,27 @@ const Productos = () => {
 
   //FUNCION PARA SELECCIONAR PRODUCTO
   const productIndex = async (id) => {
-    await cargarTasaUnica();
-    const productoSeleccionado = productos.find(
-      (producto) => producto.ID_PRODUCTO === id
-    );
-    if (productoSeleccionado) {
-      setProducto({
-        ...productoSeleccionado,
-        IMAGEN: `${urlBase}${productoSeleccionado.IMAGEN}`,
-      });
-      setModalProducto(true);
-    } else {
-      console.log("Producto no encontrado");
+    setIsLoadingLoad(true);
+    try{
+      await cargarTasaUnica();
+      const productoSeleccionado = productos.find(
+        (producto) => producto.ID_PRODUCTO === id
+      );
+      if (productoSeleccionado) {
+        setProducto({
+          ...productoSeleccionado,
+          IMAGEN: `${urlBase}${productoSeleccionado.IMAGEN}`,
+        });
+        setModalProducto(true);
+      } else {
+        console.log("Producto no encontrado");
+      }
+    } catch (err) {
+      console.log("error al abrir producto" , err)
+    } finally {
+      setIsLoadingLoad(false);
     }
+   
   };
 
   //FUNCIONES COMPARTIR PRODUCTOS

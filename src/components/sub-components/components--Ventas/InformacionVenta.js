@@ -23,6 +23,10 @@ import FormasPagoVenta from "./FormasPagoVenta";
 import HistorialPagosVenta from "./HistorialPagosVenta.js";
 import HistorialProductosVenta from "./HistorialProductosVenta.js";
 
+import * as FileSystem from "expo-file-system";
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
+
 const InformacionVenta = ({
   setModalVentasDetalladas,
   ventasDetalladas,
@@ -52,6 +56,9 @@ const InformacionVenta = ({
   const [cedula, setCedula] = useState("");
   const [banco, setBanco] = useState("");
   const [telefonoPago, setTelefonoPago] = useState("");
+
+  //PDF
+  const [pdfRuta, setPdfRuta] = useState([]);
 
   const cargarPagoMovil = async () => {
     try {
@@ -102,15 +109,18 @@ const InformacionVenta = ({
   useEffect(() => {
     if (
       ventasDetalladas.MONTO_TOTAL !== undefined ||
-      ventasDetalladas.MONTO_PENDIENTE
+      ventasDetalladas.MONTO_PENDIENTE ||
+      ventasDetalladas.ID_VENTA
     ) {
       setLoading(false);
+      cargarHistorialVentas(ventasDetalladas.ID_VENTA);
       cargarPagoMovil();
     }
   }, [ventasDetalladas]);
 
   useEffect(() => {
     cargarPagoMovil();
+    cargarHistorialVentas(ventasDetalladas.ID_VENTA);
   }, []);
 
   const closeForm = () => {
@@ -262,6 +272,183 @@ const InformacionVenta = ({
         },
       ]
     );
+  };
+
+  //FACTURA //AGREGAR CONVERSION A BOLIVARES Y A DOLARES
+  const generarFactura = async (venta, productos) => {
+    // Crear el contenido de la factura con estilo y centrado
+    const htmlContent = `
+  <html>
+    <head>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          margin: 0;
+          padding: 0;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          background-color: #f9f9f9;
+          text-align: center;
+        }
+        .container {
+          width: 100%;
+          max-width: 600px;
+          padding: 20px;
+          box-sizing: border-box;
+          border: 1px solid #ccc;
+          border-radius: 8px;
+          background-color: white;
+        }
+        h1 {
+          font-size: 35px;
+          color: #4CAF50; /* Verde brillante */
+          margin-bottom: 10px;
+        }
+          .cliente {
+           font-size: 30px;
+          color: #555;
+          line-height: 1.6;
+          }
+        h3 {
+          font-size: 28px;
+          margin-bottom: 15px;
+          color: #333;
+        }
+        p {
+          font-size: 26px;
+          color: #555;
+          line-height: 1.6;
+        }
+          .estadoVenta{
+          font-size: 26px;
+          color: green;
+          line-height: 1.6;
+          }
+        ul {
+          list-style-type: none;
+          padding: 0;
+        }
+        ul li {
+          font-size: 24px;
+          color: #555;
+          margin: 8px 0;
+        }
+        .total {
+          font-size: 26px;
+          font-weight: bold;
+          color: #FF9800; /* Naranja vibrante */
+          margin-top: 20px;
+        }
+        .footer {
+          margin-top: 30px;
+          font-size: 15px;
+          color: #777;
+        }
+        .emoji {
+          font-size: 30px;
+          margin-bottom: 10px;
+        }
+        .thanks {
+          color: #4CAF50;
+          font-weight: bold;
+        }
+        /* Página A4, vertical */
+        @page {
+          size: A4;
+          margin: 20mm;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h1>🧾 Factura ${venta.ID_VENTA} 🧾</h1>
+        <div class="emoji">🎉</div>
+        <p class="cliente"><strong>Cliente:</strong> ${venta.CLIENTE}</p>
+        
+        <h3>📦 Productos:</h3>
+        <ul>
+          ${productos
+            .map(
+              (producto) => `
+            <li>🛍️ ${producto.CANTIDAD} x ${producto.PRODUCTO} - $${producto.PRECIO} c/u</li>
+          `
+            )
+            .join("")}
+        </ul>
+        
+        <p class="total">💰 <strong>Total Venta:</strong> $${
+          venta.MONTO_TOTAL
+        }</p>
+
+        <p class='estadoVenta'><strong>${venta.ESTADO_PAGO}</strong> </p>
+
+        <div class="footer">
+          <p class="thanks">Gracias por su compra! 🙏</p>
+        </div>
+      </div>
+    </body>
+  </html>
+`;
+
+    // Usamos expo-print para generar el PDF desde el HTML
+    const { uri } = await Print.printToFileAsync({ html: htmlContent });
+
+    // Guardar el PDF en el sistema de archivos de Expo
+    const fileUri =
+      FileSystem.documentDirectory +
+      `Factura_${venta.ID_VENTA} Cliente_${venta.CLIENTE}.pdf`;
+    await FileSystem.moveAsync({
+      from: uri,
+      to: fileUri,
+    });
+
+    return fileUri; // Retornamos la ruta del archivo PDF
+  };
+
+  const handleGenerarFactura = async () => {
+    try {
+      if (!ventasDetalladas || historialVentas.length === 0) {
+        Alert.alert(
+          "Error",
+          "No se encontraron los datos de la venta o productos."
+        );
+        return;
+      }
+
+      // Generar la factura
+      const rutaPdf = await generarFactura(ventasDetalladas, historialVentas);
+      setPdfRuta(rutaPdf);
+
+      // Mostrar opción para compartir
+      Alert.alert(
+        "Factura Generada",
+        "La factura se generó correctamente.",
+        [
+          {
+            text: "Compartir",
+            onPress: async () => {
+              try {
+                if (await Sharing.isAvailableAsync()) {
+                  await Sharing.shareAsync(rutaPdf); // Compartir el archivo PDF
+                } else {
+                  Alert.alert(
+                    "Error",
+                    "Compartir no está disponible en este dispositivo."
+                  );
+                }
+              } catch (error) {
+                console.error("Error al compartir la factura:", error);
+              }
+            },
+          },
+        ],
+        { cancelable: true }
+      );
+    } catch (error) {
+      console.error("Error al generar factura:", error);
+    }
   };
 
   return (
@@ -515,6 +702,16 @@ const InformacionVenta = ({
                 </View>
               </View>
             )}
+            {ventasDetalladas.ESTADO_PAGO === "PAGADO" && (
+              <TouchableOpacity
+                onPress={() => {
+                  handleGenerarFactura();
+                }}
+                style={styles.btnFactura}
+              >
+                <Text style={styles.btnFacturaText}>Generar Factura</Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
         <Modal visible={modalProcesarPago} animationType="slide">
@@ -681,6 +878,18 @@ const styles = StyleSheet.create({
     backgroundColor: "green",
     padding: 7.5,
     borderRadius: 50,
+  },
+  btnFactura: {
+    backgroundColor: "maroon",
+    padding: 8,
+    borderRadius: 50,
+  },
+  btnFacturaText: {
+    color: "#FFF",
+    textAlign: "center",
+    fontSize: 15,
+    textTransform: "uppercase",
+    fontWeight: "900",
   },
   BtnNotificar: {
     backgroundColor: "maroon",

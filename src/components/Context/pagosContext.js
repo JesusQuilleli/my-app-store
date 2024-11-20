@@ -1,5 +1,10 @@
 import React, { createContext, useState, useEffect } from "react";
 
+import {
+  View,
+  ActivityIndicator,
+} from "react-native";
+
 import { url } from "./../../helpers/url.js";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -10,6 +15,8 @@ export const PagosProvider = ({ children }) => {
   const [verPagos, setVerPagos] = useState([]);
   const [productos, setProductos] = useState([]);
   const [productoNoEncontrado, setProductoNoEncontrado] = useState(false);
+
+  const [isLoading, setIsLoading] = useState(true);
 
   //VENTAS
   const [ventasResumidas, setVentasResumidas] = useState([]);
@@ -168,6 +175,30 @@ export const PagosProvider = ({ children }) => {
     cargarClientes();
   }, []);
 
+  useEffect(() => {
+    if(verPagos){
+      setIsLoading(false);
+    }
+  }, [verPagos])
+
+  useEffect(() => {
+    if(productos){
+      setIsLoading(false);
+    }
+  }, [productos])
+
+  useEffect(() => {
+    if(clientes){
+      setIsLoading(false);
+    }
+  }, [clientes])
+
+  useEffect(() => {
+    if(ventasResumidas){
+      setIsLoading(false);
+    }
+  }, [ventasResumidas])
+
   return (
     <PagosContext.Provider
       value={{
@@ -187,7 +218,27 @@ export const PagosProvider = ({ children }) => {
         setClientes,
         cargarClientes
       }}
-    >
+    >{isLoading && (
+      <View
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#f2f2f2",
+          zIndex: 1000,
+        }}
+      >
+        <ActivityIndicator
+          size="large"
+          color="#fee03e"
+          style={{ transform: [{ scale: 2 }] }}
+        />
+      </View>
+    )}
       {children}
     </PagosContext.Provider>
   );

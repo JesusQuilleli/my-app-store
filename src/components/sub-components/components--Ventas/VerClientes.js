@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   FlatList,
   TextInput,
+  ActivityIndicator
 } from "react-native";
 
 import FontAwesome from "@expo/vector-icons/FontAwesome";
@@ -25,9 +26,17 @@ const VerClientes = ({
 
   const [clienteNoEncontrado, setClienteNoEncontrado] = useState(false);
 
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     cargarClientes();
   }, []);
+
+  useEffect(() => {
+    if(clientes){
+      setLoading(false)
+    }
+  }, [clientes]);
 
   //SELECCIONAR CLIENTE
   const toggleSelection = (ID_CLIENTE, NOMBRE) => {
@@ -121,7 +130,11 @@ const VerClientes = ({
           </View>
         )}
 
-        <View style={styles.tableVentas}>
+        {loading ? (<View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#fee03e" />
+          </View>) :
+
+        (<View style={styles.tableVentas}>
           <FlatList
             data={clientes}
             renderItem={({ item }) => (
@@ -129,7 +142,7 @@ const VerClientes = ({
             )}
             keyExtractor={(item) => item.ID_CLIENTE.toString()}
           />
-        </View>
+        </View>)}
       </View>
     </View>
   );
@@ -200,5 +213,11 @@ const styles = StyleSheet.create({
   nombre: {
     fontSize: 18,
     fontWeight: "bold",
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 50
   },
 });

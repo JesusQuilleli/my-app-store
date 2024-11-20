@@ -63,7 +63,11 @@ const Ventas = () => {
   //PARA ELIMINAR VENTAS
   const [ventasSeleccionadas, setVentasSeleccionadas] = useState([]);
   const [modoSeleccion, setModoSeleccion] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [ocultarTotales, setOcultarTotales] = useState(true);
+  //BOTON DE BUSQUEDA
+  const [renderBusqueda, setRenderBusqueda] = useState(false);
 
   //TASAS
   const [verTasas, setVerTasas] = useState([]);
@@ -79,6 +83,40 @@ const Ventas = () => {
         0
       )
     : "No disponible";
+
+  const totalesRecoger = () => {
+    let totalRecogido = 0;
+    let totalPorRecoger = 0;
+    let pendiente = 0;
+
+    ventasResumidas.forEach((venta) => {
+      if (venta.ESTADO_PAGO === "PAGADO") {
+        totalRecogido += parseFloat(venta.MONTO_TOTAL);
+      }
+
+      if (venta.ESTADO_PAGO === "PENDIENTE") {
+        totalPorRecoger += parseFloat(venta.MONTO_PENDIENTE);
+      }
+
+      pendiente = totalRecogido - totalPorRecoger;
+    });
+
+    const totalGlobal = totalRecogido + totalPorRecoger;
+    const porcentajePorCobrar =
+      totalGlobal > 0 ? (totalPorRecoger / totalGlobal) * 100 : 0;
+
+    const porcentajePendiente = 100 - porcentajePorCobrar;
+
+    return {
+      totalRecogido,
+      totalPorRecoger,
+      pendiente,
+      porcentajePorCobrar,
+      porcentajePendiente,
+    };
+  };
+
+  const totales = totalesRecoger();
 
   //FUNCION CARGAR TASAS
   const cargarTasaUnica = async () => {
@@ -289,8 +327,10 @@ const Ventas = () => {
 
     if (value === "PENDIENTE" || value === "PAGADO") {
       await cargarVentasEstadoPago(value); // Pasamos el estado de pago seleccionado
+      setOcultarTotales(false);
     } else {
       await cargarVentas(); // Si el valor es diferente, cargamos todas las ventas
+      setOcultarTotales(true);
     }
   };
 
@@ -394,6 +434,12 @@ const Ventas = () => {
     cargarTasaUnica();
   }, []);
 
+  useEffect(() => {
+    if (clientes) {
+      setIsLoading(false);
+    }
+  }, [clientes]);
+
   const Item = ({ venta, cliente, fecha, estado, seleccionado }) => (
     <View style={[styles.item, seleccionado && styles.itemSeleccionado]}>
       <Text style={styles.codigoVenta}>Codigo {venta}</Text>
@@ -463,6 +509,19 @@ const Ventas = () => {
             <Picker.Item label="Pagadas" value="PAGADO" />
           </Picker>
         </View>
+
+        {ventasResumidas.length > 0 && (
+            <TouchableOpacity
+              style={styles.btnBusqueda}
+              onPress={() => {
+                setRenderBusqueda(!renderBusqueda);
+              }}
+            >
+              <Text>
+                <FontAwesome name="search" size={24} color="black" />
+              </Text>
+            </TouchableOpacity>
+          )}
       </View>
 
       {verFecha && (
@@ -501,7 +560,7 @@ const Ventas = () => {
         </View>
       )}
 
-      <View style={styles.boxInput}>
+      {renderBusqueda && (<View style={styles.boxInput}>
         <View style={styles.contentButtonAndInput}>
           <View style={styles.input}>
             <TextInput
@@ -518,7 +577,61 @@ const Ventas = () => {
             />
           </View>
         </View>
-      </View>
+      </View>)}
+
+      {ocultarTotales && !renderBusqueda && (<View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-around",
+          width: "100%",
+          marginVertical: 8,
+          padding: 10,
+        }}
+      >
+        
+        
+        <View style={{ alignItems: "center", justifyContent: "center" }}>
+          <Text style={styles.labelTotal}>COBRADO</Text>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-around",
+              width: 90,
+            }}
+          >
+           {totales.pendiente !== 0 ? (<Text style={styles.valorTotal}>
+              <Text style={{ fontSize: 12, textAlign: "center" }}>
+              {totales.pendiente.toFixed(2)}$
+              </Text>
+
+              {totales.pendiente !== 0.00 && (<Text style={{ fontSize: 10, textAlign: "center" }}>
+              {""} {totales.porcentajePendiente.toFixed(2)}%
+              </Text>)}
+            </Text>) : (<Text style={{fontSize: 10, fontWeight: '900'}}>No se ha cobrado.</Text>)}
+          </View>
+        </View>
+        <View style={{ alignItems: "center", justifyContent: "flex-start" }}>
+          <Text style={styles.labelTotal}>POR COBRAR</Text>
+          <Text style={styles.valorTotal}>
+            {totales.totalPorRecoger !== 0 ?(<Text style={{ fontSize: 12 }}>
+              {totales.totalPorRecoger.toFixed(2)}$
+            </Text>) : (<Text style={{fontSize: 10}}>Aún no hay por cobrar</Text>)}
+            {totales.totalPorRecoger !== 0 && (<Text style={{ fontSize: 10, textAlign: "center" }}>
+              {""} {totales.porcentajePorCobrar.toFixed(2)}%
+            </Text>)}
+          </Text>
+        </View>
+        <View style={{ alignItems: "center", justifyContent: "flex-start" }}>
+          <Text style={styles.labelTotal}>TOTAL RECIBIDO</Text>
+          <Text style={styles.valorTotal}>
+            {totales.totalRecogido !== 0 ? (<Text style={{ fontSize: 12 }}>
+              {totales.totalRecogido.toFixed(2)}$
+            </Text>) : (<Text style={{fontSize: 10}}>Aún no se ha recibido</Text>)}
+          </Text>
+        </View>
+      </View>)}
 
       {ventasResumidas.length === 0 && (
         <View style={{ alignItems: "center", marginTop: 15 }}>
@@ -818,5 +931,23 @@ const styles = StyleSheet.create({
     margin: 10,
     borderRadius: 50,
     alignItems: "center",
+  },
+  labelTotal: {
+    fontWeight: "800",
+    fontSize: 12,
+  },
+  valorTotal: {
+    fontWeight: "900",
+    fontSize: 15,
+  },
+  btnBusqueda: {
+    backgroundColor: "#fcd53f",
+    padding: 10,
+    borderRadius: 50,
+    marginLeft: 5,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
   },
 });

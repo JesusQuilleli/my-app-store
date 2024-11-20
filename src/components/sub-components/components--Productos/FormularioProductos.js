@@ -622,7 +622,7 @@ const FormularioProductos = ({
                   placeholder=""
                   placeholderTextColor={"#ccc"}
                   keyboardType="numeric"
-                  value={parseInt(cantidad)}
+                  value={cantidad}
                   onChangeText={(cantidad) => {
                     if (
                       cantidad.includes(",") ||
