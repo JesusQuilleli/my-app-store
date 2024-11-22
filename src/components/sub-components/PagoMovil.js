@@ -38,7 +38,7 @@ const PagoMovil = () => {
   };
 
   const guardarPagoMovil = async () => {
-    setIsLoading(true);
+    
     if (!adminId) {
       Alert.alert("Error", "No se encontró el ID del administrador.");
       return;
@@ -58,6 +58,8 @@ const PagoMovil = () => {
       Alert.alert("Error", "El Telefono es Requerido.");
       return;
     }
+
+    setIsLoading(true);
 
     try {
       // Verificar si ya existe un Pago Móvil registrado
@@ -95,7 +97,7 @@ const PagoMovil = () => {
   };
 
   const eliminarPagoMovil = async () => {
-    setIsLoading(true);
+    
     try {
       if (!adminId) {
         Alert.alert(
@@ -104,6 +106,8 @@ const PagoMovil = () => {
         );
         return;
       }
+
+      setIsLoading(true);
 
       // Elimina los datos
       await AsyncStorage.removeItem(`adminPagoMovil_${adminId}`);

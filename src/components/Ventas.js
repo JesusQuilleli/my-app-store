@@ -42,6 +42,7 @@ const Ventas = () => {
     ventasResumidas,
     setVentasResumidas,
     cargarVentas,
+    cargarDevoluciones
   } = useContext(PagosContext);
 
   //CLIENTES Y PRODUCTOS
@@ -230,6 +231,10 @@ const Ventas = () => {
   const closeForm = () => {
     setFormVentas(false);
   };
+
+  const closeInformacionVentas = () => {
+    setModalVentasDetalladas(false);
+  }
 
   //FUNCION SELECCIONAR FECHA INICIAL
   const showDatepickerInicial = () => {
@@ -511,17 +516,17 @@ const Ventas = () => {
         </View>
 
         {ventasResumidas.length > 0 && (
-            <TouchableOpacity
-              style={styles.btnBusqueda}
-              onPress={() => {
-                setRenderBusqueda(!renderBusqueda);
-              }}
-            >
-              <Text>
-                <FontAwesome name="search" size={24} color="black" />
-              </Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            style={styles.btnBusqueda}
+            onPress={() => {
+              setRenderBusqueda(!renderBusqueda);
+            }}
+          >
+            <Text>
+              <FontAwesome name="search" size={24} color="black" />
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {verFecha && (
@@ -560,78 +565,102 @@ const Ventas = () => {
         </View>
       )}
 
-      {renderBusqueda && (<View style={styles.boxInput}>
-        <View style={styles.contentButtonAndInput}>
-          <View style={styles.input}>
-            <TextInput
-              placeholder="Buscar por Cedula"
-              placeholderTextColor="#888"
-              style={{ textAlign: "center" }}
-              onChangeText={(value) => {
-                if (value.length > 0) {
-                  cargarVentasPorCedula(value);
-                } else {
-                  cargarVentas();
-                }
+      {renderBusqueda && (
+        <View style={styles.boxInput}>
+          <View style={styles.contentButtonAndInput}>
+            <View style={styles.input}>
+              <TextInput
+                placeholder="Buscar por Cedula"
+                placeholderTextColor="#888"
+                style={{ textAlign: "center" }}
+                onChangeText={(value) => {
+                  if (value.length > 0) {
+                    cargarVentasPorCedula(value);
+                  } else {
+                    cargarVentas();
+                  }
+                }}
+              />
+            </View>
+          </View>
+        </View>
+      )}
+
+      {ocultarTotales && !renderBusqueda && (
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-around",
+            width: "100%",
+            marginVertical: 8,
+            padding: 10,
+          }}
+        >
+          <View style={{ alignItems: "center", justifyContent: "center" }}>
+            <Text style={styles.labelTotal}>COBRADO</Text>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-around",
+                width: 90,
               }}
-            />
+            >
+              {totales.pendiente > 0 ? (
+                <Text style={styles.valorTotal}>
+                  <Text style={{ fontSize: 12, textAlign: "center" }}>
+                    {totales.pendiente.toFixed(2)}$
+                  </Text>
+
+                  {totales.pendiente !== 0.0 && (
+                    <Text style={{ fontSize: 10, textAlign: "center" }}>
+                      {""} {totales.porcentajePendiente.toFixed(2)}%
+                    </Text>
+                  )}
+                </Text>
+              ) : totales.pendiente < 0 ? (
+                <Text style={{ fontSize: 10, fontWeight: "900", textAlign:'center', textTransform:'uppercase' }}>
+                  Pendiente por cobrar
+                </Text>
+              ) : (
+                <Text style={{ fontSize: 10, fontWeight: "900", textAlign:'center' }}>
+                  No se ha cobrado.
+                </Text>
+              )}
+            </View>
+          </View>
+          <View style={{ alignItems: "center", justifyContent: "flex-start" }}>
+            <Text style={styles.labelTotal}>POR COBRAR</Text>
+            <Text style={styles.valorTotal}>
+              {totales.totalPorRecoger !== 0 ? (
+                <Text style={{ fontSize: 12 }}>
+                  {totales.totalPorRecoger.toFixed(2)}$
+                </Text>
+              ) : (
+                <Text style={{ fontSize: 10 }}>Aún no hay por cobrar</Text>
+              )}
+              {totales.totalPorRecoger !== 0 && (
+                <Text style={{ fontSize: 10, textAlign: "center" }}>
+                  {""} {totales.porcentajePorCobrar.toFixed(2)}%
+                </Text>
+              )}
+            </Text>
+          </View>
+          <View style={{ alignItems: "center", justifyContent: "flex-start" }}>
+            <Text style={styles.labelTotal}>TOTAL RECIBIDO</Text>
+            <Text style={styles.valorTotal}>
+              {totales.totalRecogido !== 0 ? (
+                <Text style={{ fontSize: 12 }}>
+                  {totales.totalRecogido.toFixed(2)}$
+                </Text>
+              ) : (
+                <Text style={{ fontSize: 10 }}>Aún no se ha recibido</Text>
+              )}
+            </Text>
           </View>
         </View>
-      </View>)}
-
-      {ocultarTotales && !renderBusqueda && (<View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-around",
-          width: "100%",
-          marginVertical: 8,
-          padding: 10,
-        }}
-      >
-        
-        
-        <View style={{ alignItems: "center", justifyContent: "center" }}>
-          <Text style={styles.labelTotal}>COBRADO</Text>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-around",
-              width: 90,
-            }}
-          >
-           {totales.pendiente !== 0 ? (<Text style={styles.valorTotal}>
-              <Text style={{ fontSize: 12, textAlign: "center" }}>
-              {totales.pendiente.toFixed(2)}$
-              </Text>
-
-              {totales.pendiente !== 0.00 && (<Text style={{ fontSize: 10, textAlign: "center" }}>
-              {""} {totales.porcentajePendiente.toFixed(2)}%
-              </Text>)}
-            </Text>) : (<Text style={{fontSize: 10, fontWeight: '900'}}>No se ha cobrado.</Text>)}
-          </View>
-        </View>
-        <View style={{ alignItems: "center", justifyContent: "flex-start" }}>
-          <Text style={styles.labelTotal}>POR COBRAR</Text>
-          <Text style={styles.valorTotal}>
-            {totales.totalPorRecoger !== 0 ?(<Text style={{ fontSize: 12 }}>
-              {totales.totalPorRecoger.toFixed(2)}$
-            </Text>) : (<Text style={{fontSize: 10}}>Aún no hay por cobrar</Text>)}
-            {totales.totalPorRecoger !== 0 && (<Text style={{ fontSize: 10, textAlign: "center" }}>
-              {""} {totales.porcentajePorCobrar.toFixed(2)}%
-            </Text>)}
-          </Text>
-        </View>
-        <View style={{ alignItems: "center", justifyContent: "flex-start" }}>
-          <Text style={styles.labelTotal}>TOTAL RECIBIDO</Text>
-          <Text style={styles.valorTotal}>
-            {totales.totalRecogido !== 0 ? (<Text style={{ fontSize: 12 }}>
-              {totales.totalRecogido.toFixed(2)}$
-            </Text>) : (<Text style={{fontSize: 10}}>Aún no se ha recibido</Text>)}
-          </Text>
-        </View>
-      </View>)}
+      )}
 
       {ventasResumidas.length === 0 && (
         <View style={{ alignItems: "center", marginTop: 15 }}>
@@ -731,6 +760,9 @@ const Ventas = () => {
           TasaBolivares={TasaBolivares}
           TasaPesos={TasaPesos}
           cargarVentas={cargarVentas}
+          cargarProductos={cargarProductos}
+          closeInformacionVentas={closeInformacionVentas}
+          cargarDevoluciones={cargarDevoluciones}
         />
       </Modal>
     </View>

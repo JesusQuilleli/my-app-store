@@ -24,6 +24,9 @@ export const PagosProvider = ({ children }) => {
   //CLIENTES
   const [clientes, setClientes] = useState([]);
 
+  //DEVOLUCIONES
+  const [devolucionesAll, setDevolucionesAll] = useState([]);
+
   // Función para cargar los pagos desde el servidor
   const cargarPagos = async () => {
     try {
@@ -165,6 +168,28 @@ export const PagosProvider = ({ children }) => {
     } catch (error) {
       console.error("Ha ocurrido un error al cargar Clientes", error)
     }
+  }; 
+
+  //DEVOLUCIONES
+  const cargarDevoluciones = async () => {
+    try{
+      const adminIdString = await AsyncStorage.getItem("adminId");
+      if (adminIdString === null) {
+        console.log("ID de administrador no encontrado.");
+        return;
+      }
+      const adminId = parseInt(adminIdString, 10);
+      if (isNaN(adminId)) {
+        console.log("ID de administrador no es un número válido.");
+        return;
+      }
+
+      const response = await axios.get(`${url}/cargarDevoluciones/${adminId}`);
+      const resultadoDevoluciones = response.data.result;
+      setDevolucionesAll(resultadoDevoluciones);
+    } catch (error) {
+      console.error("Ha ocurrido un error al cargar Clientes", error)
+    }
   };
 
   // Efecto para cargar los pagos al iniciar el contexto
@@ -173,9 +198,10 @@ export const PagosProvider = ({ children }) => {
     cargarProductos();
     cargarVentas();
     cargarClientes();
+    cargarDevoluciones(); 
   }, []);
 
-  useEffect(() => {
+  useEffect(() => { 
     if(verPagos){
       setIsLoading(false);
     }
@@ -199,6 +225,12 @@ export const PagosProvider = ({ children }) => {
     }
   }, [ventasResumidas])
 
+  useEffect(() => {
+    if(devolucionesAll){
+      setIsLoading(false);
+    }
+  }, [devolucionesAll])
+
   return (
     <PagosContext.Provider
       value={{
@@ -216,7 +248,9 @@ export const PagosProvider = ({ children }) => {
         cargarVentas,
         clientes,
         setClientes,
-        cargarClientes
+        cargarClientes,
+        devolucionesAll,
+        cargarDevoluciones
       }}
     >{isLoading && (
       <View

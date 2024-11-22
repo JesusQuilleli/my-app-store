@@ -21,7 +21,7 @@ import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import Fontisto from "@expo/vector-icons/Fontisto";
 
 const Resumen = () => {
-  const { verPagos, ventasResumidas, productos, clientes } =
+  const { verPagos, ventasResumidas, productos, clientes, cargarVentas } =
     useContext(PagosContext);
 
   //PUSHEAR NOTIFICACIONES
@@ -110,9 +110,9 @@ const Resumen = () => {
     }
   };
 
-  useEffect(() => {
-    registerForPushNotifications();
-    verificarInventario();
+  useEffect(() => {  
+    registerForPushNotifications(); 
+    verificarInventario(); 
   }, []);
 
   return (
@@ -194,7 +194,7 @@ const Resumen = () => {
             <MaterialIcons name="point-of-sale" size={40} color="gray" />
           </Text>
           <Text style={styles.nro}>
-            {verPagos.length === 0 ? (
+            {ventasResumidas.length === 0 ? (
               <Text style={{ fontSize: 12, textTransform: "uppercase" }}>
                 Sin Ventas
               </Text>

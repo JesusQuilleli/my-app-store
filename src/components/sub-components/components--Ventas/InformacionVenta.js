@@ -13,6 +13,7 @@ import {
 
 import Entypo from "@expo/vector-icons/Entypo";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { formatearFecha } from "../../../helpers/validaciones.js";
 
 import { url } from "../../../helpers/url.js";
@@ -22,6 +23,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import FormasPagoVenta from "./FormasPagoVenta";
 import HistorialPagosVenta from "./HistorialPagosVenta.js";
 import HistorialProductosVenta from "./HistorialProductosVenta.js";
+import DevolucionesProcesar from "./DevolucionesProcesar.js";
 
 import * as FileSystem from "expo-file-system";
 import * as Print from "expo-print";
@@ -34,11 +36,17 @@ const InformacionVenta = ({
   TasaBolivares,
   TasaPesos,
   cargarVentas,
+  cargarProductos,
+  closeInformacionVentas,
+  cargarDevoluciones
 }) => {
   const ABONO = (
     parseFloat(ventasDetalladas.MONTO_TOTAL) -
     parseFloat(ventasDetalladas.MONTO_PENDIENTE)
   ).toFixed(2);
+
+  const VENTA_ID = ventasDetalladas.ID_VENTA;
+  const CLIENTE = ventasDetalladas.CLIENTE;
 
   //CARGA
   const [loading, setLoading] = useState(true);
@@ -47,6 +55,7 @@ const InformacionVenta = ({
   const [modalProcesarPago, setModalProcesarPago] = useState(false);
   const [modalHistorialPagos, setModalHistorialPagos] = useState(false);
   const [modalProductosVendidos, setModalProductosVendidos] = useState(false);
+  const [modalDevolucion, setModalDevolucion] = useState(false);
 
   //ALMACENAR HISTORIAL DE PAGOS
   const [historialPagos, setHistorialPagos] = useState([]);
@@ -59,6 +68,23 @@ const InformacionVenta = ({
 
   //PDF
   const [pdfRuta, setPdfRuta] = useState([]);
+
+  //MOSTRAR BOTON DEVOLUCION
+  const fechaVenta = new Date(ventasDetalladas.FECHA);
+  const fechaActual = new Date();
+
+  // Función para calcular la diferencia en días
+  const calcularDiferenciaDias = (fecha1, fecha2) => {
+    const diferencia = fecha2 - fecha1; // Diferencia en milisegundos
+    const dias = diferencia / (1000 * 3600 * 24); // Convertir a días
+    return dias;
+  };
+
+  // Calcular la diferencia en días desde la venta
+  const diasDesdeVenta = calcularDiferenciaDias(fechaVenta, fechaActual);
+
+  // Condición para mostrar u ocultar el botón
+  const mostrarBotonDevolucion = diasDesdeVenta <= 3;
 
   const cargarPagoMovil = async () => {
     try {
@@ -120,7 +146,7 @@ const InformacionVenta = ({
 
   useEffect(() => {
     cargarPagoMovil();
-    cargarHistorialVentas(ventasDetalladas.ID_VENTA);
+    cargarHistorialVentas(VENTA_ID);
   }, []);
 
   const closeForm = () => {
@@ -275,137 +301,172 @@ const InformacionVenta = ({
   };
 
   //FACTURA //AGREGAR CONVERSION A BOLIVARES Y A DOLARES
-  const generarFactura = async (venta, productos) => {
-    // Crear el contenido de la factura con estilo y centrado
+  const generarFactura = async (venta, productos, TasaBolivares, TasaPesos) => {
+
+    const fechaActual = new Date();
+    const fechaFormateada = `${fechaActual
+      .getDate()
+      .toString()
+      .padStart(2, "0")}/${(fechaActual.getMonth() + 1)
+      .toString()
+      .padStart(2, "0")}/${fechaActual.getFullYear()}`;
+  
+    // Calcular las conversiones
+    const montoEnBolivares = (venta.MONTO_TOTAL * TasaBolivares).toFixed(2);
+    const montoEnPesos = (venta.MONTO_TOTAL * TasaPesos).toFixed(2);
+  
     const htmlContent = `
-  <html>
-    <head>
-      <style>
-        body {
-          font-family: Arial, sans-serif;
-          margin: 0;
-          padding: 0;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          height: 100vh;
-          background-color: #f9f9f9;
-          text-align: center;
-        }
-        .container {
-          width: 100%;
-          max-width: 600px;
-          padding: 20px;
-          box-sizing: border-box;
-          border: 1px solid #ccc;
-          border-radius: 8px;
-          background-color: white;
-        }
-        h1 {
-          font-size: 35px;
-          color: #4CAF50; /* Verde brillante */
-          margin-bottom: 10px;
-        }
-          .cliente {
-           font-size: 30px;
-          color: #555;
-          line-height: 1.6;
+    <html>
+      <head>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
           }
-        h3 {
-          font-size: 28px;
-          margin-bottom: 15px;
-          color: #333;
-        }
-        p {
-          font-size: 26px;
-          color: #555;
-          line-height: 1.6;
-        }
-          .estadoVenta{
-          font-size: 26px;
-          color: green;
-          line-height: 1.6;
+          .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
           }
-        ul {
-          list-style-type: none;
-          padding: 0;
-        }
-        ul li {
-          font-size: 24px;
-          color: #555;
-          margin: 8px 0;
-        }
-        .total {
-          font-size: 26px;
-          font-weight: bold;
-          color: #FF9800; /* Naranja vibrante */
-          margin-top: 20px;
-        }
-        .footer {
-          margin-top: 30px;
-          font-size: 15px;
-          color: #777;
-        }
-        .emoji {
-          font-size: 30px;
-          margin-bottom: 10px;
-        }
-        .thanks {
-          color: #4CAF50;
-          font-weight: bold;
-        }
-        /* Página A4, vertical */
-        @page {
-          size: A4;
-          margin: 20mm;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <h1>🧾 Factura ${venta.ID_VENTA} 🧾</h1>
-        <div class="emoji">🎉</div>
-        <p class="cliente"><strong>Cliente:</strong> ${venta.CLIENTE}</p>
-        
-        <h3>📦 Productos:</h3>
-        <ul>
-          ${productos
-            .map(
-              (producto) => `
-            <li>🛍️ ${producto.CANTIDAD} x ${producto.PRODUCTO} - $${producto.PRECIO} c/u</li>
-          `
-            )
-            .join("")}
-        </ul>
-        
-        <p class="total">💰 <strong>Total Venta:</strong> $${
-          venta.MONTO_TOTAL
-        }</p>
-
-        <p class='estadoVenta'><strong>${venta.ESTADO_PAGO}</strong> </p>
-
-        <div class="footer">
-          <p class="thanks">Gracias por su compra! 🙏</p>
+          .header {
+            text-align: center;
+            margin-bottom: 20px;
+          }
+          .header img {
+            width: 100px;
+            height: auto;
+          }
+          .header h1 {
+            font-size: 28px;
+            color: #800000; /* Color maroon */
+            margin: 10px 0;
+          }
+          .header p {
+            font-size: 16px;
+            color: #777;
+          }
+          .info {
+            margin-bottom: 20px;
+            font-size: 18px;
+            line-height: 1.6;
+          }
+          .info strong {
+            color: #333;
+          }
+          .productos {
+            margin-top: 20px;
+            border-collapse: collapse;
+            width: 100%;
+          }
+          .productos th, .productos td {
+            border: 1px solid #ddd;
+            text-align: left;
+            padding: 8px;
+          }
+          .productos th {
+            background-color: #800000; /* Color maroon */
+            color: white;
+          }
+          .total {
+            text-align: right;
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+          }
+          .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 14px;
+            color: #777;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <img src="https://via.placeholder.com/100" alt="Logo Empresa">
+            <h1>Factura #${venta.ID_VENTA}</h1>
+          </div>
+          <div class="info">
+            <p><strong>Cliente:</strong> ${venta.CLIENTE}</p>
+            <p><strong>Fecha:</strong> ${fechaFormateada}</p>
+            <p><strong>Estado de pago:</strong> ${venta.ESTADO_PAGO}</p>
+          </div>
+          <table class="productos">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario ($)</th>
+                <th>Precio Unitario (Bs.)</th>
+                <th>Precio Unitario (Pesos)</th>
+                <th>Subtotal ($)</th>
+                <th>Subtotal (Bs.)</th>
+                <th>Subtotal (Pesos)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${productos
+                .map(
+                  (producto) => {
+                    const precioBolivares = (producto.PRECIO * TasaBolivares).toFixed(2);
+                    const precioPesos = (producto.PRECIO * TasaPesos).toFixed(2);
+                    const subtotal = (producto.CANTIDAD * producto.PRECIO).toFixed(2);
+                    const subtotalBolivares = (producto.CANTIDAD * producto.PRECIO * TasaBolivares).toFixed(2);
+                    const subtotalPesos = (producto.CANTIDAD * producto.PRECIO * TasaPesos).toFixed(2);
+  
+                    return `
+                      <tr>
+                        <td>${producto.PRODUCTO}</td>
+                        <td>${producto.CANTIDAD}</td>
+                        <td>$${producto.PRECIO}</td>
+                        <td>Bs.${precioBolivares}</td>
+                        <td>$${precioPesos}</td>
+                        <td>$${subtotal}</td>
+                        <td>Bs.${subtotalBolivares}</td>
+                        <td>$${subtotalPesos}</td>
+                      </tr>
+                    `;
+                  }
+                )
+                .join("")}
+            </tbody>
+          </table>
+          <p class="total">Total: $${venta.MONTO_TOTAL}</p>
+          <p class="total">Total en Bolívares: Bs.${montoEnBolivares}</p>
+          <p class="total">Total en Pesos: $${montoEnPesos}</p>
+          <div class="footer">
+            <p>Gracias por su compra. Si tiene alguna pregunta, no dude en contactarnos.</p>
+            <p><strong>Contacto:</strong> ejemplo@empresa.com | Tel: (123) 456-7890</p>
+          </div>
         </div>
-      </div>
-    </body>
-  </html>
-`;
-
-    // Usamos expo-print para generar el PDF desde el HTML
+      </body>
+    </html>
+    `;
+  
+    // Generar PDF con expo-print
     const { uri } = await Print.printToFileAsync({ html: htmlContent });
-
-    // Guardar el PDF en el sistema de archivos de Expo
+  
+    // Guardar el PDF en el sistema de archivos
     const fileUri =
       FileSystem.documentDirectory +
-      `Factura_${venta.ID_VENTA} Cliente_${venta.CLIENTE}.pdf`;
+      `Factura_${venta.ID_VENTA}_Cliente_${venta.CLIENTE}.pdf`;
     await FileSystem.moveAsync({
       from: uri,
       to: fileUri,
     });
-
-    return fileUri; // Retornamos la ruta del archivo PDF
+  
+    return fileUri; // Ruta del archivo PDF
   };
+  
 
   const handleGenerarFactura = async () => {
     try {
@@ -418,7 +479,7 @@ const InformacionVenta = ({
       }
 
       // Generar la factura
-      const rutaPdf = await generarFactura(ventasDetalladas, historialVentas);
+      const rutaPdf = await generarFactura(ventasDetalladas, historialVentas, TasaBolivares, TasaPesos);
       setPdfRuta(rutaPdf);
 
       // Mostrar opción para compartir
@@ -709,9 +770,17 @@ const InformacionVenta = ({
                 }}
                 style={styles.btnFactura}
               >
-                <Text style={styles.btnFacturaText}>Generar Factura</Text>
+                <Entypo name="text-document" size={35} color="#FFF" />
               </TouchableOpacity>
             )}
+
+           {mostrarBotonDevolucion && (<TouchableOpacity 
+           onPress={() => {
+            setModalDevolucion(true);
+           }}
+           style={styles.Btndevolucion}>
+            <MaterialCommunityIcons name="account-remove-outline" size={30} color="black" />
+            </TouchableOpacity>)}
           </View>
         )}
         <Modal visible={modalProcesarPago} animationType="slide">
@@ -740,6 +809,20 @@ const InformacionVenta = ({
             historialVentas={historialVentas}
           />
         </Modal>
+
+        <Modal visible={modalDevolucion} animationType="fade">
+        <DevolucionesProcesar
+        setModalDevolucion={setModalDevolucion}
+        CLIENTE={CLIENTE}
+        VENTA_ID={VENTA_ID}
+        historialVentas={historialVentas}
+        cargarVentas={cargarVentas}
+        cargarProductos={cargarProductos}
+        closeInformacionVentas={closeInformacionVentas}
+        cargarDevoluciones={cargarDevoluciones}
+        />
+        </Modal>
+        
       </View>
     </ScrollView>
   );
@@ -884,16 +967,9 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 50,
   },
-  btnFacturaText: {
-    color: "#FFF",
-    textAlign: "center",
-    fontSize: 15,
-    textTransform: "uppercase",
-    fontWeight: "900",
-  },
   BtnNotificar: {
     backgroundColor: "maroon",
-    padding: 1.5,
+    padding: 5,
     borderRadius: 50,
     position: "absolute",
     top: -15,
@@ -907,6 +983,25 @@ const styles = StyleSheet.create({
     color: "#FFF",
     textAlign: "center",
     fontSize: 10,
+    textTransform: "uppercase",
+    fontWeight: "900",
+  },
+  Btndevolucion:{
+    backgroundColor: "#C70039",
+    padding: 5,
+    borderRadius: 50,
+    position: "absolute",
+    bottom: 5,
+    right: 5,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  BtndevolucionText:{
+    color: "#000",
+    textAlign: "center",
+    fontSize: 11.5,
     textTransform: "uppercase",
     fontWeight: "900",
   },

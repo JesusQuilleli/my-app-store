@@ -33,7 +33,7 @@ const InformacionPagos = ({ setInfoPagos, pagoSeleccionado }) => {
         <ActivityIndicator size="large" color="#fee03e" />
       </View>
     );
-  }
+  };
 
   const Item = ({
     CLIENTE,

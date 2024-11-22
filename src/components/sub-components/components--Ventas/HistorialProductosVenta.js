@@ -25,12 +25,16 @@ const HistorialProductosVenta = ({
     }
   }, [historialVentas]);
 
-  const Item = ({ PRODUCTO, CANTIDAD }) => (
+  const Item = ({ PRODUCTO, DESCRIPCION, CANTIDAD }) => (
     <View style={styles.item}>
       <Text style={styles.nombreProducto}>{PRODUCTO}</Text>
       <Text style={styles.defecto}>
+        Descripción: <Text style={{ color: "#000" }}>{DESCRIPCION}</Text>
+      </Text>
+      <Text style={styles.defecto}>
         Cantidad: <Text style={{ color: "#000" }}>{CANTIDAD}</Text>
       </Text>
+      
     </View>
   );
 
@@ -57,7 +61,7 @@ const HistorialProductosVenta = ({
             keyExtractor={(item) => `${item.VENTA_ID}-${item.ID_PRODUCTO}`}
             style={styles.tablePagos}
             renderItem={({ item }) => (
-              <Item PRODUCTO={item.PRODUCTO} CANTIDAD={item.CANTIDAD} />
+              <Item PRODUCTO={item.PRODUCTO} DESCRIPCION={item.DESCRIPCION} CANTIDAD={item.CANTIDAD} />
             )}
           />
         )}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -39,6 +39,7 @@ const ProcesarVenta = ({
   const [estadoPago, setEstadoPago] = useState("PAGADO");
   const [primerAbono, setPrimerAbono] = useState(0);
   const [opciones, setOpciones] = useState("NO");
+  const FechaActual = new Date();
 
   //CARGA
   const [isLoading, setIsLoading] = useState(false);
@@ -71,12 +72,12 @@ const ProcesarVenta = ({
     const productoEnCarrito = productosCarrito.find(
       (item) => item.ID_PRODUCTO === producto.ID_PRODUCTO
     );
-  
+
     if (!productoEnCarrito) {
       console.log("El producto no está en el carrito");
       return;
     }
-  
+
     // Aumentar la cantidad en la lista de productos
     const productosActualizados = productos.map((item) => {
       if (item.ID_PRODUCTO === producto.ID_PRODUCTO) {
@@ -85,7 +86,7 @@ const ProcesarVenta = ({
       return item;
     });
     setProductos(productosActualizados);
-  
+
     // Quitar o actualizar el producto en el carrito
     let carritoActualizado;
     if (productoEnCarrito.CANTIDAD > 1) {
@@ -109,34 +110,36 @@ const ProcesarVenta = ({
     try {
       // Obtener el ID del administrador desde AsyncStorage
       const adminId = await AsyncStorage.getItem("adminId");
-  
+
       // Calcular monto pendiente si aplica
       const totalPendiente = totalPrecio - primerAbono;
-  
+
       // Preparar los datos de la venta
       const ventaData = {
         clienteId: clienteSeleccionado.ID_CLIENTE,
         pagoTotal: parseFloat(parseFloat(totalPrecio).toFixed(2)),
         montoPendiente:
-        tipoPago === "POR ABONO" ? parseFloat(totalPendiente.toFixed(2)) : 0,
+          tipoPago === "POR ABONO" ? parseFloat(totalPendiente.toFixed(2)) : 0,
         fechaVenta: fecha.toISOString().slice(0, 10),
         estadoPago: tipoPago === "AL CONTADO" ? "PAGADO" : "PENDIENTE",
         tipoPago: tipoPago,
         administradorId: adminId,
       };
-  
+
       // 1. Procesar el carrito: Enviar el array completo de productos
       try {
         await axios.put(`${url}/updateProductosStock`, productosCarrito); // Enviar todos los productos
       } catch (error) {
         console.error("Error al actualizar el stock de los productos", error);
-        throw new Error("No se pudo actualizar el stock. Verifica los productos.");
+        throw new Error(
+          "No se pudo actualizar el stock. Verifica los productos."
+        );
       }
-  
+
       // 2. Registrar la venta en la base de datos
       const response = await axios.post(`${url}/procesarVenta`, ventaData);
       const ventaId = response.data.ID_VENTA;
-  
+
       // 3. Registrar los productos de la venta
       try {
         await axios.post(`${url}/ventaProductos`, {
@@ -147,12 +150,15 @@ const ProcesarVenta = ({
         console.error("Error al registrar los productos de la venta", error);
         throw new Error("Error al registrar los productos en la venta.");
       }
-  
+
       // Limpiar el carrito después de procesar la venta
       setProductosCarrito([]);
     } catch (error) {
       console.error("Error al procesar la venta", error);
-      Alert.alert("Error", "Ocurrió un error al procesar la venta. Inténtalo nuevamente.");
+      Alert.alert(
+        "Error",
+        "Ocurrió un error al procesar la venta. Inténtalo nuevamente."
+      );
     } finally {
       setIsLoading(false); // Finaliza la carga
     }
@@ -169,7 +175,7 @@ const ProcesarVenta = ({
         return;
       }
 
-      if(primerAbono > totalPrecio){
+      if (primerAbono > totalPrecio) {
         Alert.alert(
           "Error al procesar la venta.",
           "No puedes abonar un monto superior a la deuda de la venta."
@@ -177,26 +183,48 @@ const ProcesarVenta = ({
         return;
       }
 
-      await procesarVenta();
+      if (fecha > FechaActual) {
+        Alert.alert(
+          "Error al procesar la venta.",
+          "No puedes realizar una venta en fechas futuras."
+        );
+        return;
+      }
+
+      setIsLoading(true);
 
       // Mostrar la alerta de éxito
-      Alert.alert("Éxito", "Venta procesada exitosamente.", [
-        {
-          text: "Vale",
-          onPress: () => {
-            // Aquí limpias los campos que necesites
-            setProductosCarrito([]); // Limpia el carrito de productos
-            setPrimerAbono(""); // Limpia el campo de abono
-            cargarVentas();
-            cargarProductos();
-            setModalVenta(false);
-            closeForm();
+      Alert.alert(
+        "Confirmación",
+        "¿Estás seguro de que deseas procesar la venta?",
+        [
+          {
+            text: "Cancelar", // Opción para cancelar
+            onPress: () => {
+              
+            },
+            style: "cancel", // Estilo específico para dar énfasis de cancelación
           },
-        },
-      ]);
+          {
+            text: "Aceptar", // Opción para confirmar la venta
+            onPress: async () => {
+              await procesarVenta();
+              // Aquí limpias los campos que necesites
+              setProductosCarrito([]); // Limpia el carrito de productos
+              setPrimerAbono(""); // Limpia el campo de abono
+              cargarVentas();
+              cargarProductos();
+              setModalVenta(false);
+              closeForm();
+            },
+          },
+        ]
+      );
     } catch (error) {
       console.error("Error al procesar la venta", error);
       Alert.alert("Error", "Ocurrió un error al procesar la venta.");
+    } finally {
+      setIsLoading(false);
     }
   };
 

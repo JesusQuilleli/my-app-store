@@ -10,6 +10,9 @@ import {
 import Home from "../../screens/Home";
 import TasaCambio from "./sub-components/TasaCambio";
 import PagoMovil from "./sub-components/PagoMovil";
+import Devoluciones from "./Devoluciones";
+
+import { PagosProvider } from "./Context/pagosContext";
 
 import { formatearFecha } from "../helpers/validaciones";
 
@@ -18,6 +21,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import Foundation from "@expo/vector-icons/Foundation";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 const Drawer = createDrawerNavigator();
 
@@ -151,6 +155,7 @@ function CustomDrawerContent(props) {
 
 export default function HomeDrawer() {
   return (
+    <PagosProvider>
     <Drawer.Navigator
       initialRouteName="Home"
       drawerContent={(props) => <CustomDrawerContent {...props} />}
@@ -221,6 +226,28 @@ export default function HomeDrawer() {
         }}
       />
       <Drawer.Screen
+        name="Devoluciones"
+        component={Devoluciones}
+        options={{
+          title: "Devoluciones",
+          headerTitleAlign: "center", // Centra el título en el header
+          drawerIcon: ({ focused }) => (
+            <MaterialCommunityIcons
+              name="account-remove-outline"
+              size={24}
+              color={focused ? "#fee03e" : "#888"}
+            />
+          ),
+          drawerLabelStyle: {
+            marginLeft: -10, // Ajusta la distancia entre el ícono y el título
+            fontSize: 16,
+            color: "#333",
+            fontWeight: "bold",
+          },
+          headerTitle: "", // Si no quieres texto en el header
+        }}
+      />
+      <Drawer.Screen
         name="PagoMovil"
         component={PagoMovil}
         options={{
@@ -243,5 +270,6 @@ export default function HomeDrawer() {
         }}
       />
     </Drawer.Navigator>
+    </PagosProvider>
   );
 }

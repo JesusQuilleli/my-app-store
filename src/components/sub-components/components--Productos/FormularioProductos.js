@@ -406,11 +406,15 @@ const FormularioProductos = ({
       return;
     }
 
+    setIsLoading(true);
+
     try {
       updateProduct(productInteger);
       cargarProductos();
     } catch (error) {
       console.error("Error al modificar el producto:", error);
+    } finally {
+      setIsLoading(true);
     }
   };
 

@@ -8,6 +8,7 @@ import {
   Modal,
   FlatList,
   Alert,
+  ActivityIndicator
 } from "react-native";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -20,9 +21,11 @@ import VerClientes from "./VerClientes.js";
 
 import axios from "axios";
 import {url} from './../../../helpers/url.js'
-//import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
+
+//ALMACENAMIENTO LOCAL
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const FormularioVenta = ({
   setFormVentas,
@@ -52,6 +55,8 @@ const FormularioVenta = ({
   //RENDER INFORMACION
   const [productoNoEncontrado, setProductoNoEncontrado] = useState(false);
 
+  const [isLoading, setIsLoading] = useState(false);
+
   //FUNCION COMPROBAR CARRITO PARA PODER CAMBIAR CLIENTE
   const comprobarCarrito = () => {
     if (productosCarrito.length > 0) {
@@ -72,7 +77,7 @@ const FormularioVenta = ({
     setModalSelectClient(false); // Cierra el modal después de seleccionar el cliente
   };
 
-  //PRUEBA
+  //FUNCION PARA AGREGAR PRODUCTOS AL CARRITO
   const agregarProductoAlCarrito = (producto) => {
     if (clienteSeleccionado.NOMBRE === "") {
       Alert.alert(
@@ -126,7 +131,17 @@ const FormularioVenta = ({
   //FUNCION BUSCAR PRODUCTOS
   const searchProducto = async (nombre) => {
     try {
-      const response = await axios.get(`${url}/buscarProductos`, {
+      const adminIdString = await AsyncStorage.getItem("adminId");
+      if (adminIdString === null) {
+        console.log("ID de administrador no encontrado.");
+        return;
+      }
+      const adminId = parseInt(adminIdString, 10);
+      if (isNaN(adminId)) {
+        console.log("ID de administrador no es un número válido.");
+        return;
+      }
+      const response = await axios.get(`${url}/buscarProductos/${adminId}`, {
         params: { nombre: nombre },
       });
 
@@ -166,13 +181,22 @@ const FormularioVenta = ({
   };
 
   useEffect(() => {
-    cargarProductos();
-  }, []); 
+    cargarProductos();    
+  }, []);
+
+  useEffect(() => {
+    if(productos){
+      setIsLoading(false)
+    } else {
+      setIsLoading(true)
+    }
+  }, [productos]); 
   
-  const Item = ({ nombre, cantidad, precio, agregar }) => (
+  const Item = ({ nombre,descripcion, cantidad, precio, agregar }) => (
     <View style={styles.item}>
       <View style={styles.textContainer}>
         <Text style={styles.nombreText}>{nombre}</Text>
+        <Text style={styles.defectoDescripcion}>{descripcion}</Text>
         <Text style={styles.defecto}>
           <Text style={cantidad > 1 ? { color: "#0e6a00" } : { color: "#f00" }}>
             {cantidad}
@@ -282,7 +306,6 @@ const FormularioVenta = ({
             onChangeText={(value) => {
               if (value.length > 0) {
                 searchProducto(value);
-                setProductoNoEncontrado(true);
               } else {
                 verProductos();
                 setProductoNoEncontrado(false);
@@ -291,7 +314,7 @@ const FormularioVenta = ({
           />
         </View>
 
-        {productoNoEncontrado && (
+        {productoNoEncontrado && productos.length === 0 &&(
           <View style={styles.noSearch}>
             <Text style={styles.noSearchText}>
               No se ha Encontrado el Producto
@@ -299,7 +322,7 @@ const FormularioVenta = ({
           </View>
         )}
 
-        {productos.length === 0 && (
+        {productos.length === 0 && !productoNoEncontrado && (
           <View style={{ marginTop: 20 }}>
             <Text style={{ fontSize: 24, color: "#FFF", fontWeight: "900" }}>
               No hay Productos Disponibles
@@ -307,20 +330,28 @@ const FormularioVenta = ({
           </View>
         )}
 
-        <View style={styles.tableProductos}>
+        {productos.length !== 0 && !isLoading && (<View style={styles.tableProductos}>
+        
           <FlatList
             data={productos}
             keyExtractor={(item) => item.ID_PRODUCTO}
             renderItem={({ item }) => (
               <Item
                 nombre={item.PRODUCTO}
+                descripcion={item.DESCRIPCION}
                 cantidad={item.CANTIDAD}
                 precio={item.PRECIO}
                 agregar={() => agregarProductoAlCarrito(item)}
               />
             )}
           />
-        </View>
+
+        </View>)}
+
+          {isLoading && productos.length === 0 && !productoNoEncontrado &&(<View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#fee03e" />
+          </View>)}
+          
       </View>
 
       <View style={{ alignItems: "center", marginTop: 6 }}>
@@ -508,7 +539,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     textTransform: "capitalize",
     color: "#000",
-    letterSpacing: 5,
     fontStyle: "italic",
   },
   defecto: {
@@ -516,6 +546,12 @@ const styles = StyleSheet.create({
     color: "#888",
     fontWeight: "800",
     textTransform: "uppercase",
+  },
+  defectoDescripcion:{
+    fontSize: 16,
+    color: "#000",
+    fontWeight: "800",
+    
   },
   btnAgregarProducto: {
     backgroundColor: "#0e6a00",
@@ -528,5 +564,12 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     paddingHorizontal: 20,
     borderRadius: 10,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1000,
+    paddingVertical: 200
   },
 });

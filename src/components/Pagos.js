@@ -14,7 +14,6 @@ import {
 import axios from "axios";
 import { url } from "./../helpers/url.js";
 
-import Entypo from "@expo/vector-icons/Entypo";
 import InformacionPagos from "./sub-components/components--Pagos/InformacionPagos.js";
 
 import { formatearFecha } from "../helpers/validaciones";
